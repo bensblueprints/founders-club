@@ -86,7 +86,7 @@ const UPCOMING_EVENTS = [
             }
         ],
         image: '/images/gathering-event.jpg',
-        status: 'upcoming'
+        status: 'open'
     },
     // ===== APRIL 2026 =====
     {
@@ -128,7 +128,7 @@ const UPCOMING_EVENTS = [
             }
         ],
         image: '/images/gathering-event.jpg',
-        status: 'upcoming'
+        status: 'open'
     },
     // ===== MAY 2026 =====
     {
@@ -170,7 +170,7 @@ const UPCOMING_EVENTS = [
             }
         ],
         image: '/images/gathering-event.jpg',
-        status: 'upcoming'
+        status: 'open'
     },
     // ===== JUNE 2026 =====
     {
@@ -212,7 +212,7 @@ const UPCOMING_EVENTS = [
             }
         ],
         image: '/images/gathering-event.jpg',
-        status: 'upcoming'
+        status: 'open'
     },
     // ===== JULY 2026 =====
     {
@@ -254,7 +254,7 @@ const UPCOMING_EVENTS = [
             }
         ],
         image: '/images/gathering-event.jpg',
-        status: 'upcoming'
+        status: 'open'
     }
 ];
 

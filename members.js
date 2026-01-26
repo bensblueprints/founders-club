@@ -31,6 +31,16 @@ function initDirectory() {
         navProfile.style.display = 'flex';
         navAvatar.textContent = user.firstName[0] + user.lastName[0];
         navProfile.href = 'profile.html';
+
+        // Show admin link for admin users
+        const adminRoles = ['owner', 'admin', 'organiser'];
+        if (adminRoles.includes(user.memberType)) {
+            const navLinks = document.querySelector('.nav-links');
+            const adminLink = document.createElement('a');
+            adminLink.href = 'admin.html';
+            adminLink.textContent = 'Admin';
+            navLinks.insertBefore(adminLink, navProfile);
+        }
     }
 
     // Load members
