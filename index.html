@@ -533,11 +533,13 @@
     </section>
 
     <!-- FAQ Section -->
-    <section id="faq" class="faq-section">
-        <div class="section-header">
-            <span class="section-number">04</span>
-            <h2 class="section-title">Frequently Asked Questions</h2>
-        </div>
+    <section id="faq" class="faq-section" style="background: rgba(201, 162, 39, 0.03); border-top: 1px solid rgba(201, 162, 39, 0.1); border-bottom: 1px solid rgba(201, 162, 39, 0.1); padding: 80px 40px; max-width: none;">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p style="color: rgba(255,255,255,0.6); margin-top: 16px; font-size: 1.1rem;">Everything you need to know before applying</p>
+            </div>
 
         <div class="faq-container">
             <div class="faq-item">
@@ -612,6 +614,7 @@
                 </div>
             </div>
         </div>
+        </div>
     </section>
 
     <!-- Application Section (CTA to open modal) -->
@@ -627,13 +630,15 @@
             </div>
 
             <div style="text-align: center; margin-top: 40px;">
-                <button type="button" class="submit-btn" onclick="openApplicationModal()" style="font-size: 1.1rem; padding: 18px 40px;">
-                    <span>Apply Now</span>
+                <button type="button" class="submit-btn" onclick="openApplicationModal()" style="font-size: 1.2rem; padding: 20px 50px;">
+                    <span>Apply Now & Pay</span>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <p style="margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Apply & pay to secure your spot • Full refund if not accepted</p>
+                <p style="margin-top: 20px; color: rgba(255,255,255,0.6); font-size: 1rem;">
+                    Secure your spot with payment • <span style="color: #10b981;">Full refund if not accepted</span>
+                </p>
             </div>
         </div>
     </section>
@@ -832,18 +837,22 @@
                     </label>
                 </div>
 
-                <button type="submit" class="submit-btn" id="applicationSubmitBtn">
-                    <span id="submitBtnText">Submit & Pay to Apply</span>
-                    <span id="submitSpinner" style="display: none;">Processing...</span>
+                <button type="submit" class="submit-btn" id="applicationSubmitBtn" style="font-size: 1.1rem; padding: 18px 40px;">
+                    <span id="submitBtnText">Apply Now & Pay</span>
+                    <span id="submitSpinner" style="display: none;">Processing payment...</span>
                     <svg id="submitBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
 
-                <p class="form-disclaimer">
-                    <strong>Apply & Pay:</strong> Your payment secures your spot. Applications reviewed within 48 hours.<br>
-                    <span style="color: #10b981;">✓ Full refund if not accepted—no questions asked.</span>
-                </p>
+                <div class="form-disclaimer" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                    <p style="margin: 0; color: rgba(255,255,255,0.9);">
+                        <strong style="color: #10b981;">100% Risk-Free:</strong> Your payment secures your spot. We review applications within 48 hours.
+                    </p>
+                    <p style="margin: 8px 0 0 0; color: #10b981; font-weight: 500;">
+                        ✓ Full refund if not accepted—no questions asked.
+                    </p>
+                </div>
             </form>
         </div>
     </div>
@@ -1093,8 +1102,17 @@
             btnText.style.display = 'none';
             arrow.style.display = 'none';
             spinner.style.display = 'inline';
+            spinner.textContent = 'Validating...';
 
             try {
+                // Check if membership is selected
+                const membershipSelected = document.querySelector('input[name="membership"]:checked');
+                if (!membershipSelected) {
+                    throw new Error('Please select a membership option (Dinner Only or Dinner + Cruise)');
+                }
+
+                spinner.textContent = 'Preparing payment...';
+
                 // Collect form data
                 const formData = {
                     firstName: document.getElementById('firstName').value,
@@ -1131,6 +1149,8 @@
                     createdAt: new Date().toISOString()
                 };
                 localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplication));
+
+                spinner.textContent = 'Creating payment...';
 
                 // Create payment intent
                 const paymentResponse = await fetch('/.netlify/functions/create-payment', {
@@ -1169,6 +1189,12 @@
 
                 // If Airwallex not configured (mock mode), submit application directly
                 console.log('Airwallex not configured, submitting application directly...');
+                spinner.textContent = 'Processing payment...';
+
+                // Simulate payment processing delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                spinner.textContent = 'Submitting application...';
 
                 const result = await Database.submitApplication({
                     ...formData,
@@ -1184,9 +1210,11 @@
                 // Clear pending application
                 localStorage.removeItem('founders_vietnam_pending_application');
 
-                // Show success
+                // Show success and redirect to success page
                 closeApplicationModal();
-                alert(`Thank you, ${formData.firstName}! Your application has been submitted.\n\nWe'll review it within 48 hours and email you at ${formData.email}.\n\nIf not accepted, your payment of $${price} will be refunded in full.`);
+
+                // Redirect to payment success page
+                window.location.href = `payment-success.html?order=${paymentResult.orderId || 'APP-' + Date.now()}&type=application`;
 
             } catch (error) {
                 console.error('Application error:', error);
