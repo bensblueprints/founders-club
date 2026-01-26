@@ -416,6 +416,23 @@
                     </svg>
                     Send Welcome Email
                 </button>
+                <button class="action-btn issue-ticket" onclick="Admin.showIssueTicketModal()" style="background: rgba(201, 162, 39, 0.1); border-color: rgba(201, 162, 39, 0.3); color: #c9a227;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/>
+                        <path d="M2 14v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4"/>
+                        <path d="M2 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/>
+                        <path d="M18 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/>
+                        <line x1="6" y1="10" x2="18" y2="10"/>
+                    </svg>
+                    Issue Ticket
+                </button>
+                <button class="action-btn send-invite" onclick="Admin.sendInvite()" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: #3b82f6;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Send Invite
+                </button>
                 <button class="action-btn delete" onclick="Admin.deleteMember()" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
@@ -557,6 +574,48 @@
                     <button type="button" class="btn-primary" onclick="Admin.acceptApplication(Admin.currentApplicationId)">Accept & Send Welcome Email</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Issue Ticket Modal -->
+    <div class="modal" id="issueTicketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Issue Ticket</h2>
+                <button class="close-modal" onclick="Admin.closeModal('issueTicketModal')">&times;</button>
+            </div>
+            <form id="issueTicketForm" onsubmit="Admin.issueTicket(event)">
+                <div class="form-group">
+                    <label>Issuing to:</label>
+                    <p id="issueTicketMemberName" style="color: #c9a227; font-weight: 500; margin: 5px 0 15px;"></p>
+                </div>
+                <div class="form-group">
+                    <label>Select Event *</label>
+                    <select id="issueTicketEvent" required onchange="Admin.updateTicketOptions()">
+                        <option value="">Choose an event...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ticket Type *</label>
+                    <select id="issueTicketType" required>
+                        <option value="">Choose ticket type...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reason / Notes</label>
+                    <input type="text" id="issueTicketReason" placeholder="e.g., Speaker comp, VIP guest, etc.">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="issueTicketSendEmail" checked>
+                        Send confirmation email to member
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="Admin.closeModal('issueTicketModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Issue Ticket</button>
+                </div>
+            </form>
         </div>
     </div>
 

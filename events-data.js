@@ -18,10 +18,36 @@ const UPCOMING_EVENTS = [
         address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
         description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
         capacity: 50,
+        dinnerCapacity: 50,
         cruiseCapacity: 30,
         spotsRemaining: 35,
+        dinnerSpotsRemaining: 35,
         cruiseSpotsRemaining: 22,
         isPlatinumEvent: false,
+        speakers: [
+            {
+                id: 'benjamin',
+                name: 'Benjamin',
+                topic: 'Conversion Rates & Optimization',
+                description: 'Proven strategies to improve conversion rates and maximize revenue',
+                badge: '8-Figure Earner',
+                pullProfilePhoto: true
+            },
+            {
+                id: 'prithamesh',
+                name: 'Prithamesh',
+                topic: 'Facebook Ads Mastery',
+                description: 'Scaling with Facebook advertising in 2026',
+                pullProfilePhoto: true
+            },
+            {
+                id: 'saurabh',
+                name: 'Saurabh',
+                topic: 'Email Marketing',
+                description: 'Building profitable email campaigns that convert',
+                pullProfilePhoto: true
+            }
+        ],
         tickets: [
             {
                 id: 'dinner-feb',
@@ -29,6 +55,7 @@ const UPCOMING_EVENTS = [
                 price: 149,
                 currency: 'USD',
                 description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
+                capacity: 50,
                 perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
             },
             {
@@ -40,6 +67,7 @@ const UPCOMING_EVENTS = [
                 includesDinner: true,
                 includesCruise: true,
                 isPlatinum: true,
+                capacity: 30,
                 perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
             }
         ],

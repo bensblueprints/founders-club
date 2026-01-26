@@ -170,12 +170,67 @@
                 return;
             }
 
-            grid.innerHTML = events.map(event => `
+            grid.innerHTML = events.map(event => {
+                // Get speaker profile photos from members list
+                const members = Auth.getMembers ? Auth.getMembers() : [];
+                const getSpeakerPhoto = (speakerName) => {
+                    const member = members.find(m =>
+                        m.firstName?.toLowerCase() === speakerName.toLowerCase() ||
+                        `${m.firstName} ${m.lastName}`.toLowerCase().includes(speakerName.toLowerCase())
+                    );
+                    return member?.profilePhoto || member?.avatar || null;
+                };
+
+                const getSpeakerInitials = (name) => {
+                    const parts = name.split(' ');
+                    return parts.length > 1 ? parts[0][0] + parts[1][0] : name.substring(0, 2);
+                };
+
+                const speakersHtml = event.speakers && event.speakers.length > 0 ? `
+                    <div class="event-speakers" style="margin: 15px 0; padding: 15px; background: rgba(201, 162, 39, 0.08); border-radius: 8px; border: 1px solid rgba(201, 162, 39, 0.2);">
+                        <h4 style="color: #c9a227; font-size: 0.85rem; font-family: 'Outfit', sans-serif; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Featured Speakers</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${event.speakers.map(speaker => {
+                                const photo = speaker.pullProfilePhoto ? getSpeakerPhoto(speaker.name) : null;
+                                return `
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    ${photo ?
+                                        `<img src="${photo}" alt="${speaker.name}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 162, 39, 0.5);">` :
+                                        `<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #c9a227, #b8922a); display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-weight: 600; font-size: 0.85rem;">${getSpeakerInitials(speaker.name)}</div>`
+                                    }
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="color: white; font-weight: 500;">${speaker.name}</span>
+                                            ${speaker.badge ? `<span style="background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${speaker.badge}</span>` : ''}
+                                        </div>
+                                        <span style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">${speaker.topic}</span>
+                                    </div>
+                                </div>
+                            `}).join('')}
+                        </div>
+                    </div>
+                ` : '';
+
+                const capacityHtml = `
+                    <div class="event-capacity" style="display: flex; gap: 15px; margin: 10px 0; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="text-align: center; flex: 1;">
+                            <div style="color: #c9a227; font-size: 1.3rem; font-weight: 600;">${event.dinnerSpotsRemaining || event.spotsRemaining}/${event.dinnerCapacity || event.capacity}</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Dinner Tickets</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div style="text-align: center; flex: 1;">
+                            <div style="color: #c9a227; font-size: 1.3rem; font-weight: 600;">${event.cruiseSpotsRemaining}/${event.cruiseCapacity}</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Cruise Tickets</div>
+                        </div>
+                    </div>
+                `;
+
+                return `
                 <div class="event-card ${event.isPlatinumEvent ? 'platinum-event' : ''}">
                     ${event.isPlatinumEvent ? '<div class="platinum-badge">Platinum Event</div>' : ''}
                     <div class="event-card-header">
                         <span class="event-type">${event.type}</span>
-                        <span class="event-spots ${event.spotsRemaining < 5 ? 'low' : ''}">${event.spotsRemaining} spots left</span>
+                        <span class="event-spots ${event.spotsRemaining < 10 ? 'low' : ''}">${event.spotsRemaining} spots left</span>
                     </div>
                     <h3 class="event-card-title">${event.name}</h3>
                     <div class="event-card-meta">
@@ -203,6 +258,8 @@
                             <span>${event.location}</span>
                         </div>
                     </div>
+                    ${speakersHtml}
+                    ${capacityHtml}
                     <p class="event-card-description">${event.description.substring(0, 150)}${event.description.length > 150 ? '...' : ''}</p>
                     <div class="event-card-footer">
                         <span class="event-price">From $${Math.min(...event.tickets.map(t => t.price))}</span>
@@ -211,7 +268,7 @@
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function openBookingModal(eventId) {

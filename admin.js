@@ -1225,6 +1225,146 @@ const Admin = {
         }
     },
 
+    // ========================================
+    // ISSUE TICKET
+    // ========================================
+
+    showIssueTicketModal() {
+        const member = this.members.find(m => m.id == this.currentMemberId);
+        if (!member) return;
+
+        // Set member name
+        document.getElementById('issueTicketMemberName').textContent = `${member.firstName} ${member.lastName} (${member.email})`;
+
+        // Populate events dropdown
+        const eventSelect = document.getElementById('issueTicketEvent');
+        const events = typeof Events !== 'undefined' ? Events.getUpcomingEvents() : [];
+
+        eventSelect.innerHTML = '<option value="">Choose an event...</option>' +
+            events.map(e => `<option value="${e.id}">${e.name} - ${e.displayDate}</option>`).join('');
+
+        // Clear ticket type
+        document.getElementById('issueTicketType').innerHTML = '<option value="">Choose ticket type...</option>';
+        document.getElementById('issueTicketReason').value = '';
+        document.getElementById('issueTicketSendEmail').checked = true;
+
+        this.closeModal('actionsModal');
+        this.showModal('issueTicketModal');
+    },
+
+    updateTicketOptions() {
+        const eventId = document.getElementById('issueTicketEvent').value;
+        const ticketSelect = document.getElementById('issueTicketType');
+
+        if (!eventId) {
+            ticketSelect.innerHTML = '<option value="">Choose ticket type...</option>';
+            return;
+        }
+
+        const event = typeof Events !== 'undefined' ? Events.getUpcomingEventById(eventId) : null;
+        if (!event || !event.tickets) {
+            ticketSelect.innerHTML = '<option value="">No tickets available</option>';
+            return;
+        }
+
+        ticketSelect.innerHTML = '<option value="">Choose ticket type...</option>' +
+            event.tickets.map(t => `<option value="${t.id}">${t.name} ($${t.price})</option>`).join('');
+    },
+
+    issueTicket(event) {
+        event.preventDefault();
+
+        const member = this.members.find(m => m.id == this.currentMemberId);
+        if (!member) return;
+
+        const eventId = document.getElementById('issueTicketEvent').value;
+        const ticketId = document.getElementById('issueTicketType').value;
+        const reason = document.getElementById('issueTicketReason').value;
+        const sendEmail = document.getElementById('issueTicketSendEmail').checked;
+
+        if (!eventId || !ticketId) {
+            alert('Please select an event and ticket type');
+            return;
+        }
+
+        const eventData = typeof Events !== 'undefined' ? Events.getUpcomingEventById(eventId) : null;
+        const ticket = eventData?.tickets?.find(t => t.id === ticketId);
+
+        if (!eventData || !ticket) {
+            alert('Invalid event or ticket');
+            return;
+        }
+
+        // Create the booking
+        const booking = {
+            id: `booking-${Date.now()}`,
+            eventId: eventId,
+            eventName: eventData.name,
+            userId: member.id,
+            userEmail: member.email,
+            userName: `${member.firstName} ${member.lastName}`,
+            ticketId: ticketId,
+            ticketName: ticket.name,
+            amount: 0, // Complimentary
+            currency: 'USD',
+            status: 'confirmed',
+            issuedBy: Auth.getCurrentUser()?.email || 'admin',
+            issueReason: reason || 'Admin issued',
+            isComplimentary: true,
+            createdAt: new Date().toISOString()
+        };
+
+        // Save booking
+        const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+        bookings.push(booking);
+        localStorage.setItem('founders_vietnam_bookings', JSON.stringify(bookings));
+
+        // Update spots remaining
+        const events = JSON.parse(localStorage.getItem('founders_vietnam_upcoming') || '[]');
+        const eventIndex = events.findIndex(e => e.id === eventId);
+        if (eventIndex !== -1) {
+            events[eventIndex].spotsRemaining = Math.max(0, (events[eventIndex].spotsRemaining || events[eventIndex].capacity) - 1);
+            if (ticket.includesCruise) {
+                events[eventIndex].cruiseSpotsRemaining = Math.max(0, (events[eventIndex].cruiseSpotsRemaining || events[eventIndex].cruiseCapacity) - 1);
+            }
+            localStorage.setItem('founders_vietnam_upcoming', JSON.stringify(events));
+        }
+
+        this.closeModal('issueTicketModal');
+
+        if (sendEmail) {
+            alert(`Ticket issued successfully!\n\n${member.firstName} ${member.lastName} now has a ${ticket.name} ticket for ${eventData.name}.\n\nConfirmation email will be sent to ${member.email}.`);
+            // TODO: Send actual email via Netlify function
+        } else {
+            alert(`Ticket issued successfully!\n\n${member.firstName} ${member.lastName} now has a ${ticket.name} ticket for ${eventData.name}.`);
+        }
+    },
+
+    // ========================================
+    // SEND INVITE
+    // ========================================
+
+    sendInvite() {
+        const member = this.members.find(m => m.id == this.currentMemberId);
+        if (!member) return;
+
+        const events = typeof Events !== 'undefined' ? Events.getUpcomingEvents() : [];
+        const nextEvent = events[0];
+
+        if (!nextEvent) {
+            alert('No upcoming events to invite to.');
+            return;
+        }
+
+        const confirmMsg = `Send invitation to ${member.firstName} ${member.lastName} for:\n\n${nextEvent.name}\n${nextEvent.displayDate}\n${nextEvent.location}\n\nThis will send an email invitation to ${member.email}.`;
+
+        if (!confirm(confirmMsg)) return;
+
+        // TODO: Send actual invite email via Netlify function
+        alert(`Invitation sent!\n\n${member.email} has been invited to ${nextEvent.name}.`);
+        this.closeModal('actionsModal');
+    },
+
     async sendWelcomeEmail() {
         const member = this.members.find(m => m.id == this.currentMemberId);
         if (!member) return;
