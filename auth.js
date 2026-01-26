@@ -254,6 +254,7 @@ const Auth = {
 
     // Login
     async login(email, password) {
+        // Try Supabase first if configured
         if (this.useSupabase()) {
             const result = await Database.signIn(email, password);
             if (!result.error) {
@@ -262,14 +263,15 @@ const Auth = {
                     userId: result.data.user.id,
                     loggedInAt: new Date().toISOString()
                 }));
+                return true;
             }
-            return !result.error;
+            // If Supabase fails, fall through to localStorage
         }
 
-        // localStorage fallback
+        // localStorage fallback (also used for demo accounts)
         const members = this.getMembersSync();
         const user = members.find(m => m.email === email && m.password === password);
-        
+
         if (user) {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
                 userId: user.id,
