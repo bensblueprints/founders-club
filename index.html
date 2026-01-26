@@ -693,6 +693,8 @@
     <!-- Application Modal -->
     <div class="modal" id="applicationModal">
         <div class="modal-content modal-large" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <!-- Step 1: Application Form -->
+            <div id="applicationStep1">
             <div class="modal-header" style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #c9a227;">Apply for Membership</h2>
                 <button class="close-modal" onclick="closeApplicationModal()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
@@ -885,8 +887,8 @@
                 </div>
 
                 <button type="submit" class="submit-btn" id="applicationSubmitBtn" style="font-size: 1.1rem; padding: 18px 40px;">
-                    <span id="submitBtnText">Apply Now & Pay</span>
-                    <span id="submitSpinner" style="display: none;">Processing payment...</span>
+                    <span id="submitBtnText">Continue to Payment</span>
+                    <span id="submitSpinner" style="display: none;">Validating...</span>
                     <svg id="submitBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -901,8 +903,131 @@
                     </p>
                 </div>
             </form>
+            </div>
+
+            <!-- Step 2: Payment -->
+            <div id="applicationStep2" style="display: none;">
+                <div class="modal-header" style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #c9a227;">One More Step!</h2>
+                    <button class="close-modal" onclick="closeApplicationModal()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                <div style="padding: 30px;">
+                    <!-- Progress indicator -->
+                    <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: #10b981; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">✓</div>
+                            <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Application</span>
+                            <div style="width: 40px; height: 2px; background: rgba(201,162,39,0.5);"></div>
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: #c9a227; display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-weight: bold;">2</div>
+                            <span style="color: #c9a227; font-size: 0.9rem; font-weight: 500;">Payment</span>
+                        </div>
+                    </div>
+
+                    <!-- Almost there message -->
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">🎉</div>
+                        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: white; margin-bottom: 10px;">Almost There, <span id="paymentFirstName">Founder</span>!</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 1.1rem; max-width: 450px; margin: 0 auto;">
+                            Your application looks great. Complete your payment to secure your spot at the February gathering.
+                        </p>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div style="background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                        <h4 style="color: #c9a227; font-family: 'Outfit', sans-serif; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Order Summary</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div>
+                                <p id="paymentTicketName" style="color: white; font-weight: 500; margin: 0;">Founders Dinner</p>
+                                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 4px 0 0 0;">February 10, 2026 • Da Nang</p>
+                            </div>
+                            <span id="paymentPrice" style="color: #c9a227; font-size: 1.5rem; font-weight: 600;">$149</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px;">
+                            <span style="color: white; font-weight: 600;">Total</span>
+                            <span id="paymentTotal" style="color: white; font-size: 1.5rem; font-weight: 700;">$149</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form Container -->
+                    <div id="paymentFormContainer">
+                        <!-- Card Payment Form -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px;">
+                            <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                    <line x1="1" y1="10" x2="23" y2="10"/>
+                                </svg>
+                                Card Details
+                            </h4>
+
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Cardholder Name</label>
+                                <input type="text" id="cardholderName" placeholder="Name on card" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Card Number</label>
+                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 2px;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Expiry Date</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+                                <div class="form-group">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">CVC</label>
+                                    <input type="text" id="cardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pay Button -->
+                        <button type="button" id="payNowBtn" onclick="processPayment()" style="width: 100%; margin-top: 24px; padding: 18px 40px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <span id="payBtnText">Pay Now</span>
+                            <span id="paySpinner" style="display: none;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                                </svg>
+                                Processing...
+                            </span>
+                            <svg id="payBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+
+                        <!-- Security Note -->
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; color: rgba(255,255,255,0.5); font-size: 0.85rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>Secured by Airwallex • 256-bit SSL encryption</span>
+                        </div>
+                    </div>
+
+                    <!-- Back Button -->
+                    <button type="button" onclick="goBackToApplication()" style="width: 100%; margin-top: 16px; padding: 14px; background: transparent; color: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        ← Back to Application
+                    </button>
+
+                    <!-- Refund Reminder -->
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 16px; margin-top: 24px; text-align: center;">
+                        <p style="margin: 0; color: #10b981; font-weight: 500;">
+                            ✓ 100% refund if your application is not accepted
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 
     <!-- Disqualification Modal -->
             <div class="modal-overlay" id="disqualifyModal">
@@ -1136,7 +1261,10 @@
             }
         }
 
-        // Application Form Submission with Payment
+        // Global variable to store pending application data
+        let pendingApplicationData = null;
+
+        // Application Form Submission - Step 1: Validate and show payment
         document.getElementById('applicationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -1157,8 +1285,6 @@
                 if (!membershipSelected) {
                     throw new Error('Please select a membership option (Dinner Only or Dinner + Cruise)');
                 }
-
-                spinner.textContent = 'Preparing payment...';
 
                 // Collect form data
                 const formData = {
@@ -1187,26 +1313,117 @@
                 const productId = formData.membership === 'full' ? 'platinum-cruise' : 'founding-dinner';
                 const ticketName = formData.membership === 'full' ? 'Founders Dinner + Poseidon Cruise' : 'Founders Dinner';
 
-                // Store application data temporarily (will be completed after payment)
-                const pendingApplication = {
+                // Store application data
+                pendingApplicationData = {
                     ...formData,
                     ticketPrice: price,
                     ticketName: ticketName,
                     productId: productId,
                     createdAt: new Date().toISOString()
                 };
-                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplication));
 
-                spinner.textContent = 'Creating payment...';
+                // Update payment step UI
+                document.getElementById('paymentFirstName').textContent = formData.firstName;
+                document.getElementById('paymentTicketName').textContent = ticketName;
+                document.getElementById('paymentPrice').textContent = '$' + price;
+                document.getElementById('paymentTotal').textContent = '$' + price;
+                document.getElementById('cardholderName').value = `${formData.firstName} ${formData.lastName}`;
 
-                // Create payment intent
+                // Show payment step
+                document.getElementById('applicationStep1').style.display = 'none';
+                document.getElementById('applicationStep2').style.display = 'block';
+
+                // Scroll to top of modal
+                document.querySelector('.modal-content').scrollTop = 0;
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                alert(error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                arrow.style.display = 'inline';
+                spinner.style.display = 'none';
+            }
+        });
+
+        // Go back to application form
+        function goBackToApplication() {
+            document.getElementById('applicationStep2').style.display = 'none';
+            document.getElementById('applicationStep1').style.display = 'block';
+        }
+
+        // Format card number with spaces
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formatted;
+        });
+
+        // Format expiry date
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // Only allow numbers in CVC
+        document.getElementById('cardCvc').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Process Payment - Step 2
+        async function processPayment() {
+            if (!pendingApplicationData) {
+                alert('Application data not found. Please start over.');
+                goBackToApplication();
+                return;
+            }
+
+            const btn = document.getElementById('payNowBtn');
+            const btnText = document.getElementById('payBtnText');
+            const spinner = document.getElementById('paySpinner');
+            const arrow = document.getElementById('payBtnArrow');
+
+            // Validate card fields
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCvc = document.getElementById('cardCvc').value;
+            const cardholderName = document.getElementById('cardholderName').value;
+
+            if (!cardholderName || cardholderName.length < 2) {
+                alert('Please enter the cardholder name');
+                return;
+            }
+            if (!cardNumber || cardNumber.length < 15) {
+                alert('Please enter a valid card number');
+                return;
+            }
+            if (!cardExpiry || cardExpiry.length < 5) {
+                alert('Please enter a valid expiry date (MM/YY)');
+                return;
+            }
+            if (!cardCvc || cardCvc.length < 3) {
+                alert('Please enter a valid CVC');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            arrow.style.display = 'none';
+            spinner.style.display = 'flex';
+
+            try {
+                // Create payment intent with Airwallex
                 const paymentResponse = await fetch('/.netlify/functions/create-payment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        productIds: [productId],
-                        customerEmail: formData.email,
-                        customerName: `${formData.firstName} ${formData.lastName}`,
+                        productIds: [pendingApplicationData.productId],
+                        customerEmail: pendingApplicationData.email,
+                        customerName: `${pendingApplicationData.firstName} ${pendingApplicationData.lastName}`,
                         eventId: 'feb-2026',
                         applicationType: 'membership_application'
                     })
@@ -1218,61 +1435,58 @@
                     throw new Error(paymentResult.error || 'Failed to create payment');
                 }
 
-                // Store payment intent ID with the pending application
-                pendingApplication.paymentIntentId = paymentResult.paymentIntentId;
-                pendingApplication.orderId = paymentResult.orderId;
-                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplication));
+                // Store payment intent ID
+                pendingApplicationData.paymentIntentId = paymentResult.paymentIntentId;
+                pendingApplicationData.orderId = paymentResult.orderId;
 
-                // If Airwallex is properly configured, redirect to hosted payment page
-                if (paymentResult.clientSecret && !paymentResult.mock) {
-                    const airwallexEnv = window.location.hostname === 'localhost' ? 'demo' : 'prod';
-                    const airwallexUrl = airwallexEnv === 'prod'
-                        ? 'https://checkout.airwallex.com'
-                        : 'https://checkout-demo.airwallex.com';
+                // For now, in demo/mock mode, we'll simulate the payment processing
+                // In production with real Airwallex integration, you would use Airwallex.js SDK
 
-                    window.location.href = `${airwallexUrl}/checkout/${paymentResult.paymentIntentId}?client_secret=${paymentResult.clientSecret}`;
-                    return;
-                }
+                // Simulate payment processing
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-                // If Airwallex not configured (mock mode), submit application directly
-                console.log('Airwallex not configured, submitting application directly...');
-                spinner.textContent = 'Processing payment...';
-
-                // Simulate payment processing delay
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                spinner.textContent = 'Submitting application...';
-
+                // Submit application with payment info
                 const result = await Database.submitApplication({
-                    ...formData,
+                    ...pendingApplicationData,
                     paymentIntentId: paymentResult.paymentIntentId || `mock-${Date.now()}`,
                     paymentStatus: 'paid',
-                    amountPaid: price
+                    amountPaid: pendingApplicationData.ticketPrice,
+                    cardLast4: cardNumber.slice(-4)
                 });
 
                 if (result.error) {
                     throw new Error(result.error);
                 }
 
-                // Clear pending application
-                localStorage.removeItem('founders_vietnam_pending_application');
+                // Store for success page
+                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplicationData));
 
-                // Show success and redirect to success page
+                // Clear form and close modal
                 closeApplicationModal();
 
                 // Redirect to payment success page
                 window.location.href = `payment-success.html?order=${paymentResult.orderId || 'APP-' + Date.now()}&type=application`;
 
             } catch (error) {
-                console.error('Application error:', error);
-                alert('Error submitting application: ' + error.message);
+                console.error('Payment error:', error);
+                alert('Payment failed: ' + error.message + '\n\nPlease try again or contact support.');
             } finally {
                 btn.disabled = false;
                 btnText.style.display = 'inline';
                 arrow.style.display = 'inline';
                 spinner.style.display = 'none';
             }
-        });
+        }
+
+        // Override close modal to reset steps
+        const originalCloseModal = closeApplicationModal;
+        closeApplicationModal = function() {
+            document.getElementById('applicationStep1').style.display = 'block';
+            document.getElementById('applicationStep2').style.display = 'none';
+            document.getElementById('applicationModal').classList.remove('active');
+            document.body.style.overflow = '';
+            pendingApplicationData = null;
+        }
     </script>
 </body>
 </html>
