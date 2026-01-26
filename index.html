@@ -28,7 +28,7 @@
             <a href="#" class="nav-profile" id="navProfile" style="display: none;">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
-            <a href="#apply" class="nav-cta" id="navApply">Apply Now</a>
+            <a href="#" onclick="openApplicationModal(); return false;" class="nav-cta" id="navApply">Apply Now</a>
         </div>
         <div class="mobile-menu-toggle">
             <span></span>
@@ -65,7 +65,7 @@
                     <span class="stat-label">New Slots/Week</span>
                 </div>
             </div>
-            <a href="#apply" class="hero-cta">Request Membership</a>
+            <a href="#" onclick="openApplicationModal(); return false;" class="hero-cta">Request Membership</a>
         </div>
         <div class="hero-visual">
             <div class="hero-circle"></div>
@@ -173,7 +173,7 @@
                         </div>
                         <span class="spots-text">35 spots remaining</span>
                     </div>
-                    <a href="#apply" class="event-reserve-btn">Reserve Your Spot</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-reserve-btn">Reserve Your Spot</a>
                 </div>
             </div>
 
@@ -190,7 +190,7 @@
                     <div class="event-status-badge upcoming">Opening Soon</div>
                     <h3 class="event-title">March Gathering</h3>
                     <p class="event-description">Dinner at 6PM • Poseidon Cruise at 9PM</p>
-                    <a href="#apply" class="event-waitlist-btn">Join Waitlist</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-waitlist-btn">Join Waitlist</a>
                 </div>
             </div>
 
@@ -207,7 +207,7 @@
                     <div class="event-status-badge upcoming">Opening Soon</div>
                     <h3 class="event-title">April Gathering</h3>
                     <p class="event-description">Dinner at 6PM • Poseidon Cruise at 9PM</p>
-                    <a href="#apply" class="event-waitlist-btn">Join Waitlist</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-waitlist-btn">Join Waitlist</a>
                 </div>
             </div>
 
@@ -224,7 +224,7 @@
                     <div class="event-status-badge upcoming">Opening Soon</div>
                     <h3 class="event-title">May Gathering</h3>
                     <p class="event-description">Dinner at 6PM • Poseidon Cruise at 9PM</p>
-                    <a href="#apply" class="event-waitlist-btn">Join Waitlist</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-waitlist-btn">Join Waitlist</a>
                 </div>
             </div>
 
@@ -241,7 +241,7 @@
                     <div class="event-status-badge upcoming">Opening Soon</div>
                     <h3 class="event-title">June Gathering</h3>
                     <p class="event-description">Dinner at 6PM • Poseidon Cruise at 9PM</p>
-                    <a href="#apply" class="event-waitlist-btn">Join Waitlist</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-waitlist-btn">Join Waitlist</a>
                 </div>
             </div>
 
@@ -258,7 +258,7 @@
                     <div class="event-status-badge upcoming">Opening Soon</div>
                     <h3 class="event-title">July Gathering</h3>
                     <p class="event-description">Dinner at 6PM • Poseidon Cruise at 9PM</p>
-                    <a href="#apply" class="event-waitlist-btn">Join Waitlist</a>
+                    <a href="#" onclick="openApplicationModal(); return false;" class="event-waitlist-btn">Join Waitlist</a>
                 </div>
             </div>
         </div>
@@ -356,7 +356,7 @@
                         Access to member directory
                     </li>
                 </ul>
-                <a href="#apply" class="pricing-cta">Apply for Membership</a>
+                <a href="#" onclick="openApplicationModal(); return false;" class="pricing-cta">Apply for Membership</a>
             </div>
             <div class="pricing-card pricing-card-featured">
                 <div class="pricing-badge">Poseidon Cruise Add-On</div>
@@ -398,7 +398,7 @@
                         Priority access to future events
                     </li>
                 </ul>
-                <a href="#apply" class="pricing-cta">Secure Your Spot</a>
+                <a href="#" onclick="openApplicationModal(); return false;" class="pricing-cta">Secure Your Spot</a>
                 <div class="scarcity-bar">
                     <div class="scarcity-fill" style="width: 73%"></div>
                 </div>
@@ -410,20 +410,38 @@
         </div>
     </section>
 
-    <!-- Application Section -->
+    <!-- Application Section (CTA to open modal) -->
     <section id="apply" class="apply">
         <div class="apply-container">
             <div class="apply-header">
                 <span class="section-number">04</span>
                 <h2 class="section-title">Apply for Membership</h2>
                 <p class="apply-subtitle">
-                    This is not for everyone. We're looking for founders generating real revenue 
+                    This is not for everyone. We're looking for founders generating real revenue
                     who can contribute to and benefit from our elite network.
                 </p>
             </div>
-            
-            <!-- Main Application Form -->
-            <form class="apply-form" id="applicationForm">
+
+            <div style="text-align: center; margin-top: 40px;">
+                <button type="button" class="submit-btn" onclick="openApplicationModal()" style="font-size: 1.1rem; padding: 18px 40px;">
+                    <span>Apply Now</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <p style="margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Applications reviewed within 48 hours</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Application Modal -->
+    <div class="modal" id="applicationModal">
+        <div class="modal-content modal-large" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #c9a227;">Apply for Membership</h2>
+                <button class="close-modal" onclick="closeApplicationModal()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <form class="apply-form" id="applicationForm" style="padding: 30px;">
                 <div class="form-section">
                     <h3 class="form-section-title">Personal Information</h3>
                     
@@ -621,8 +639,10 @@
                     Applications are reviewed within 48 hours. We'll reach out via email with next steps.
                 </p>
             </form>
+        </div>
+    </div>
 
-            <!-- Disqualification Modal -->
+    <!-- Disqualification Modal -->
             <div class="modal-overlay" id="disqualifyModal">
                 <div class="modal-content">
                     <div class="modal-icon">
@@ -671,7 +691,7 @@
                 <a href="#about">About</a>
                 <a href="#events">Events</a>
                 <a href="#membership">Membership</a>
-                <a href="#apply">Apply</a>
+                <a href="#" onclick="openApplicationModal(); return false;">Apply</a>
             </div>
             <div class="footer-policies" style="margin-top: 20px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
                 <a href="privacy.html" style="color: rgba(255,255,255,0.5); font-size: 0.85rem; text-decoration: none; transition: color 0.2s;">Privacy Policy</a>
@@ -769,6 +789,31 @@
                         `;
                     }
                 }
+            }
+        });
+
+        // Application Modal Functions
+        function openApplicationModal() {
+            document.getElementById('applicationModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeApplicationModal() {
+            document.getElementById('applicationModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('applicationModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeApplicationModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeApplicationModal();
             }
         });
     </script>
