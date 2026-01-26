@@ -571,22 +571,16 @@
 
                 <div class="form-section">
                     <h3 class="form-section-title">Event Selection</h3>
-                    
-                    <div class="form-group">
-                        <label>Which event are you interested in? *</label>
-                        <select name="event" required>
-                            <option value="">Select an event</option>
-                            <option value="feb-2026">Tuesday, February 10, 2026</option>
-                            <option value="mar-2026">Wednesday, March 11, 2026</option>
-                            <option value="apr-2026">Tuesday, April 14, 2026</option>
-                            <option value="may-2026">Wednesday, May 13, 2026</option>
-                            <option value="jun-2026">Tuesday, June 9, 2026</option>
-                            <option value="jul-2026">Wednesday, July 8, 2026</option>
-                        </select>
+
+                    <div class="next-event-banner" style="background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 8px;">Our next event is</p>
+                        <h4 style="color: #c9a227; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; margin: 0;">Tuesday, February 10, 2026</h4>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 8px;">Da Nang, Vietnam</p>
+                        <input type="hidden" name="event" value="feb-2026">
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>Membership Interest *</label>
+                        <label>Select Your Experience *</label>
                         <div class="radio-group">
                             <label class="radio-label">
                                 <input type="radio" name="membership" value="dinner" required>
@@ -679,9 +673,22 @@
                 <a href="#membership">Membership</a>
                 <a href="#apply">Apply</a>
             </div>
+            <div class="footer-policies" style="margin-top: 20px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="privacy.html" style="color: rgba(255,255,255,0.5); font-size: 0.85rem; text-decoration: none; transition: color 0.2s;">Privacy Policy</a>
+                <a href="terms.html" style="color: rgba(255,255,255,0.5); font-size: 0.85rem; text-decoration: none; transition: color 0.2s;">Terms & Conditions</a>
+                <a href="refund.html" style="color: rgba(255,255,255,0.5); font-size: 0.85rem; text-decoration: none; transition: color 0.2s;">Refund Policy</a>
+            </div>
             <div class="footer-legal">
                 <p>&copy; 2026 Founders Vietnam. All rights reserved.</p>
                 <p class="footer-note">An exclusive network for visionary entrepreneurs.</p>
+                <p style="margin-top: 15px; font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+                    Website design and development by <a href="https://advancedmarketing.co" target="_blank" rel="noopener" style="color: #c9a227; text-decoration: none;">Advanced Marketing Limited</a>
+                </p>
+            </div>
+            <div class="footer-disclaimer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="font-size: 0.7rem; color: rgba(255,255,255,0.4); line-height: 1.5; max-width: 600px; margin: 0 auto;">
+                    This site is not a part of the Facebook website or Facebook Inc. Additionally, this site is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc.
+                </p>
             </div>
         </div>
     </footer>

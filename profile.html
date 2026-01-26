@@ -409,8 +409,9 @@
 
         const user = Auth.getCurrentUser();
 
-        // Update nav avatar
+        // Update nav avatar and link
         document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+        document.getElementById('navProfile').href = 'profile.html';
 
         // Update avatar preview
         document.getElementById('avatarInitials').textContent = user.firstName[0] + user.lastName[0];

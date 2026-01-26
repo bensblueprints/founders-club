@@ -28,6 +28,7 @@ const Admin = {
 
         // Update nav
         document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+        document.getElementById('navProfile').href = 'profile.html';
 
         // Check for masquerade
         this.checkMasquerade();
@@ -44,6 +45,112 @@ const Admin = {
 
         // Setup search and filters
         this.setupFilters();
+
+        // Setup photo upload
+        this.setupPhotoUpload();
+    },
+
+    // Member photo being edited
+    currentMemberPhoto: null,
+
+    setupPhotoUpload() {
+        const photoInput = document.getElementById('memberPhotoInput');
+        if (photoInput) {
+            photoInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image must be less than 5MB');
+                    return;
+                }
+
+                try {
+                    const resizedImage = await this.resizeImage(file, 400, 400);
+                    this.currentMemberPhoto = resizedImage;
+                    this.displayMemberPhoto(resizedImage);
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Failed to process image. Please try again.');
+                }
+            });
+        }
+    },
+
+    displayMemberPhoto(photoUrl) {
+        const avatarImage = document.getElementById('adminAvatarImage');
+        const avatarInitials = document.getElementById('adminAvatarInitials');
+        const removeBtn = document.getElementById('removeAdminPhoto');
+
+        if (photoUrl) {
+            avatarImage.src = photoUrl;
+            avatarImage.style.display = 'block';
+            avatarInitials.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = 'inline-block';
+        } else {
+            avatarImage.src = '';
+            avatarImage.style.display = 'none';
+            avatarInitials.style.display = 'flex';
+            if (removeBtn) removeBtn.style.display = 'none';
+        }
+    },
+
+    removePhoto() {
+        this.currentMemberPhoto = null;
+        this.displayMemberPhoto(null);
+        document.getElementById('memberPhotoInput').value = '';
+    },
+
+    resizeImage(file, maxWidth, maxHeight) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    let sourceX = 0;
+                    let sourceY = 0;
+                    let sourceWidth = width;
+                    let sourceHeight = height;
+
+                    if (width > height) {
+                        sourceX = (width - height) / 2;
+                        sourceWidth = height;
+                    } else if (height > width) {
+                        sourceY = (height - width) / 2;
+                        sourceHeight = width;
+                    }
+
+                    canvas.width = maxWidth;
+                    canvas.height = maxHeight;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    ctx.drawImage(
+                        img,
+                        sourceX, sourceY, sourceWidth, sourceHeight,
+                        0, 0, maxWidth, maxHeight
+                    );
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    resolve(dataUrl);
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
     },
 
     setupTabs() {
@@ -485,6 +592,13 @@ const Admin = {
         document.getElementById('memberPassword').placeholder = 'Enter password';
         document.getElementById('memberPassword').required = true;
         document.getElementById('requirePasswordReset').checked = true;
+
+        // Reset photo
+        this.currentMemberPhoto = null;
+        this.displayMemberPhoto(null);
+        document.getElementById('adminAvatarInitials').textContent = '--';
+        document.getElementById('memberPhotoInput').value = '';
+
         this.showModal('memberModal');
     },
 
@@ -523,7 +637,8 @@ const Admin = {
             industry: document.getElementById('memberIndustry').value,
             memberType: document.getElementById('memberType').value,
             status: document.getElementById('memberStatus').value,
-            requirePasswordReset: document.getElementById('requirePasswordReset').checked
+            requirePasswordReset: document.getElementById('requirePasswordReset').checked,
+            profilePhoto: this.currentMemberPhoto
         };
 
         const password = document.getElementById('memberPassword').value;
@@ -585,6 +700,12 @@ const Admin = {
         document.getElementById('memberPassword').placeholder = 'Leave blank to keep current';
         document.getElementById('memberPassword').required = false;
         document.getElementById('requirePasswordReset').checked = member.requirePasswordReset || false;
+
+        // Load profile photo
+        this.currentMemberPhoto = member.profilePhoto || null;
+        this.displayMemberPhoto(member.profilePhoto);
+        document.getElementById('adminAvatarInitials').textContent = member.firstName[0] + member.lastName[0];
+        document.getElementById('memberPhotoInput').value = '';
 
         this.closeModal('actionsModal');
         this.showModal('memberModal');
