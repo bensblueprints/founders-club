@@ -108,6 +108,8 @@
         <div class="admin-tabs">
             <button class="admin-tab active" data-tab="members">Members</button>
             <button class="admin-tab" data-tab="applications">Applications</button>
+            <button class="admin-tab" data-tab="speakers">Speakers</button>
+            <button class="admin-tab" data-tab="sponsors">Sponsors</button>
             <button class="admin-tab" data-tab="events">Events</button>
             <button class="admin-tab" data-tab="transactions">Transactions</button>
         </div>
@@ -174,6 +176,38 @@
                 <button class="app-filter-btn" data-filter="all">All</button>
             </div>
             <div class="applications-list" id="applicationsList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Speakers Tab -->
+        <div class="admin-panel" id="speakersPanel" style="display: none;">
+            <div class="panel-header">
+                <h2>Speaker Applications</h2>
+            </div>
+            <div class="app-filters">
+                <button class="app-filter-btn active" data-filter="pending" data-type="speaker">Pending</button>
+                <button class="app-filter-btn" data-filter="accepted" data-type="speaker">Accepted</button>
+                <button class="app-filter-btn" data-filter="rejected" data-type="speaker">Rejected</button>
+                <button class="app-filter-btn" data-filter="all" data-type="speaker">All</button>
+            </div>
+            <div class="applications-list" id="speakersList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Sponsors Tab -->
+        <div class="admin-panel" id="sponsorsPanel" style="display: none;">
+            <div class="panel-header">
+                <h2>Sponsor Applications</h2>
+            </div>
+            <div class="app-filters">
+                <button class="app-filter-btn active" data-filter="pending" data-type="sponsor">Pending</button>
+                <button class="app-filter-btn" data-filter="accepted" data-type="sponsor">Accepted</button>
+                <button class="app-filter-btn" data-filter="rejected" data-type="sponsor">Rejected</button>
+                <button class="app-filter-btn" data-filter="all" data-type="sponsor">All</button>
+            </div>
+            <div class="applications-list" id="sponsorsList">
                 <!-- Populated by JS -->
             </div>
         </div>
@@ -521,6 +555,174 @@
                     <button type="button" class="btn-secondary" onclick="Admin.closeModal('applicationModal')">Close</button>
                     <button type="button" class="btn-danger" onclick="Admin.rejectApplication(Admin.currentApplicationId)">Reject</button>
                     <button type="button" class="btn-primary" onclick="Admin.acceptApplication(Admin.currentApplicationId)">Accept & Send Welcome Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Speaker Application Modal -->
+    <div class="modal" id="speakerModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Speaker Application Details</h2>
+                <button class="close-modal" onclick="Admin.closeModal('speakerModal')">&times;</button>
+            </div>
+            <div class="application-detail">
+                <div class="app-detail-section">
+                    <h3>Speaker Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Name</label>
+                            <span id="speakerDetailName"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <span id="speakerDetailEmail"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Company & Role</label>
+                            <span id="speakerDetailCompany"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>LinkedIn</label>
+                            <span id="speakerDetailLinkedIn"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Talk Proposal</h3>
+                    <div class="detail-answers">
+                        <div class="answer-item">
+                            <label>Talk Title</label>
+                            <p id="speakerDetailTitle"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Topics</label>
+                            <p id="speakerDetailTopics"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Talk Description</label>
+                            <p id="speakerDetailDescription"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Value for Audience</label>
+                            <p id="speakerDetailValue"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Notable Achievements</label>
+                            <p id="speakerDetailAchievements"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Preferred Event</label>
+                            <p id="speakerDetailEvent"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Status</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Submitted</label>
+                            <span id="speakerDetailDate"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <span id="speakerDetailStatus" class="status-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" id="speakerDetailActions">
+                    <button type="button" class="btn-secondary" onclick="Admin.closeModal('speakerModal')">Close</button>
+                    <button type="button" class="btn-danger" onclick="Admin.rejectSpeaker(Admin.currentSpeakerId)">Reject</button>
+                    <button type="button" class="btn-primary" onclick="Admin.acceptSpeaker(Admin.currentSpeakerId)">Accept Speaker</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sponsor Application Modal -->
+    <div class="modal" id="sponsorModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Sponsor Application Details</h2>
+                <button class="close-modal" onclick="Admin.closeModal('sponsorModal')">&times;</button>
+            </div>
+            <div class="application-detail">
+                <div class="app-detail-section">
+                    <h3>Company Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Company Name</label>
+                            <span id="sponsorDetailCompany"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Website</label>
+                            <span id="sponsorDetailWebsite"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Contact Name</label>
+                            <span id="sponsorDetailContact"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Job Title</label>
+                            <span id="sponsorDetailTitle"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <span id="sponsorDetailEmail"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Phone</label>
+                            <span id="sponsorDetailPhone"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Sponsorship Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Package</label>
+                            <span id="sponsorDetailPackage" class="membership-full"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Requested Month(s)</label>
+                            <span id="sponsorDetailMonths"></span>
+                        </div>
+                        <div class="detail-item full-width">
+                            <label>Primary Goal</label>
+                            <span id="sponsorDetailGoal"></span>
+                        </div>
+                    </div>
+                    <div class="detail-answers">
+                        <div class="answer-item">
+                            <label>About the Company</label>
+                            <p id="sponsorDetailAbout"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Status</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Submitted</label>
+                            <span id="sponsorDetailDate"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <span id="sponsorDetailStatus" class="status-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" id="sponsorDetailActions">
+                    <button type="button" class="btn-secondary" onclick="Admin.closeModal('sponsorModal')">Close</button>
+                    <button type="button" class="btn-danger" onclick="Admin.rejectSponsor(Admin.currentSponsorId)">Reject</button>
+                    <button type="button" class="btn-primary" onclick="Admin.acceptSponsor(Admin.currentSponsorId)">Accept Sponsor</button>
                 </div>
             </div>
         </div>

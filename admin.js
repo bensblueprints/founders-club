@@ -5,10 +5,16 @@
 const Admin = {
     currentMemberId: null,
     currentApplicationId: null,
+    currentSpeakerId: null,
+    currentSponsorId: null,
     members: [],
     transactions: [],
     applications: [],
+    speakers: [],
+    sponsors: [],
     applicationFilter: 'pending',
+    speakerFilter: 'pending',
+    sponsorFilter: 'pending',
 
     // Admin role types
     ADMIN_ROLES: ['owner', 'admin', 'organiser'],
@@ -36,12 +42,16 @@ const Admin = {
         // Load data
         await this.loadMembers();
         this.loadApplications();
+        this.loadSpeakers();
+        this.loadSponsors();
         this.loadStats();
         this.loadTransactions();
 
         // Setup tabs
         this.setupTabs();
         this.setupApplicationFilters();
+        this.setupSpeakerFilters();
+        this.setupSponsorFilters();
 
         // Setup search and filters
         this.setupFilters();
@@ -508,6 +518,349 @@ const Admin = {
                 rejectBtn.textContent = 'Reject';
             }
         }
+    },
+
+    // ========================================
+    // SPEAKERS
+    // ========================================
+
+    loadSpeakers() {
+        this.speakers = JSON.parse(localStorage.getItem('founders_vietnam_speakers') || '[]');
+        this.renderSpeakers();
+    },
+
+    setupSpeakerFilters() {
+        const filterBtns = document.querySelectorAll('.app-filter-btn[data-type="speaker"]');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.speakerFilter = btn.dataset.filter;
+                this.renderSpeakers();
+            });
+        });
+    },
+
+    renderSpeakers() {
+        const container = document.getElementById('speakersList');
+        if (!container) return;
+
+        // Filter speakers
+        let filtered = this.speakers;
+        if (this.speakerFilter !== 'all') {
+            filtered = filtered.filter(s => s.status === this.speakerFilter);
+        }
+
+        // Sort by date (newest first)
+        filtered.sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt));
+
+        // Count by status
+        const pendingCount = this.speakers.filter(s => s.status === 'pending').length;
+        const acceptedCount = this.speakers.filter(s => s.status === 'accepted').length;
+        const rejectedCount = this.speakers.filter(s => s.status === 'rejected').length;
+
+        // Update tab badge
+        const speakerTab = document.querySelector('[data-tab="speakers"]');
+        if (speakerTab && pendingCount > 0) {
+            speakerTab.innerHTML = `Speakers <span class="tab-badge">${pendingCount}</span>`;
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                    <p>No ${this.speakerFilter === 'all' ? '' : this.speakerFilter} speaker applications</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(speaker => `
+            <div class="application-card ${speaker.status}">
+                <div class="app-header">
+                    <div class="app-info">
+                        <h3>${speaker.firstName} ${speaker.lastName}</h3>
+                        <p class="app-company">${speaker.company} · ${speaker.role}</p>
+                        <p class="app-email">${speaker.email}</p>
+                    </div>
+                    <div class="app-meta">
+                        <span class="app-status ${speaker.status}">${speaker.status}</span>
+                        <span class="app-date">${new Date(speaker.submittedAt || speaker.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="app-details">
+                    <div class="app-detail" style="grid-column: span 2;">
+                        <span class="detail-label">Talk Title</span>
+                        <span class="detail-value">${speaker.talkTitle || 'N/A'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Topics</span>
+                        <span class="detail-value">${(speaker.topics || []).join(', ') || 'N/A'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Preferred Event</span>
+                        <span class="detail-value">${speaker.preferredEvent || 'Flexible'}</span>
+                    </div>
+                </div>
+                <div class="app-actions">
+                    <button class="btn-view" onclick="Admin.viewSpeaker('${speaker.id}')">View Details</button>
+                    ${speaker.status === 'pending' ? `
+                        <button class="btn-accept" onclick="Admin.acceptSpeaker('${speaker.id}')">Accept</button>
+                        <button class="btn-reject" onclick="Admin.rejectSpeaker('${speaker.id}')">Reject</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    viewSpeaker(id) {
+        const speaker = this.speakers.find(s => s.id === id);
+        if (!speaker) return;
+
+        this.currentSpeakerId = id;
+
+        document.getElementById('speakerDetailName').textContent = `${speaker.firstName} ${speaker.lastName}`;
+        document.getElementById('speakerDetailEmail').textContent = speaker.email;
+        document.getElementById('speakerDetailCompany').textContent = `${speaker.company} · ${speaker.role}`;
+        document.getElementById('speakerDetailLinkedIn').innerHTML = speaker.linkedIn ?
+            `<a href="${speaker.linkedIn}" target="_blank">${speaker.linkedIn}</a>` : 'N/A';
+        document.getElementById('speakerDetailTitle').textContent = speaker.talkTitle || 'N/A';
+        document.getElementById('speakerDetailTopics').textContent = (speaker.topics || []).join(', ') || 'N/A';
+        document.getElementById('speakerDetailDescription').textContent = speaker.talkDescription || 'N/A';
+        document.getElementById('speakerDetailValue').textContent = speaker.audienceValue || 'N/A';
+        document.getElementById('speakerDetailAchievements').textContent = speaker.achievements || 'N/A';
+        document.getElementById('speakerDetailEvent').textContent = speaker.preferredEvent || 'Flexible';
+        document.getElementById('speakerDetailDate').textContent = new Date(speaker.submittedAt || speaker.createdAt).toLocaleString();
+        document.getElementById('speakerDetailStatus').textContent = speaker.status;
+        document.getElementById('speakerDetailStatus').className = `status-badge ${speaker.status}`;
+
+        // Show/hide action buttons
+        document.getElementById('speakerDetailActions').style.display = speaker.status === 'pending' ? 'flex' : 'none';
+
+        this.showModal('speakerModal');
+    },
+
+    acceptSpeaker(id) {
+        const speaker = this.speakers.find(s => s.id === id);
+        if (!speaker) return;
+
+        if (!confirm(`Accept speaker application from ${speaker.firstName} ${speaker.lastName}?\n\nTalk: ${speaker.talkTitle}`)) {
+            return;
+        }
+
+        const index = this.speakers.findIndex(s => s.id === id);
+        if (index !== -1) {
+            this.speakers[index].status = 'accepted';
+            this.speakers[index].acceptedAt = new Date().toISOString();
+            localStorage.setItem('founders_vietnam_speakers', JSON.stringify(this.speakers));
+        }
+
+        alert(`Speaker accepted!\n\nYou should reach out to ${speaker.email} to confirm their speaking slot.`);
+        this.closeModal('speakerModal');
+        this.renderSpeakers();
+    },
+
+    rejectSpeaker(id) {
+        const speaker = this.speakers.find(s => s.id === id);
+        if (!speaker) return;
+
+        if (!confirm(`Reject speaker application from ${speaker.firstName} ${speaker.lastName}?`)) {
+            return;
+        }
+
+        const index = this.speakers.findIndex(s => s.id === id);
+        if (index !== -1) {
+            this.speakers[index].status = 'rejected';
+            this.speakers[index].rejectedAt = new Date().toISOString();
+            localStorage.setItem('founders_vietnam_speakers', JSON.stringify(this.speakers));
+        }
+
+        alert('Speaker application rejected.');
+        this.closeModal('speakerModal');
+        this.renderSpeakers();
+    },
+
+    // ========================================
+    // SPONSORS
+    // ========================================
+
+    loadSponsors() {
+        this.sponsors = JSON.parse(localStorage.getItem('founders_vietnam_sponsor_applications') || '[]');
+        this.renderSponsors();
+    },
+
+    setupSponsorFilters() {
+        const filterBtns = document.querySelectorAll('.app-filter-btn[data-type="sponsor"]');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.sponsorFilter = btn.dataset.filter;
+                this.renderSponsors();
+            });
+        });
+    },
+
+    renderSponsors() {
+        const container = document.getElementById('sponsorsList');
+        if (!container) return;
+
+        // Filter sponsors
+        let filtered = this.sponsors;
+        if (this.sponsorFilter !== 'all') {
+            filtered = filtered.filter(s => s.status === this.sponsorFilter);
+        }
+
+        // Sort by date (newest first)
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Count by status
+        const pendingCount = this.sponsors.filter(s => s.status === 'pending').length;
+
+        // Update tab badge
+        const sponsorTab = document.querySelector('[data-tab="sponsors"]');
+        if (sponsorTab && pendingCount > 0) {
+            sponsorTab.innerHTML = `Sponsors <span class="tab-badge">${pendingCount}</span>`;
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    <p>No ${this.sponsorFilter === 'all' ? '' : this.sponsorFilter} sponsor applications</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(sponsor => `
+            <div class="application-card ${sponsor.status}">
+                <div class="app-header">
+                    <div class="app-info">
+                        <h3>${sponsor.companyName}</h3>
+                        <p class="app-company">${sponsor.contactName} · ${sponsor.jobTitle}</p>
+                        <p class="app-email">${sponsor.email}</p>
+                    </div>
+                    <div class="app-meta">
+                        <span class="app-status ${sponsor.status}">${sponsor.status}</span>
+                        <span class="app-date">${new Date(sponsor.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="app-details">
+                    <div class="app-detail">
+                        <span class="detail-label">Package</span>
+                        <span class="detail-value membership-${sponsor.package}">${sponsor.package === 'platinum' ? 'Platinum ($5,000/mo)' : 'Event ($1,500/mo)'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Months</span>
+                        <span class="detail-value">${sponsor.months || 'N/A'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Goal</span>
+                        <span class="detail-value">${this.formatSponsorGoal(sponsor.goal)}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Website</span>
+                        <span class="detail-value"><a href="${sponsor.website}" target="_blank" style="color: #c9a227;">${sponsor.website}</a></span>
+                    </div>
+                </div>
+                <div class="app-actions">
+                    <button class="btn-view" onclick="Admin.viewSponsor('${sponsor.id}')">View Details</button>
+                    ${sponsor.status === 'pending' ? `
+                        <button class="btn-accept" onclick="Admin.acceptSponsor('${sponsor.id}')">Accept</button>
+                        <button class="btn-reject" onclick="Admin.rejectSponsor('${sponsor.id}')">Reject</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    formatSponsorGoal(goal) {
+        const labels = {
+            'awareness': 'Brand Awareness',
+            'leads': 'Lead Generation',
+            'customers': 'Customer Acquisition',
+            'partnerships': 'Partnerships',
+            'recruiting': 'Recruiting'
+        };
+        return labels[goal] || goal || 'N/A';
+    },
+
+    viewSponsor(id) {
+        const sponsor = this.sponsors.find(s => s.id === id);
+        if (!sponsor) return;
+
+        this.currentSponsorId = id;
+
+        document.getElementById('sponsorDetailCompany').textContent = sponsor.companyName;
+        document.getElementById('sponsorDetailWebsite').innerHTML = sponsor.website ?
+            `<a href="${sponsor.website}" target="_blank">${sponsor.website}</a>` : 'N/A';
+        document.getElementById('sponsorDetailContact').textContent = sponsor.contactName;
+        document.getElementById('sponsorDetailTitle').textContent = sponsor.jobTitle;
+        document.getElementById('sponsorDetailEmail').textContent = sponsor.email;
+        document.getElementById('sponsorDetailPhone').textContent = sponsor.phone || 'N/A';
+        document.getElementById('sponsorDetailPackage').textContent = sponsor.package === 'platinum' ?
+            'Platinum Sponsor ($5,000/month)' : 'Event Sponsor ($1,500/month)';
+        document.getElementById('sponsorDetailMonths').textContent = sponsor.months || 'N/A';
+        document.getElementById('sponsorDetailGoal').textContent = this.formatSponsorGoal(sponsor.goal);
+        document.getElementById('sponsorDetailAbout').textContent = sponsor.about || 'N/A';
+        document.getElementById('sponsorDetailDate').textContent = new Date(sponsor.createdAt).toLocaleString();
+        document.getElementById('sponsorDetailStatus').textContent = sponsor.status;
+        document.getElementById('sponsorDetailStatus').className = `status-badge ${sponsor.status}`;
+
+        // Show/hide action buttons
+        document.getElementById('sponsorDetailActions').style.display = sponsor.status === 'pending' ? 'flex' : 'none';
+
+        this.showModal('sponsorModal');
+    },
+
+    acceptSponsor(id) {
+        const sponsor = this.sponsors.find(s => s.id === id);
+        if (!sponsor) return;
+
+        const packageName = sponsor.package === 'platinum' ? 'Platinum Sponsor' : 'Event Sponsor';
+        if (!confirm(`Accept ${sponsor.companyName} as ${packageName}?\n\nPackage: ${packageName}\nMonths: ${sponsor.months}`)) {
+            return;
+        }
+
+        const index = this.sponsors.findIndex(s => s.id === id);
+        if (index !== -1) {
+            this.sponsors[index].status = 'accepted';
+            this.sponsors[index].acceptedAt = new Date().toISOString();
+            localStorage.setItem('founders_vietnam_sponsor_applications', JSON.stringify(this.sponsors));
+        }
+
+        alert(`Sponsor accepted!\n\nYou should reach out to ${sponsor.email} to discuss payment and logistics.`);
+        this.closeModal('sponsorModal');
+        this.renderSponsors();
+    },
+
+    rejectSponsor(id) {
+        const sponsor = this.sponsors.find(s => s.id === id);
+        if (!sponsor) return;
+
+        if (!confirm(`Reject sponsor application from ${sponsor.companyName}?`)) {
+            return;
+        }
+
+        const index = this.sponsors.findIndex(s => s.id === id);
+        if (index !== -1) {
+            this.sponsors[index].status = 'rejected';
+            this.sponsors[index].rejectedAt = new Date().toISOString();
+            localStorage.setItem('founders_vietnam_sponsor_applications', JSON.stringify(this.sponsors));
+        }
+
+        alert('Sponsor application rejected.');
+        this.closeModal('sponsorModal');
+        this.renderSponsors();
     },
 
     loadTransactions() {
