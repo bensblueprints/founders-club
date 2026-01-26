@@ -314,7 +314,7 @@ const Events = {
     EVENTS_KEY: 'founders_vietnam_events',
     UPCOMING_KEY: 'founders_vietnam_upcoming',
     BOOKINGS_KEY: 'founders_vietnam_bookings',
-    DATA_VERSION: '4.0',
+    DATA_VERSION: '5.0',
 
     // Initialize events data
     init() {
