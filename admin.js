@@ -863,13 +863,15 @@ const Admin = {
         this.renderSponsors();
     },
 
-    loadTransactions() {
-        // Sample transactions data
-        this.transactions = [
-            { id: 1, date: '2026-01-20', memberId: 2, description: 'Platinum Founding Membership', amount: 500, status: 'completed' },
-            { id: 2, date: '2026-01-18', memberId: 3, description: 'Boat Event Ticket', amount: 150, status: 'completed' },
-            { id: 3, date: '2026-01-15', memberId: 4, description: 'Founding Membership', amount: 250, status: 'completed' },
-        ];
+    async loadTransactions() {
+        // Load transactions from database
+        try {
+            this.transactions = await Database.getAllTransactions(100);
+            console.log('Loaded transactions:', this.transactions);
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+            this.transactions = [];
+        }
         this.renderTransactions();
     },
 
@@ -925,30 +927,102 @@ const Admin = {
     renderTransactions() {
         const tbody = document.getElementById('transactionsTableBody');
 
+        if (!this.transactions || this.transactions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: rgba(255,255,255,0.5); padding: 40px;">
+                        No transactions found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
         tbody.innerHTML = this.transactions.map(tx => {
-            const member = this.members.find(m => m.id === tx.memberId);
+            // Handle both old format (memberId) and new format (user_name, user_email)
+            let memberName = tx.user_name || 'Unknown';
+            if (!tx.user_name && tx.memberId) {
+                const member = this.members.find(m => m.id === tx.memberId);
+                memberName = member ? `${member.firstName} ${member.lastName}` : 'Unknown';
+            }
+
+            const date = tx.created_at || tx.date;
+            const description = tx.product_name || tx.description || 'Payment';
+            const amount = tx.amount || 0;
+            const status = tx.status || 'unknown';
+            const email = tx.user_email || '';
+
+            // Status badge color mapping
+            const statusColors = {
+                'attempted': 'pending',
+                'processing': 'pending',
+                'completed': 'completed',
+                'failed': 'rejected',
+                'refunded': 'refunded'
+            };
+
             return `
                 <tr>
-                    <td>${new Date(tx.date).toLocaleDateString()}</td>
-                    <td>${member ? `${member.firstName} ${member.lastName}` : 'Unknown'}</td>
-                    <td>${tx.description}</td>
-                    <td>$${tx.amount.toFixed(2)}</td>
-                    <td><span class="status-badge ${tx.status}">${tx.status}</span></td>
+                    <td>${date ? new Date(date).toLocaleString() : 'N/A'}</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span>${memberName}</span>
+                            <span style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">${email}</span>
+                        </div>
+                    </td>
+                    <td>${description}</td>
+                    <td style="font-weight: 600; color: ${status === 'failed' ? '#ef4444' : '#c9a227'};">$${parseFloat(amount).toFixed(2)}</td>
+                    <td><span class="status-badge ${statusColors[status] || status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
                     <td>
                         <div class="table-actions">
-                            ${tx.status === 'completed' ? `
-                                <button class="action-icon-btn refund" onclick="Admin.showRefundModal(${tx.id})" title="Refund">
+                            ${status === 'completed' ? `
+                                <button class="action-icon-btn refund" onclick="Admin.showRefundModal('${tx.id}')" title="Refund">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="23 4 23 10 17 10"/>
                                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                                     </svg>
                                 </button>
                             ` : ''}
+                            <button class="action-icon-btn" onclick="Admin.viewTransactionDetails('${tx.id}')" title="View Details">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+    },
+
+    viewTransactionDetails(transactionId) {
+        const tx = this.transactions.find(t => t.id === transactionId);
+        if (!tx) {
+            alert('Transaction not found');
+            return;
+        }
+
+        const details = `
+Transaction ID: ${tx.id}
+Date: ${tx.created_at ? new Date(tx.created_at).toLocaleString() : 'N/A'}
+Status: ${tx.status}
+
+Customer: ${tx.user_name || 'Unknown'}
+Email: ${tx.user_email || 'N/A'}
+User ID: ${tx.user_id || 'N/A'}
+
+Product: ${tx.product_name || 'N/A'}
+Event: ${tx.event_id || 'N/A'}
+Amount: $${parseFloat(tx.amount || 0).toFixed(2)} ${tx.currency || 'USD'}
+
+Payment Intent: ${tx.payment_intent_id || 'N/A'}
+Payment Method: ${tx.payment_method || 'N/A'}
+
+${tx.error_message ? 'Error: ' + tx.error_message : ''}
+        `.trim();
+
+        alert(details);
     },
 
     formatRole(role) {

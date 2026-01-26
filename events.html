@@ -481,22 +481,34 @@
             btnText.style.display = 'none';
             spinner.style.display = 'flex';
 
-            try {
-                // Store pending booking info
-                const pendingBooking = {
-                    eventId: selectedEvent.id,
-                    eventName: selectedEvent.name,
-                    ticketId: selectedTicket.id,
-                    ticketName: selectedTicket.name,
-                    ticketPrice: selectedTicket.price,
-                    userId: user.id,
-                    userEmail: user.email,
-                    userName: `${user.firstName} ${user.lastName}`,
-                    createdAt: new Date().toISOString()
-                };
-                localStorage.setItem('founders_vietnam_pending_booking', JSON.stringify(pendingBooking));
+            // Generate transaction ID
+            const transactionId = 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
-                // Create payment intent
+            try {
+                // Step 1: Create transaction with "attempted" status in database
+                const transactionResult = await Database.createTransaction({
+                    id: transactionId,
+                    userId: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    amount: selectedTicket.price,
+                    currency: selectedTicket.currency || 'USD',
+                    status: 'attempted',
+                    paymentIntentId: null,
+                    paymentMethod: 'card',
+                    productId: selectedTicket.id,
+                    productName: selectedTicket.name,
+                    eventId: selectedEvent.id,
+                    metadata: {
+                        eventName: selectedEvent.name,
+                        cardLast4: cardNumber.slice(-4)
+                    }
+                });
+
+                console.log('Transaction attempted:', transactionResult);
+
+                // Step 2: Create payment intent
                 const paymentResult = await Payment.createPaymentIntent(
                     selectedTicket.price,
                     selectedTicket.currency,
@@ -511,39 +523,57 @@
                     throw new Error(paymentResult.error);
                 }
 
-                // Process payment (simulated for demo mode)
+                // Step 3: Process payment (simulated for demo mode)
                 await new Promise(resolve => setTimeout(resolve, 2000));
+                const paymentSuccess = true; // Demo mode
 
-                // Create booking
-                const bookingResult = await Events.createBooking(
-                    user.id,
-                    selectedEvent.id,
-                    selectedTicket.id,
-                    paymentResult.paymentIntentId || `demo-${Date.now()}`
-                );
+                if (paymentSuccess) {
+                    // Step 4: Update transaction status to "completed"
+                    await Database.updateTransactionStatus(transactionId, 'completed');
 
-                if (bookingResult.error) {
-                    throw new Error(bookingResult.error);
+                    // Step 5: Create booking in database
+                    const bookingResult = await Database.createBooking({
+                        userId: user.id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        eventId: selectedEvent.id,
+                        ticketType: selectedTicket.id,
+                        ticketName: selectedTicket.name,
+                        ticketPrice: selectedTicket.price,
+                        transactionId: transactionId,
+                        paymentStatus: 'completed',
+                        bookingStatus: 'confirmed'
+                    });
+
+                    console.log('Booking created:', bookingResult);
+
+                    // Also create event attendance record
+                    const attendanceResult = await Events.createBooking(
+                        user.id,
+                        selectedEvent.id,
+                        selectedTicket.id,
+                        paymentResult.paymentIntentId || transactionId
+                    );
+
+                    closePaymentModal();
+
+                    // Redirect to ticket page
+                    window.location.href = `ticket.html?id=${bookingResult.data?.id || transactionId}`;
+
+                } else {
+                    // Payment failed
+                    await Database.updateTransactionStatus(transactionId, 'failed', 'Payment declined');
+                    throw new Error('Payment was declined. Please try another card.');
                 }
-
-                // Store booking for ticket page
-                const bookingData = {
-                    ...bookingResult,
-                    eventName: selectedEvent.name,
-                    ticketName: selectedTicket.name,
-                    cardLast4: cardNumber.slice(-4)
-                };
-                localStorage.setItem('founders_vietnam_last_booking', JSON.stringify(bookingData));
-                localStorage.removeItem('founders_vietnam_pending_booking');
-
-                closePaymentModal();
-
-                // Redirect to ticket page
-                window.location.href = `ticket.html?id=${bookingResult.booking.id}`;
 
             } catch (error) {
                 console.error('Payment error:', error);
-                alert('Payment processing failed. Please try again.');
+                // Update transaction status to failed
+                if (transactionId) {
+                    await Database.updateTransactionStatus(transactionId, 'failed', error.message);
+                }
+                alert('Payment processing failed: ' + error.message);
             } finally {
                 btn.disabled = false;
                 btnText.style.display = 'inline';

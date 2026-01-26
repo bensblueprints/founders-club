@@ -1401,18 +1401,22 @@
             }
         });
 
-        // Update real-time booking stats
-        function updateBookingStats() {
+        // Update real-time booking stats from database
+        async function updateBookingStats() {
             const MEMBER_CAP = 50;
             const CRUISE_CAP = 30;
 
-            // Get bookings from localStorage
-            const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+            // Get booking stats from database
+            let dinnerBookings = 0;
+            let cruiseBookings = 0;
 
-            // Filter for February 2026 event
-            const febBookings = bookings.filter(b => b.eventId === 'feb-2026' || b.event === 'feb-2026');
-            const dinnerBookings = febBookings.length;
-            const cruiseBookings = febBookings.filter(b => b.ticketId === 'cruise' || b.membership === 'full').length;
+            try {
+                const stats = await Database.getBookingStats('feb-2026');
+                dinnerBookings = stats.total || 0;
+                cruiseBookings = stats.cruise || 0;
+            } catch (error) {
+                console.error('Error fetching booking stats:', error);
+            }
 
             // Update hero stats
             const spotsLeftEl = document.getElementById('statSpotsLeft');
@@ -1660,41 +1664,79 @@
             arrow.style.display = 'none';
             spinner.style.display = 'inline-flex';
 
+            // Generate transaction ID
+            const transactionId = 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
             try {
-                // Create the booking
-                const bookingData = {
-                    eventId: 'feb-2026',
-                    ticketId: quickBookingData.membership === 'full' ? 'cruise' : 'dinner',
-                    ticketName: quickBookingData.ticketName,
-                    ticketPrice: quickBookingData.ticketPrice,
+                // Step 1: Create transaction with "attempted" status in database
+                const transactionResult = await Database.createTransaction({
+                    id: transactionId,
                     userId: quickBookingData.userId,
+                    email: quickBookingData.email,
                     firstName: quickBookingData.firstName,
                     lastName: quickBookingData.lastName,
-                    email: quickBookingData.email,
-                    paymentIntentId: quickBookingData.paymentIntentId || 'demo-' + Date.now(),
-                    paymentStatus: 'completed',
-                    bookedAt: new Date().toISOString()
-                };
+                    amount: quickBookingData.ticketPrice,
+                    currency: 'USD',
+                    status: 'attempted',
+                    paymentIntentId: quickBookingData.paymentIntentId || null,
+                    paymentMethod: 'card',
+                    productId: quickBookingData.productId,
+                    productName: quickBookingData.ticketName,
+                    eventId: 'feb-2026',
+                    metadata: {
+                        membership: quickBookingData.membership,
+                        cardLast4: cardNumber.slice(-4)
+                    }
+                });
 
-                // Store booking locally
-                const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
-                bookings.push(bookingData);
-                localStorage.setItem('founders_vietnam_bookings', JSON.stringify(bookings));
+                console.log('Transaction attempted:', transactionResult);
 
-                // Success!
-                closeQuickBookModal();
+                // Step 2: Process payment (simulate for demo mode)
+                // In production, this would call Airwallex API
+                const paymentSuccess = true; // Demo mode always succeeds
 
-                // Show success message
-                alert(`🎉 Booking confirmed!\n\nYou're all set for the ${quickBookingData.ticketName} on February 10, 2026.\n\nA confirmation has been sent to ${quickBookingData.email}.`);
+                if (paymentSuccess) {
+                    // Step 3: Update transaction status to "completed"
+                    await Database.updateTransactionStatus(transactionId, 'completed');
 
-                // Update booking stats
-                updateBookingStats();
+                    // Step 4: Create booking in database
+                    const bookingResult = await Database.createBooking({
+                        userId: quickBookingData.userId,
+                        email: quickBookingData.email,
+                        firstName: quickBookingData.firstName,
+                        lastName: quickBookingData.lastName,
+                        eventId: 'feb-2026',
+                        ticketType: quickBookingData.membership === 'full' ? 'cruise' : 'dinner',
+                        ticketName: quickBookingData.ticketName,
+                        ticketPrice: quickBookingData.ticketPrice,
+                        transactionId: transactionId,
+                        paymentStatus: 'completed',
+                        bookingStatus: 'confirmed'
+                    });
 
-                // Optionally redirect to ticket page
-                // window.location.href = 'ticket.html?booking=' + bookingData.paymentIntentId;
+                    console.log('Booking created:', bookingResult);
+
+                    // Success!
+                    closeQuickBookModal();
+
+                    // Show success message
+                    alert(`🎉 Booking confirmed!\n\nYou're all set for the ${quickBookingData.ticketName} on February 10, 2026.\n\nA confirmation has been sent to ${quickBookingData.email}.`);
+
+                    // Update booking stats from database
+                    updateBookingStats();
+
+                } else {
+                    // Payment failed - update transaction status
+                    await Database.updateTransactionStatus(transactionId, 'failed', 'Payment declined');
+                    throw new Error('Payment was declined. Please try another card.');
+                }
 
             } catch (error) {
                 console.error('Payment error:', error);
+                // Update transaction status to failed if it exists
+                if (transactionId) {
+                    await Database.updateTransactionStatus(transactionId, 'failed', error.message);
+                }
                 alert('Payment failed: ' + error.message);
             } finally {
                 btn.disabled = false;
@@ -2062,34 +2104,74 @@
             arrow.style.display = 'none';
             spinner.style.display = 'flex';
 
-            try {
-                // Simulate payment processing in demo mode
-                await new Promise(resolve => setTimeout(resolve, 2000));
+            // Generate transaction ID
+            const transactionId = 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
-                // Submit application with payment info
-                const result = await Database.submitApplication({
-                    ...pendingApplicationData,
-                    paymentIntentId: pendingApplicationData.paymentIntentId || `demo-${Date.now()}`,
-                    paymentStatus: 'paid',
-                    amountPaid: pendingApplicationData.ticketPrice,
-                    cardLast4: cardNumber.slice(-4)
+            try {
+                // Step 1: Create transaction with "attempted" status in database
+                const transactionResult = await Database.createTransaction({
+                    id: transactionId,
+                    userId: null, // No user yet - this is an application
+                    email: pendingApplicationData.email,
+                    firstName: pendingApplicationData.firstName,
+                    lastName: pendingApplicationData.lastName,
+                    amount: pendingApplicationData.ticketPrice,
+                    currency: 'USD',
+                    status: 'attempted',
+                    paymentIntentId: pendingApplicationData.paymentIntentId || null,
+                    paymentMethod: 'card',
+                    productId: pendingApplicationData.productId,
+                    productName: pendingApplicationData.ticketName,
+                    eventId: 'feb-2026',
+                    metadata: {
+                        membership: pendingApplicationData.membership,
+                        cardLast4: cardNumber.slice(-4),
+                        applicationType: 'membership_application'
+                    }
                 });
 
-                if (result.error) {
-                    throw new Error(result.error);
+                console.log('Transaction attempted:', transactionResult);
+
+                // Step 2: Simulate payment processing in demo mode
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const paymentSuccess = true; // Demo mode
+
+                if (paymentSuccess) {
+                    // Step 3: Update transaction status to "completed"
+                    await Database.updateTransactionStatus(transactionId, 'completed');
+
+                    // Step 4: Submit application with payment info
+                    const result = await Database.submitApplication({
+                        ...pendingApplicationData,
+                        paymentIntentId: pendingApplicationData.paymentIntentId || transactionId,
+                        transactionId: transactionId,
+                        paymentStatus: 'paid',
+                        amountPaid: pendingApplicationData.ticketPrice,
+                        cardLast4: cardNumber.slice(-4)
+                    });
+
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+
+                    // Clear form and close modal
+                    closeApplicationModal();
+
+                    // Redirect to payment success page
+                    window.location.href = `payment-success.html?order=${pendingApplicationData.orderId || transactionId}&type=application`;
+
+                } else {
+                    // Payment failed
+                    await Database.updateTransactionStatus(transactionId, 'failed', 'Payment declined');
+                    throw new Error('Payment was declined. Please try another card.');
                 }
-
-                // Store for success page
-                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplicationData));
-
-                // Clear form and close modal
-                closeApplicationModal();
-
-                // Redirect to payment success page
-                window.location.href = `payment-success.html?order=${pendingApplicationData.orderId || 'APP-' + Date.now()}&type=application`;
 
             } catch (error) {
                 console.error('Payment error:', error);
+                // Update transaction status to failed
+                if (transactionId) {
+                    await Database.updateTransactionStatus(transactionId, 'failed', error.message);
+                }
                 alert('Payment failed: ' + error.message + '\n\nPlease try again or contact support.');
             } finally {
                 btn.disabled = false;

@@ -437,7 +437,7 @@ const Database = {
         if (!client) return { error: 'Database not configured' };
 
         const user = await this.getCurrentUser();
-        
+
         const { data, error } = await client
             .from('event_photos')
             .insert({
@@ -455,6 +455,312 @@ const Database = {
         }
 
         return { data, error: null };
+    },
+
+    // ========================================
+    // TRANSACTIONS
+    // ========================================
+
+    async createTransaction(transactionData) {
+        const client = this.getClient();
+
+        const transaction = {
+            id: transactionData.id || 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            user_id: transactionData.userId || null,
+            user_email: transactionData.email,
+            user_name: transactionData.firstName + ' ' + transactionData.lastName,
+            amount: transactionData.amount,
+            currency: transactionData.currency || 'USD',
+            status: transactionData.status || 'attempted', // attempted, processing, completed, failed, refunded
+            payment_intent_id: transactionData.paymentIntentId || null,
+            payment_method: transactionData.paymentMethod || 'card',
+            product_id: transactionData.productId,
+            product_name: transactionData.productName,
+            event_id: transactionData.eventId,
+            error_message: transactionData.errorMessage || null,
+            metadata: transactionData.metadata || {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        if (client) {
+            try {
+                const { data, error } = await client
+                    .from('transactions')
+                    .insert({
+                        id: transaction.id,
+                        user_id: transaction.user_id,
+                        user_email: transaction.user_email,
+                        user_name: transaction.user_name,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        status: transaction.status,
+                        payment_intent_id: transaction.payment_intent_id,
+                        payment_method: transaction.payment_method,
+                        product_id: transaction.product_id,
+                        product_name: transaction.product_name,
+                        event_id: transaction.event_id,
+                        error_message: transaction.error_message,
+                        metadata: transaction.metadata
+                    })
+                    .select()
+                    .single();
+
+                if (!error) {
+                    console.log('Transaction saved to database:', data);
+                    return { data, error: null };
+                }
+                console.error('Supabase transaction error:', error);
+            } catch (e) {
+                console.error('Transaction save error:', e);
+            }
+        }
+
+        // Return the transaction object even if DB save failed
+        console.log('Transaction created (DB unavailable):', transaction);
+        return { data: transaction, error: null };
+    },
+
+    async updateTransactionStatus(transactionId, status, errorMessage = null) {
+        const client = this.getClient();
+
+        const updateData = {
+            status: status,
+            updated_at: new Date().toISOString()
+        };
+
+        if (errorMessage) {
+            updateData.error_message = errorMessage;
+        }
+
+        if (client) {
+            try {
+                const { data, error } = await client
+                    .from('transactions')
+                    .update(updateData)
+                    .eq('id', transactionId)
+                    .select()
+                    .single();
+
+                if (!error) {
+                    console.log('Transaction status updated:', data);
+                    return { data, error: null };
+                }
+                console.error('Update transaction error:', error);
+            } catch (e) {
+                console.error('Transaction update error:', e);
+            }
+        }
+
+        return { data: { id: transactionId, ...updateData }, error: null };
+    },
+
+    async getTransactionsByUser(userId) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get transactions error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getTransactionsByEmail(email) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('transactions')
+            .select('*')
+            .eq('user_email', email)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get transactions error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getAllTransactions(limit = 100) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('transactions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('Get all transactions error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    // ========================================
+    // BOOKINGS
+    // ========================================
+
+    async createBooking(bookingData) {
+        const client = this.getClient();
+
+        const booking = {
+            id: bookingData.id || 'bkg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            user_id: bookingData.userId || null,
+            user_email: bookingData.email,
+            user_name: bookingData.firstName + ' ' + bookingData.lastName,
+            event_id: bookingData.eventId,
+            ticket_type: bookingData.ticketType || bookingData.ticketId,
+            ticket_name: bookingData.ticketName,
+            ticket_price: bookingData.ticketPrice,
+            transaction_id: bookingData.transactionId || null,
+            payment_status: bookingData.paymentStatus || 'pending',
+            booking_status: bookingData.bookingStatus || 'confirmed',
+            created_at: new Date().toISOString()
+        };
+
+        if (client) {
+            try {
+                const { data, error } = await client
+                    .from('bookings')
+                    .insert({
+                        id: booking.id,
+                        user_id: booking.user_id,
+                        user_email: booking.user_email,
+                        user_name: booking.user_name,
+                        event_id: booking.event_id,
+                        ticket_type: booking.ticket_type,
+                        ticket_name: booking.ticket_name,
+                        ticket_price: booking.ticket_price,
+                        transaction_id: booking.transaction_id,
+                        payment_status: booking.payment_status,
+                        booking_status: booking.booking_status
+                    })
+                    .select()
+                    .single();
+
+                if (!error) {
+                    console.log('Booking saved to database:', data);
+                    return { data, error: null };
+                }
+                console.error('Supabase booking error:', error);
+            } catch (e) {
+                console.error('Booking save error:', e);
+            }
+        }
+
+        // Return the booking object even if DB save failed
+        console.log('Booking created (DB unavailable):', booking);
+        return { data: booking, error: null };
+    },
+
+    async getBookingsByUser(userId) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('bookings')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get bookings error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getBookingsByEmail(email) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('bookings')
+            .select('*')
+            .eq('user_email', email)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get bookings error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getBookingsByEvent(eventId) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('bookings')
+            .select('*')
+            .eq('event_id', eventId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get event bookings error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getAllBookings(limit = 100) {
+        const client = this.getClient();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('bookings')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('Get all bookings error:', error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async getBookingStats(eventId) {
+        const client = this.getClient();
+        if (!client) return { dinner: 0, cruise: 0, total: 0 };
+
+        const { data, error } = await client
+            .from('bookings')
+            .select('ticket_type')
+            .eq('event_id', eventId)
+            .eq('booking_status', 'confirmed');
+
+        if (error) {
+            console.error('Get booking stats error:', error);
+            return { dinner: 0, cruise: 0, total: 0 };
+        }
+
+        const dinnerCount = data?.filter(b => b.ticket_type === 'dinner').length || 0;
+        const cruiseCount = data?.filter(b => b.ticket_type === 'cruise' || b.ticket_type === 'full').length || 0;
+
+        return {
+            dinner: dinnerCount,
+            cruise: cruiseCount,
+            total: data?.length || 0
+        };
     }
 };
 
