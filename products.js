@@ -44,34 +44,35 @@ const Products = {
     eventTickets: {
         'platinum-cruise': {
             id: 'platinum-cruise',
-            name: 'Poseidon Cruise - Platinum Ticket',
-            description: 'Exclusive yacht cruise experience with premium dining and open bar.',
-            price: 350,
+            name: 'Poseidon Cruise',
+            description: 'Exclusive yacht cruise on the Da Nang River with premium open bar.',
+            price: 349,
             currency: 'USD',
             type: 'event_ticket',
             eventType: 'cruise',
             upgradeToMemberType: 'platinum_founding', // Purchasing this upgrades membership
             features: [
-                'Premium open bar (5 hours)',
-                'Gourmet 5-course dinner',
+                'Premium open bar',
                 'Platinum Founding Member status',
                 'Priority access to future events',
-                'Professional event photography'
+                'Extended networking on the water',
+                'Stunning Da Nang river views'
             ]
         },
         'founding-dinner': {
             id: 'founding-dinner',
-            name: 'Founders Dinner - Member Ticket',
-            description: 'Intimate dinner gathering for founders with wine pairing.',
-            price: 75,
+            name: 'Founders Dinner',
+            description: 'Intimate dinner gathering at Four U Lounge, Da Nang. Network with ambitious founders.',
+            price: 149,
             currency: 'USD',
             type: 'event_ticket',
             eventType: 'dinner',
             features: [
-                '4-course dinner',
-                'Wine pairing',
+                'Curated dinner experience',
+                'Premium drinks included',
+                'Founder introductions',
                 'Networking session',
-                'Curated seating arrangements'
+                'Member directory access'
             ]
         },
         'guest-dinner': {

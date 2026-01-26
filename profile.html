@@ -413,50 +413,14 @@
         document.getElementById('facebook').value = user.facebook || '';
         document.getElementById('instagram').value = user.instagram || '';
 
-        // Handle form submit
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const btn = e.target.querySelector('.submit-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span>Saving...</span>';
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-
-            // Collect all websites into an array
-            const websiteInputs = websiteList.querySelectorAll('input[type="url"]');
-            const websites = [];
-            websiteInputs.forEach(input => {
-                if (input.value.trim()) {
-                    websites.push(input.value.trim());
-                }
-            });
-            data.websites = websites;
-            data.website = websites[0] || ''; // Keep first website for backwards compatibility
-
-            await new Promise(r => setTimeout(r, 1000));
-
-            Auth.updateProfile(data);
-
-            btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            btn.style.background = '#4ade80';
-
-            setTimeout(() => {
-                window.location.href = 'members.html';
-            }, 1500);
-        });
-
-        // Multiple Websites Handler
+        // Multiple Websites Handler (must be before form submit handler)
         const websiteList = document.getElementById('websiteList');
         const addWebsiteBtn = document.getElementById('addWebsiteBtn');
         let websiteCount = 1;
 
-        // Load existing websites - called after populating form
         function loadWebsites() {
             const userWebsites = user.websites || (user.website ? [user.website] : []);
             if (userWebsites.length > 1) {
-                // Load additional websites beyond the first one
                 userWebsites.slice(1).forEach(url => {
                     addWebsiteRow(url);
                 });
@@ -488,6 +452,46 @@
         });
 
         loadWebsites();
+
+        // Handle form submit
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Saving...</span>';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Collect all websites into an array
+            const websiteInputs = websiteList.querySelectorAll('input[type="url"]');
+            const websites = [];
+            websiteInputs.forEach(input => {
+                if (input.value.trim()) {
+                    websites.push(input.value.trim());
+                }
+            });
+            data.websites = websites;
+            data.website = websites[0] || ''; // Keep first website for backwards compatibility
+
+            // Save to database/localStorage
+            const success = Auth.updateProfile(data);
+            console.log('Profile save result:', success, data);
+
+            if (success) {
+                btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                btn.style.background = '#4ade80';
+
+                setTimeout(() => {
+                    window.location.href = 'members.html';
+                }, 1500);
+            } else {
+                btn.innerHTML = '<span>Error saving. Try again.</span>';
+                btn.style.background = '#ef4444';
+                btn.disabled = false;
+            }
+        });
 
         // Profile Photo Upload
         const photoInput = document.getElementById('photoInput');
