@@ -210,6 +210,34 @@
                 </div>
             </form>
 
+            <!-- Membership & Events Section -->
+            <div class="profile-section membership-section" id="membershipSection">
+                <h3 class="section-title-gold">Membership & Events</h3>
+                <div class="membership-status" id="membershipStatus">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="quick-actions" style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                    <a href="events.html" class="submit-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        Book Events
+                    </a>
+                    <a href="members.html" class="cancel-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Member Directory
+                    </a>
+                </div>
+            </div>
+
             <!-- Logout -->
             <div class="profile-footer">
                 <button class="logout-btn" id="logoutBtn">
@@ -287,6 +315,47 @@
                 window.location.href = 'members.html';
             }, 1500);
         });
+
+        // Populate membership status
+        function renderMembershipStatus() {
+            const statusDiv = document.getElementById('membershipStatus');
+            const memberType = user.memberType || 'founding';
+            const isPlatinum = memberType === 'platinum_founding';
+
+            let badgeHtml = '';
+            let upgradeHtml = '';
+
+            if (isPlatinum) {
+                badgeHtml = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <span style="background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; padding: 8px 20px; border-radius: 20px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 500;">
+                            ⭐ Platinum Founding Member
+                        </span>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem;">You have access to all events including exclusive Poseidon Yacht Cruises.</p>
+                `;
+            } else {
+                badgeHtml = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <span style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 20px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.2);">
+                            Founding Member
+                        </span>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem;">Upgrade to Platinum for exclusive yacht cruise access.</p>
+                `;
+                upgradeHtml = `
+                    <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 8px;">
+                        <p style="color: #c9a227; font-weight: 500; margin-bottom: 8px;">Upgrade to Platinum</p>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 12px;">Get access to exclusive Poseidon Yacht Cruises and VIP experiences.</p>
+                        <a href="events.html" style="color: #c9a227; text-decoration: none; font-size: 0.9rem;">Book a Platinum event to upgrade →</a>
+                    </div>
+                `;
+            }
+
+            statusDiv.innerHTML = badgeHtml + upgradeHtml;
+        }
+
+        renderMembershipStatus();
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {

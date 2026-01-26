@@ -693,21 +693,77 @@
     <script src="auth.js"></script>
     <script src="script.js"></script>
     <script>
-        // Check if user is logged in and update nav
-        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
-            const user = Auth.getCurrentUser();
-            if (user) {
-                const navProfile = document.getElementById('navProfile');
-                const navAvatar = document.getElementById('navAvatar');
-                const navLogin = document.getElementById('navLogin');
-                
-                // Hide login, show profile
-                navLogin.style.display = 'none';
-                navProfile.style.display = 'flex';
-                navProfile.href = 'profile.html';
-                navAvatar.textContent = user.firstName[0] + user.lastName[0];
+        // Check if user is logged in and update nav + CTAs
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                const user = Auth.getCurrentUser();
+                if (user) {
+                    const navProfile = document.getElementById('navProfile');
+                    const navAvatar = document.getElementById('navAvatar');
+                    const navLogin = document.getElementById('navLogin');
+                    const navApply = document.getElementById('navApply');
+
+                    // Hide login, show profile
+                    navLogin.style.display = 'none';
+                    navProfile.style.display = 'flex';
+                    navProfile.href = 'profile.html';
+                    navAvatar.textContent = user.firstName[0] + user.lastName[0];
+
+                    // Change "Apply Now" to "Book Events" for logged-in members
+                    if (navApply) {
+                        navApply.textContent = 'Book Events';
+                        navApply.href = 'events.html';
+                    }
+
+                    // Update hero CTA
+                    const heroCta = document.querySelector('.hero-cta');
+                    if (heroCta) {
+                        heroCta.textContent = 'View Upcoming Events';
+                        heroCta.href = 'events.html';
+                    }
+
+                    // Update pricing CTAs
+                    document.querySelectorAll('.pricing-cta').forEach(cta => {
+                        cta.textContent = 'Book Now';
+                        cta.href = 'events.html';
+                    });
+
+                    // Update event reserve/waitlist buttons
+                    document.querySelectorAll('.event-reserve-btn, .event-waitlist-btn').forEach(btn => {
+                        btn.textContent = 'Book Event';
+                        btn.href = 'events.html';
+                    });
+
+                    // Hide application section for logged-in members, show member dashboard link
+                    const applySection = document.getElementById('apply');
+                    if (applySection) {
+                        applySection.innerHTML = `
+                            <div class="apply-container">
+                                <div class="apply-header">
+                                    <span class="section-number">04</span>
+                                    <h2 class="section-title">Welcome Back, ${user.firstName}!</h2>
+                                    <p class="apply-subtitle">
+                                        You're already a member. Browse upcoming events and book your spot directly.
+                                    </p>
+                                </div>
+                                <div class="member-actions" style="display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap;">
+                                    <a href="events.html" class="pricing-cta" style="display: inline-block;">View & Book Events</a>
+                                    <a href="profile.html" class="pricing-cta" style="display: inline-block; background: transparent; border: 1px solid rgba(201, 162, 39, 0.5); color: #c9a227;">My Profile</a>
+                                    <a href="members.html" class="pricing-cta" style="display: inline-block; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8);">Member Directory</a>
+                                </div>
+                                ${user.memberType === 'platinum_founding' ? `
+                                    <div style="margin-top: 30px; text-align: center;">
+                                        <span style="background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; padding: 8px 20px; border-radius: 20px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 500;">
+                                            ⭐ Platinum Founding Member
+                                        </span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                }
             }
-        }
+        });
     </script>
 </body>
 </html>
