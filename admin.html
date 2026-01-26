@@ -167,6 +167,12 @@
             <div class="panel-header">
                 <h2>Membership Applications</h2>
             </div>
+            <div class="app-filters">
+                <button class="app-filter-btn active" data-filter="pending">Pending</button>
+                <button class="app-filter-btn" data-filter="accepted">Accepted</button>
+                <button class="app-filter-btn" data-filter="rejected">Rejected</button>
+                <button class="app-filter-btn" data-filter="all">All</button>
+            </div>
             <div class="applications-list" id="applicationsList">
                 <!-- Populated by JS -->
             </div>
@@ -377,6 +383,111 @@
                     <button type="submit" class="btn-danger">Process Refund</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Application Detail Modal -->
+    <div class="modal" id="applicationModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Application Details</h2>
+                <button class="close-modal" onclick="Admin.closeModal('applicationModal')">&times;</button>
+            </div>
+            <div class="application-detail">
+                <div class="app-detail-section">
+                    <h3>Applicant Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Name</label>
+                            <span id="appDetailName"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <span id="appDetailEmail"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Company & Role</label>
+                            <span id="appDetailCompany"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Industry</label>
+                            <span id="appDetailIndustry"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Monthly Revenue</label>
+                            <span id="appDetailRevenue"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Team Size</label>
+                            <span id="appDetailTeam"></span>
+                        </div>
+                        <div class="detail-item full-width">
+                            <label>Social Link</label>
+                            <span id="appDetailSocial"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Event Selection</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Selected Event</label>
+                            <span id="appDetailEvent"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Membership Interest</label>
+                            <span id="appDetailMembership"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Qualification Answers</h3>
+                    <div class="detail-answers">
+                        <div class="answer-item">
+                            <label>Biggest Challenge</label>
+                            <p id="appDetailChallenge"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Unique Value/Expertise</label>
+                            <p id="appDetailValue"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>12-Month Goals</label>
+                            <p id="appDetailGoals"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>Why Join Founders Vietnam</label>
+                            <p id="appDetailWhy"></p>
+                        </div>
+                        <div class="answer-item">
+                            <label>How Did You Hear About Us</label>
+                            <p id="appDetailReferral"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-detail-section">
+                    <h3>Application Status</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Submitted</label>
+                            <span id="appDetailDate"></span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <span id="appDetailStatus" class="status-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" id="appDetailActions">
+                    <button type="button" class="btn-secondary" onclick="Admin.closeModal('applicationModal')">Close</button>
+                    <button type="button" class="btn-danger" onclick="Admin.rejectApplication(Admin.currentApplicationId)">Reject</button>
+                    <button type="button" class="btn-primary" onclick="Admin.acceptApplication(Admin.currentApplicationId)">Accept & Send Welcome Email</button>
+                </div>
+            </div>
         </div>
     </div>
 

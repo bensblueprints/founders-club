@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Ticket | Founders Vietnam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="members.css">
+    <link rel="stylesheet" href="ticket.css">
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- HTML to Canvas for downloads -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF downloads -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="events.html">Events</a>
+            <a href="#" class="nav-profile" id="navProfile">
+                <span class="profile-avatar" id="navAvatar">JD</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="ticket-main">
+        <div class="ticket-header">
+            <div class="success-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h1>Booking Confirmed!</h1>
+            <p>Your ticket is ready</p>
+        </div>
+
+        <!-- Digital Ticket -->
+        <div class="ticket-container" id="ticketContainer">
+            <div class="ticket" id="digitalTicket">
+                <div class="ticket-top">
+                    <div class="ticket-brand">
+                        <span class="brand-text">FOUNDERS</span>
+                        <span class="brand-accent">VIETNAM</span>
+                    </div>
+                    <div class="ticket-type" id="ticketType">FOUNDING MEMBER</div>
+                </div>
+
+                <div class="ticket-divider">
+                    <div class="divider-line"></div>
+                    <div class="divider-circle left"></div>
+                    <div class="divider-circle right"></div>
+                </div>
+
+                <div class="ticket-body">
+                    <h2 class="event-name" id="ticketEventName">February Gathering</h2>
+                    <p class="ticket-name" id="ticketName">Founders Dinner + Poseidon Cruise</p>
+
+                    <div class="ticket-details">
+                        <div class="detail-row">
+                            <div class="detail-item">
+                                <span class="detail-label">DATE</span>
+                                <span class="detail-value" id="ticketDate">February 10, 2026</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">TIME</span>
+                                <span class="detail-value" id="ticketTime">6:00 PM - 10:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-item full">
+                                <span class="detail-label">VENUE</span>
+                                <span class="detail-value" id="ticketVenue">Four U Lounge, Da Nang</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-attendee">
+                        <span class="attendee-label">ATTENDEE</span>
+                        <span class="attendee-name" id="ticketAttendee">John Smith</span>
+                    </div>
+
+                    <div class="ticket-ref">
+                        <span class="ref-label">BOOKING REF</span>
+                        <span class="ref-value" id="ticketRef">FV-1234567890</span>
+                    </div>
+                </div>
+
+                <div class="ticket-qr">
+                    <div id="qrCode"></div>
+                    <p class="qr-hint">Present this QR code at check-in</p>
+                </div>
+
+                <div class="ticket-footer">
+                    <p>foundersvietnam.com</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Actions -->
+        <div class="ticket-actions">
+            <button class="download-btn" onclick="downloadTicketPNG()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PNG
+            </button>
+            <button class="download-btn" onclick="downloadTicketPDF()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Download PDF
+            </button>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="ticket-info">
+            <h3>Event Details</h3>
+            <div class="info-card">
+                <div class="info-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <div>
+                        <strong>Address</strong>
+                        <p id="ticketAddress">118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <div>
+                        <strong>Schedule</strong>
+                        <p id="ticketSchedule">6:00 PM - Dinner at Four U Lounge<br>8:30 PM - Poseidon Cruise (if applicable)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="events.html" class="btn-secondary">View More Events</a>
+                <a href="members.html" class="btn-primary">Member Directory</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="events-data.js"></script>
+    <script>
+        let ticketData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTicketPage();
+        });
+
+        function initTicketPage() {
+            // Check if logged in
+            if (!Auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = Auth.getCurrentUser();
+            document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+            document.getElementById('navProfile').href = 'profile.html';
+
+            // Get booking ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookingId = urlParams.get('id');
+
+            if (bookingId) {
+                loadTicketByBookingId(bookingId);
+            } else {
+                // Try to load from last booking
+                loadLatestTicket();
+            }
+        }
+
+        function loadTicketByBookingId(bookingId) {
+            const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+            const booking = bookings.find(b => b.id === bookingId);
+
+            if (booking) {
+                displayTicket(booking);
+            } else {
+                showError('Ticket not found');
+            }
+        }
+
+        function loadLatestTicket() {
+            const lastBooking = localStorage.getItem('founders_vietnam_last_booking');
+            if (lastBooking) {
+                const booking = JSON.parse(lastBooking);
+                displayTicket(booking);
+            } else {
+                // Load most recent booking for this user
+                const user = Auth.getCurrentUser();
+                const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+                const userBookings = bookings.filter(b => b.userId === user.id);
+
+                if (userBookings.length > 0) {
+                    const latestBooking = userBookings.sort((a, b) =>
+                        new Date(b.createdAt) - new Date(a.createdAt)
+                    )[0];
+                    displayTicket(latestBooking);
+                } else {
+                    showError('No tickets found');
+                }
+            }
+        }
+
+        function displayTicket(booking) {
+            ticketData = booking;
+            const user = Auth.getCurrentUser();
+
+            // Get event details
+            const events = Events.getUpcomingEvents();
+            const event = events.find(e => e.id === booking.eventId);
+
+            if (!event) {
+                // Try to get from booking data
+                document.getElementById('ticketEventName').textContent = booking.eventName || 'Founders Event';
+                document.getElementById('ticketName').textContent = booking.ticketName || 'Event Ticket';
+            } else {
+                document.getElementById('ticketEventName').textContent = event.name;
+                document.getElementById('ticketDate').textContent = event.displayDate;
+                document.getElementById('ticketTime').textContent = event.time;
+                document.getElementById('ticketVenue').textContent = event.location;
+                document.getElementById('ticketAddress').textContent = event.address || event.location;
+
+                // Find ticket info
+                const ticket = event.tickets.find(t => t.id === booking.ticketId);
+                if (ticket) {
+                    document.getElementById('ticketName').textContent = ticket.name;
+
+                    // Update schedule based on ticket type
+                    if (ticket.includesCruise) {
+                        document.getElementById('ticketSchedule').innerHTML =
+                            '6:00 PM - Founders Dinner at Four U Lounge<br>8:30 PM - Poseidon Cruise';
+                        document.getElementById('ticketType').textContent = 'PLATINUM MEMBER';
+                    } else {
+                        document.getElementById('ticketSchedule').innerHTML =
+                            '6:00 PM - 8:00 PM - Founders Dinner at Four U Lounge';
+                        document.getElementById('ticketType').textContent = 'FOUNDING MEMBER';
+                    }
+                }
+            }
+
+            // Set attendee
+            document.getElementById('ticketAttendee').textContent = `${user.firstName} ${user.lastName}`;
+
+            // Set booking reference
+            const bookingRef = booking.id || `FV-${Date.now()}`;
+            document.getElementById('ticketRef').textContent = bookingRef;
+
+            // Generate QR Code
+            generateQRCode(bookingRef);
+        }
+
+        function generateQRCode(bookingRef) {
+            const qrContainer = document.getElementById('qrCode');
+            qrContainer.innerHTML = '';
+
+            QRCode.toCanvas(bookingRef, {
+                width: 150,
+                margin: 2,
+                color: {
+                    dark: '#1a1a1a',
+                    light: '#ffffff'
+                }
+            }, (error, canvas) => {
+                if (error) {
+                    console.error('QR Code error:', error);
+                    qrContainer.innerHTML = '<p style="color: #ef4444;">QR Code error</p>';
+                } else {
+                    qrContainer.appendChild(canvas);
+                }
+            });
+        }
+
+        function showError(message) {
+            document.querySelector('.ticket-main').innerHTML = `
+                <div class="error-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <h2>${message}</h2>
+                    <p>Please check your booking or try again.</p>
+                    <a href="events.html" class="btn-primary">View Events</a>
+                </div>
+            `;
+        }
+
+        async function downloadTicketPNG() {
+            const ticket = document.getElementById('digitalTicket');
+
+            try {
+                const canvas = await html2canvas(ticket, {
+                    backgroundColor: '#0a0a0a',
+                    scale: 2,
+                    useCORS: true
+                });
+
+                const link = document.createElement('a');
+                link.download = `founders-vietnam-ticket-${ticketData?.id || 'ticket'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download ticket. Please try again.');
+            }
+        }
+
+        async function downloadTicketPDF() {
+            const ticket = document.getElementById('digitalTicket');
+
+            try {
+                const canvas = await html2canvas(ticket, {
+                    backgroundColor: '#0a0a0a',
+                    scale: 2,
+                    useCORS: true
+                });
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width / 2, canvas.height / 2]
+                });
+
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+                pdf.save(`founders-vietnam-ticket-${ticketData?.id || 'ticket'}.pdf`);
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download ticket. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

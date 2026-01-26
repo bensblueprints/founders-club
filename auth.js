@@ -602,5 +602,130 @@ const Auth = {
     }
 };
 
+// ========================================
+// APPLICATIONS MANAGEMENT
+// ========================================
+const Applications = {
+    STORAGE_KEY: 'founders_vietnam_applications',
+
+    // Get all applications
+    getApplications() {
+        return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    },
+
+    // Get application by ID
+    getApplicationById(id) {
+        const apps = this.getApplications();
+        return apps.find(a => a.id == id);
+    },
+
+    // Get applications by status
+    getApplicationsByStatus(status) {
+        const apps = this.getApplications();
+        return apps.filter(a => a.status === status);
+    },
+
+    // Update application status
+    updateStatus(id, status, reviewedBy = null) {
+        const apps = this.getApplications();
+        const index = apps.findIndex(a => a.id == id);
+
+        if (index === -1) return false;
+
+        apps[index].status = status;
+        apps[index].reviewedAt = new Date().toISOString();
+        if (reviewedBy) apps[index].reviewedBy = reviewedBy;
+
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(apps));
+        return apps[index];
+    },
+
+    // Accept application and create member account
+    acceptApplication(id, reviewedBy) {
+        const app = this.getApplicationById(id);
+        if (!app) return { error: 'Application not found' };
+
+        // Check if email already exists
+        const members = Auth.getMembersSync();
+        if (members.find(m => m.email.toLowerCase() === app.email.toLowerCase())) {
+            return { error: 'A member with this email already exists' };
+        }
+
+        // Generate temporary password
+        const tempPassword = 'Welcome' + Math.random().toString(36).substring(2, 8) + '!';
+
+        // Create member account
+        const newMember = {
+            id: Date.now(),
+            email: app.email,
+            password: tempPassword,
+            firstName: app.firstName,
+            lastName: app.lastName,
+            company: app.company,
+            role: app.role,
+            industry: app.industry,
+            memberType: app.membership === 'full' ? 'platinum_founding' : 'founding',
+            status: 'active',
+            joinedAt: new Date().toISOString(),
+            requirePasswordReset: true,
+            bio: '',
+            website: '',
+            whatsapp: '',
+            zalo: '',
+            telegram: '',
+            linkedin: app.socialLink || '',
+            twitter: '',
+            wechat: '',
+            facebook: '',
+            instagram: '',
+            // Store application context
+            applicationId: app.id,
+            selectedEvent: app.event,
+            membershipInterest: app.membership
+        };
+
+        members.push(newMember);
+        localStorage.setItem(Auth.MEMBERS_KEY, JSON.stringify(members));
+
+        // Update application status
+        this.updateStatus(id, 'accepted', reviewedBy);
+
+        return {
+            success: true,
+            member: newMember,
+            tempPassword: tempPassword
+        };
+    },
+
+    // Reject application
+    rejectApplication(id, reviewedBy, reason = '') {
+        const app = this.getApplicationById(id);
+        if (!app) return { error: 'Application not found' };
+
+        const apps = this.getApplications();
+        const index = apps.findIndex(a => a.id == id);
+
+        apps[index].status = 'rejected';
+        apps[index].reviewedAt = new Date().toISOString();
+        apps[index].reviewedBy = reviewedBy;
+        apps[index].rejectionReason = reason;
+
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(apps));
+
+        return { success: true, application: apps[index] };
+    },
+
+    // Get counts by status
+    getCounts() {
+        const apps = this.getApplications();
+        return {
+            total: apps.length,
+            pending: apps.filter(a => a.status === 'pending').length,
+            accepted: apps.filter(a => a.status === 'accepted').length,
+            rejected: apps.filter(a => a.status === 'rejected').length
+        };
+    }
+};
+
 // Initialize on load
 Auth.init();

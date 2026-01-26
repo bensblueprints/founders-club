@@ -4,8 +4,11 @@
 
 const Admin = {
     currentMemberId: null,
+    currentApplicationId: null,
     members: [],
     transactions: [],
+    applications: [],
+    applicationFilter: 'pending',
 
     // Admin role types
     ADMIN_ROLES: ['owner', 'admin', 'organiser'],
@@ -31,11 +34,13 @@ const Admin = {
 
         // Load data
         await this.loadMembers();
+        this.loadApplications();
         this.loadStats();
         this.loadTransactions();
 
         // Setup tabs
         this.setupTabs();
+        this.setupApplicationFilters();
 
         // Setup search and filters
         this.setupFilters();
@@ -76,11 +81,258 @@ const Admin = {
     loadStats() {
         const total = this.members.length;
         const platinum = this.members.filter(m => m.memberType === 'platinum_founding').length;
+        const pendingApps = Applications.getCounts().pending;
 
         document.getElementById('totalMembers').textContent = total;
         document.getElementById('platinumMembers').textContent = platinum;
-        document.getElementById('totalEvents').textContent = '3'; // Placeholder
+        document.getElementById('totalEvents').textContent = '6';
         document.getElementById('totalRevenue').textContent = '$12,500'; // Placeholder
+
+        // Update applications tab badge
+        const appTab = document.querySelector('[data-tab="applications"]');
+        if (appTab && pendingApps > 0) {
+            appTab.innerHTML = `Applications <span class="tab-badge">${pendingApps}</span>`;
+        }
+    },
+
+    // ========================================
+    // APPLICATIONS
+    // ========================================
+
+    loadApplications() {
+        this.applications = Applications.getApplications();
+        this.renderApplications();
+    },
+
+    setupApplicationFilters() {
+        const filterBtns = document.querySelectorAll('.app-filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.applicationFilter = btn.dataset.filter;
+                this.renderApplications();
+            });
+        });
+    },
+
+    renderApplications() {
+        const container = document.getElementById('applicationsList');
+        const counts = Applications.getCounts();
+
+        // Update filter counts
+        document.querySelectorAll('.app-filter-btn').forEach(btn => {
+            const filter = btn.dataset.filter;
+            const count = filter === 'all' ? counts.total : counts[filter];
+            btn.querySelector('.count')?.remove();
+            btn.innerHTML += ` <span class="count">(${count})</span>`;
+        });
+
+        // Filter applications
+        let filtered = this.applications;
+        if (this.applicationFilter !== 'all') {
+            filtered = filtered.filter(a => a.status === this.applicationFilter);
+        }
+
+        // Sort by date (newest first)
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No ${this.applicationFilter === 'all' ? '' : this.applicationFilter} applications</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(app => `
+            <div class="application-card ${app.status}">
+                <div class="app-header">
+                    <div class="app-info">
+                        <h3>${app.firstName} ${app.lastName}</h3>
+                        <p class="app-company">${app.company} · ${app.role}</p>
+                        <p class="app-email">${app.email}</p>
+                    </div>
+                    <div class="app-meta">
+                        <span class="app-status ${app.status}">${app.status}</span>
+                        <span class="app-date">${new Date(app.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="app-details">
+                    <div class="app-detail">
+                        <span class="detail-label">Revenue</span>
+                        <span class="detail-value">${this.formatRevenue(app.revenue)}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Industry</span>
+                        <span class="detail-value">${this.formatIndustry(app.industry)}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Team Size</span>
+                        <span class="detail-value">${app.teamSize || 'N/A'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Event Interest</span>
+                        <span class="detail-value">${app.event || 'N/A'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Membership</span>
+                        <span class="detail-value membership-${app.membership}">${app.membership === 'full' ? 'Dinner + Cruise ($498)' : 'Dinner ($149)'}</span>
+                    </div>
+                </div>
+                <div class="app-actions">
+                    <button class="btn-view" onclick="Admin.viewApplication(${app.id})">View Details</button>
+                    ${app.status === 'pending' ? `
+                        <button class="btn-accept" onclick="Admin.acceptApplication(${app.id})">Accept</button>
+                        <button class="btn-reject" onclick="Admin.rejectApplication(${app.id})">Reject</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    formatRevenue(revenue) {
+        const labels = {
+            'pre-revenue': 'Pre-Revenue',
+            '0-5k': '$0 - $5K',
+            '5k-10k': '$5K - $10K',
+            '10k-25k': '$10K - $25K',
+            '25k-50k': '$25K - $50K',
+            '50k-100k': '$50K - $100K',
+            '100k-500k': '$100K - $500K',
+            '500k+': '$500K+'
+        };
+        return labels[revenue] || revenue || 'N/A';
+    },
+
+    formatIndustry(industry) {
+        const labels = {
+            'saas': 'SaaS / Software',
+            'ecommerce': 'E-Commerce',
+            'fintech': 'Fintech',
+            'healthtech': 'Healthtech',
+            'edtech': 'Edtech',
+            'agency': 'Agency / Services',
+            'manufacturing': 'Manufacturing',
+            'real-estate': 'Real Estate',
+            'crypto': 'Crypto / Web3',
+            'ai': 'AI / ML',
+            'consumer': 'Consumer Products',
+            'other': 'Other'
+        };
+        return labels[industry] || industry || 'N/A';
+    },
+
+    viewApplication(id) {
+        const app = Applications.getApplicationById(id);
+        if (!app) return;
+
+        this.currentApplicationId = id;
+
+        // Populate modal
+        document.getElementById('appDetailName').textContent = `${app.firstName} ${app.lastName}`;
+        document.getElementById('appDetailEmail').textContent = app.email;
+        document.getElementById('appDetailCompany').textContent = `${app.company} · ${app.role}`;
+        document.getElementById('appDetailIndustry').textContent = this.formatIndustry(app.industry);
+        document.getElementById('appDetailRevenue').textContent = this.formatRevenue(app.revenue);
+        document.getElementById('appDetailTeam').textContent = app.teamSize || 'N/A';
+        document.getElementById('appDetailSocial').innerHTML = app.socialLink ?
+            `<a href="${app.socialLink}" target="_blank">${app.socialLink}</a>` : 'N/A';
+        document.getElementById('appDetailEvent').textContent = app.event || 'N/A';
+        document.getElementById('appDetailMembership').textContent = app.membership === 'full' ?
+            'Full Experience (Dinner + Cruise) - $498' : 'Monthly Gathering (Dinner) - $149';
+        document.getElementById('appDetailChallenge').textContent = app.biggestChallenge || 'N/A';
+        document.getElementById('appDetailValue').textContent = app.uniqueValue || 'N/A';
+        document.getElementById('appDetailGoals').textContent = app.goals12Month || 'N/A';
+        document.getElementById('appDetailWhy').textContent = app.whyJoin || 'N/A';
+        document.getElementById('appDetailReferral').textContent = app.referral || 'N/A';
+        if (app.referrerName) {
+            document.getElementById('appDetailReferral').textContent += ` (${app.referrerName})`;
+        }
+        document.getElementById('appDetailDate').textContent = new Date(app.createdAt).toLocaleString();
+        document.getElementById('appDetailStatus').textContent = app.status;
+        document.getElementById('appDetailStatus').className = `status-badge ${app.status}`;
+
+        // Show/hide action buttons based on status
+        const actionsDiv = document.getElementById('appDetailActions');
+        if (app.status === 'pending') {
+            actionsDiv.style.display = 'flex';
+        } else {
+            actionsDiv.style.display = 'none';
+        }
+
+        this.showModal('applicationModal');
+    },
+
+    async acceptApplication(id) {
+        const app = Applications.getApplicationById(id);
+        if (!app) return;
+
+        if (!confirm(`Accept application from ${app.firstName} ${app.lastName}?\n\nThis will create a member account and send them a welcome email.`)) {
+            return;
+        }
+
+        const currentUser = Auth.getCurrentUser();
+        const result = Applications.acceptApplication(id, currentUser.email);
+
+        if (result.error) {
+            alert('Error: ' + result.error);
+            return;
+        }
+
+        // Send welcome email
+        try {
+            const response = await fetch('/.netlify/functions/send-welcome-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: result.member.email,
+                    firstName: result.member.firstName,
+                    lastName: result.member.lastName,
+                    tempPassword: result.tempPassword,
+                    type: 'welcome'
+                })
+            });
+
+            if (response.ok) {
+                alert(`Application accepted!\n\nWelcome email sent to ${result.member.email}\nTemporary password: ${result.tempPassword}`);
+            } else {
+                alert(`Application accepted!\n\nCould not send welcome email. Please send manually.\nTemporary password: ${result.tempPassword}`);
+            }
+        } catch (error) {
+            alert(`Application accepted!\n\nCould not send welcome email. Please send manually.\nTemporary password: ${result.tempPassword}`);
+        }
+
+        this.closeModal('applicationModal');
+        this.loadApplications();
+        this.loadMembers();
+        this.loadStats();
+    },
+
+    rejectApplication(id) {
+        const app = Applications.getApplicationById(id);
+        if (!app) return;
+
+        const reason = prompt(`Reject application from ${app.firstName} ${app.lastName}?\n\nOptionally enter a reason (or leave blank):`);
+
+        if (reason === null) return; // User cancelled
+
+        const currentUser = Auth.getCurrentUser();
+        const result = Applications.rejectApplication(id, currentUser.email, reason);
+
+        if (result.error) {
+            alert('Error: ' + result.error);
+            return;
+        }
+
+        alert('Application rejected.');
+        this.closeModal('applicationModal');
+        this.loadApplications();
+        this.loadStats();
     },
 
     loadTransactions() {

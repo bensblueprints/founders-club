@@ -308,7 +308,7 @@
                     console.log('Payment API not configured, simulating success...');
                 }
 
-                // Create booking (simulated for demo)
+                // Create booking
                 const bookingResult = await Events.createBooking(
                     user.id,
                     selectedEvent.id,
@@ -320,11 +320,18 @@
                     throw new Error(bookingResult.error);
                 }
 
-                closePaymentModal();
-                alert(`Booking confirmed! You're registered for ${selectedEvent.name}.${selectedEvent.isPlatinumEvent ? '\n\nCongratulations! You are now a Platinum Founding Member!' : ''}`);
+                // Store booking for ticket page
+                const bookingData = {
+                    ...bookingResult,
+                    eventName: selectedEvent.name,
+                    ticketName: selectedTicket.name
+                };
+                localStorage.setItem('founders_vietnam_last_booking', JSON.stringify(bookingData));
 
-                // Refresh page
-                loadUpcomingEvents();
+                closePaymentModal();
+
+                // Redirect to ticket page
+                window.location.href = `ticket.html?id=${bookingResult.id}`;
 
             } catch (error) {
                 console.error('Payment error:', error);
