@@ -685,6 +685,100 @@ section {
     margin-bottom: 1rem;
 }
 
+/* Event Speakers Showcase */
+.event-speakers-showcase {
+    background: linear-gradient(135deg, rgba(201, 162, 39, 0.08), rgba(201, 162, 39, 0.03));
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 1.25rem;
+}
+
+.speakers-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+}
+
+.speakers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.speaker-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.speaker-card:hover {
+    background: rgba(0, 0, 0, 0.3);
+    transform: translateX(4px);
+}
+
+.speaker-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-accent), #b8922a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-bg);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.speaker-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.speaker-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.speaker-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.speaker-badge {
+    background: linear-gradient(135deg, var(--color-accent), #e5c464);
+    color: var(--color-bg);
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.speaker-topic {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
 /* Spots Bar */
 .event-spots {
     margin-bottom: 1.25rem;
