@@ -1083,6 +1083,164 @@
         </div>
     </div>
 
+    <!-- Quick Booking Modal (for logged-in members - skips application form) -->
+    <div class="modal" id="quickBookModal">
+        <div class="modal-content modal-large" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <!-- Step 1: Ticket Selection -->
+            <div id="quickBookStep1">
+                <div class="modal-header" style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #c9a227;">Book Your Spot</h2>
+                    <button class="close-modal" onclick="closeQuickBookModal()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                <div style="padding: 30px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;">👋</div>
+                        <h3 id="quickBookGreeting" style="font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; color: white; margin-bottom: 10px;">Welcome back!</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 1rem;">Select your ticket for the February gathering.</p>
+                    </div>
+
+                    <div class="next-event-banner" style="background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 8px;">Our next event is</p>
+                        <h4 style="color: #c9a227; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; margin: 0;">Tuesday, February 10, 2026</h4>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 8px;">Da Nang, Vietnam</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display: block; color: rgba(255,255,255,0.8); font-size: 1rem; margin-bottom: 16px; font-weight: 500;">Select Your Experience</label>
+                        <div class="radio-group" id="quickBookTickets">
+                            <label class="radio-label" style="display: flex; align-items: flex-start; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="quickBookMembership" value="dinner" style="margin-right: 16px; margin-top: 4px;">
+                                <span class="radio-text">
+                                    <strong style="color: white; font-size: 1.1rem; display: block; margin-bottom: 4px;">Founders Dinner — $149</strong>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Dinner + networking (6-8pm)</span>
+                                </span>
+                            </label>
+                            <label class="radio-label featured" style="display: flex; align-items: flex-start; padding: 20px; background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.4); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="quickBookMembership" value="full" style="margin-right: 16px; margin-top: 4px;">
+                                <span class="radio-text">
+                                    <strong style="color: #c9a227; font-size: 1.1rem; display: block; margin-bottom: 4px;">Founders Dinner + Cruise — $498</strong>
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Dinner + Poseidon Cruise (Limited to 30)</span>
+                                    <span style="display: inline-block; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">RECOMMENDED</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="proceedToQuickPayment()" style="width: 100%; margin-top: 24px; padding: 18px 40px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span>Continue to Payment</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Payment -->
+            <div id="quickBookStep2" style="display: none;">
+                <div class="modal-header" style="position: sticky; top: 0; background: #1a1a1a; z-index: 10; padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #c9a227;">Complete Payment</h2>
+                    <button class="close-modal" onclick="closeQuickBookModal()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                <div style="padding: 30px;">
+                    <!-- Order Summary -->
+                    <div style="background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                        <h4 style="color: #c9a227; font-family: 'Outfit', sans-serif; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Order Summary</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div>
+                                <p id="quickPaymentTicketName" style="color: white; font-weight: 500; margin: 0;">Founders Dinner</p>
+                                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 4px 0 0 0;">February 10, 2026 • Da Nang</p>
+                            </div>
+                            <span id="quickPaymentPrice" style="color: #c9a227; font-size: 1.5rem; font-weight: 600;">$149</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px;">
+                            <span style="color: white; font-weight: 600;">Total</span>
+                            <span id="quickPaymentTotal" style="color: white; font-size: 1.5rem; font-weight: 700;">$149</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form Container -->
+                    <div id="quickPaymentFormContainer">
+                        <!-- Loading state while initializing Airwallex -->
+                        <div id="quickPaymentLoading" style="text-align: center; padding: 40px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; color: #c9a227;">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                            </svg>
+                            <p style="color: rgba(255,255,255,0.7); margin-top: 16px;">Initializing secure payment...</p>
+                        </div>
+
+                        <!-- Fallback Card Form -->
+                        <div id="quickFallbackCardForm" style="display: none;">
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px;">
+                                <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                    Card Details
+                                </h4>
+
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Cardholder Name</label>
+                                    <input type="text" id="quickCardholderName" placeholder="Name on card" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Card Number</label>
+                                    <input type="text" id="quickCardNumber" placeholder="4242 4242 4242 4242" maxlength="19" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 2px;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <div class="form-group">
+                                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Expiry Date</label>
+                                        <input type="text" id="quickCardExpiry" placeholder="12/28" maxlength="5" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">CVC</label>
+                                        <input type="text" id="quickCardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                    </div>
+                                </div>
+
+                                <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px;">
+                                    <p style="margin: 0; color: #ffc107; font-size: 0.85rem;">
+                                        <strong>Demo Mode:</strong> Use test card 4242 4242 4242 4242
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Pay Button -->
+                            <button type="button" id="quickPayNowBtn" onclick="processQuickPayment()" style="width: 100%; margin-top: 24px; padding: 18px 40px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span id="quickPayBtnText">Pay Now</span>
+                                <span id="quickPaySpinner" style="display: none;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                                    </svg>
+                                    Processing...
+                                </span>
+                                <svg id="quickPayBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Security Note -->
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; color: rgba(255,255,255,0.5); font-size: 0.85rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>Secured by Airwallex • 256-bit SSL encryption</span>
+                        </div>
+                    </div>
+
+                    <!-- Back Button -->
+                    <button type="button" onclick="goBackToQuickTickets()" style="width: 100%; margin-top: 16px; padding: 14px; background: transparent; color: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        ← Back to Ticket Selection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -1190,56 +1348,27 @@
                     // Change "Apply Now" to "Book Events" for logged-in members
                     if (navApply) {
                         navApply.textContent = 'Book Events';
-                        navApply.href = 'events.html';
+                        // Keep onclick for booking from anywhere
                     }
 
-                    // Update hero CTA
+                    // Update hero CTA - keep onclick for quick booking
                     const heroCta = document.querySelector('.hero-cta');
                     if (heroCta) {
-                        heroCta.textContent = 'View Upcoming Events';
-                        heroCta.href = 'events.html';
+                        heroCta.textContent = 'Book Your Spot';
+                        // Keep onclick - openApplicationModal will open quick book modal
                     }
 
-                    // Update pricing CTAs
+                    // Update pricing CTAs - keep onclick for quick booking
                     document.querySelectorAll('.pricing-cta').forEach(cta => {
-                        cta.textContent = 'Apply Now';
-                        cta.href = 'events.html';
+                        cta.textContent = 'Book Now';
+                        // Keep onclick - openApplicationModal will open quick book modal
                     });
 
-                    // Update event reserve/waitlist buttons - remove onclick and set href
+                    // Update event reserve/waitlist buttons text but KEEP onclick
                     document.querySelectorAll('.event-reserve-btn, .event-waitlist-btn').forEach(btn => {
                         btn.textContent = 'Book Event';
-                        btn.href = 'events.html';
-                        btn.onclick = null; // Remove the openApplicationModal handler
-                        btn.removeAttribute('onclick');
+                        // Keep onclick - openApplicationModal will handle login check
                     });
-
-                    // Update hero CTA onclick
-                    const heroCtaEl = document.querySelector('.hero-cta');
-                    if (heroCtaEl) {
-                        heroCtaEl.onclick = null;
-                        heroCtaEl.removeAttribute('onclick');
-                    }
-
-                    // Update pricing CTAs onclick
-                    document.querySelectorAll('.pricing-cta').forEach(cta => {
-                        cta.onclick = null;
-                        cta.removeAttribute('onclick');
-                    });
-
-                    // Update gallery btn
-                    const galleryBtn = document.querySelector('.gallery-btn');
-                    if (galleryBtn) {
-                        galleryBtn.href = 'events.html';
-                        galleryBtn.onclick = null;
-                        galleryBtn.removeAttribute('onclick');
-                    }
-
-                    // Update nav apply
-                    if (navApply) {
-                        navApply.onclick = null;
-                        navApply.removeAttribute('onclick');
-                    }
 
                     // Hide application section for logged-in members, show member dashboard link
                     const applySection = document.getElementById('apply');
@@ -1315,13 +1444,264 @@
 
         // Application Modal Functions
         function openApplicationModal() {
-            document.getElementById('applicationModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
+            // Check if user is logged in
+            if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                // Logged in users go directly to quick booking (ticket selection + payment)
+                openQuickBookModal();
+            } else {
+                // Non-logged in users see full application form
+                document.getElementById('applicationModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeApplicationModal() {
             document.getElementById('applicationModal').classList.remove('active');
             document.body.style.overflow = '';
+        }
+
+        // Quick Booking Modal for logged-in members (skip application form)
+        function openQuickBookModal() {
+            document.getElementById('quickBookModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            // Reset to step 1
+            document.getElementById('quickBookStep1').style.display = 'block';
+            document.getElementById('quickBookStep2').style.display = 'none';
+            // Reset payment loading state
+            document.getElementById('quickPaymentLoading').style.display = 'block';
+            document.getElementById('quickFallbackCardForm').style.display = 'none';
+            // Set greeting with user's name
+            const user = Auth.getCurrentUser();
+            if (user) {
+                document.getElementById('quickBookGreeting').textContent = `Welcome back, ${user.firstName}!`;
+            }
+        }
+
+        function closeQuickBookModal() {
+            document.getElementById('quickBookModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Quick booking data storage
+        let quickBookingData = null;
+
+        // Proceed to quick payment (for logged-in members)
+        function proceedToQuickPayment() {
+            const membershipSelected = document.querySelector('input[name="quickBookMembership"]:checked');
+            if (!membershipSelected) {
+                alert('Please select a ticket option');
+                return;
+            }
+
+            const user = Auth.getCurrentUser();
+            if (!user) {
+                alert('Please log in to continue');
+                return;
+            }
+
+            // Determine price based on selection
+            const membership = membershipSelected.value;
+            const price = membership === 'full' ? 498 : 149;
+            const ticketName = membership === 'full' ? 'Founders Dinner + Poseidon Cruise' : 'Founders Dinner';
+            const productId = membership === 'full' ? 'platinum-cruise' : 'founding-dinner';
+
+            // Store booking data
+            quickBookingData = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                userId: user.id,
+                membership: membership,
+                ticketPrice: price,
+                ticketName: ticketName,
+                productId: productId,
+                event: 'feb-2026',
+                createdAt: new Date().toISOString()
+            };
+
+            // Update payment UI
+            document.getElementById('quickPaymentTicketName').textContent = ticketName;
+            document.getElementById('quickPaymentPrice').textContent = '$' + price;
+            document.getElementById('quickPaymentTotal').textContent = '$' + price;
+
+            // Show payment step
+            document.getElementById('quickBookStep1').style.display = 'none';
+            document.getElementById('quickBookStep2').style.display = 'block';
+
+            // Initialize payment
+            setTimeout(() => {
+                initializeQuickBookPayment();
+            }, 100);
+        }
+
+        // Go back to ticket selection
+        function goBackToQuickTickets() {
+            document.getElementById('quickBookStep2').style.display = 'none';
+            document.getElementById('quickBookStep1').style.display = 'block';
+            // Reset payment form state
+            document.getElementById('quickPaymentLoading').style.display = 'block';
+            document.getElementById('quickFallbackCardForm').style.display = 'none';
+        }
+
+        // Initialize quick booking card inputs
+        function initQuickBookCardInputs() {
+            const cardNumberEl = document.getElementById('quickCardNumber');
+            const cardExpiryEl = document.getElementById('quickCardExpiry');
+            const cardCvcEl = document.getElementById('quickCardCvc');
+
+            if (cardNumberEl) {
+                cardNumberEl.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                    e.target.value = formatted;
+                });
+            }
+
+            if (cardExpiryEl) {
+                cardExpiryEl.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            if (cardCvcEl) {
+                cardCvcEl.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                });
+            }
+        }
+
+        // Initialize quick booking payment
+        async function initializeQuickBookPayment() {
+            if (!quickBookingData) {
+                console.error('No quick booking data');
+                return;
+            }
+
+            try {
+                // Create payment intent
+                const paymentResponse = await fetch('/.netlify/functions/create-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productIds: [quickBookingData.productId],
+                        customerEmail: quickBookingData.email,
+                        customerName: `${quickBookingData.firstName} ${quickBookingData.lastName}`,
+                        eventId: 'feb-2026',
+                        applicationType: 'member_booking'
+                    })
+                });
+
+                const paymentResult = await paymentResponse.json();
+                console.log('Quick booking payment intent:', paymentResult);
+
+                if (!paymentResult.success && !paymentResult.mock) {
+                    throw new Error(paymentResult.error || 'Failed to create payment');
+                }
+
+                // Store payment info
+                quickBookingData.paymentIntentId = paymentResult.paymentIntentId;
+                quickBookingData.orderId = paymentResult.orderId;
+                quickBookingData.clientSecret = paymentResult.clientSecret;
+
+                // Show fallback card form (or Airwallex)
+                if (paymentResult.mock) {
+                    document.getElementById('quickPaymentLoading').style.display = 'none';
+                    document.getElementById('quickFallbackCardForm').style.display = 'block';
+                    document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
+                    initQuickBookCardInputs();
+                } else {
+                    // Initialize Airwallex Drop-in here if configured
+                    document.getElementById('quickPaymentLoading').style.display = 'none';
+                    document.getElementById('quickFallbackCardForm').style.display = 'block';
+                    document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
+                    initQuickBookCardInputs();
+                }
+            } catch (error) {
+                console.error('Payment initialization error:', error);
+                // Show fallback on error
+                document.getElementById('quickPaymentLoading').style.display = 'none';
+                document.getElementById('quickFallbackCardForm').style.display = 'block';
+                document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
+                initQuickBookCardInputs();
+            }
+        }
+
+        // Process quick payment
+        async function processQuickPayment() {
+            const btn = document.getElementById('quickPayNowBtn');
+            const btnText = document.getElementById('quickPayBtnText');
+            const spinner = document.getElementById('quickPaySpinner');
+            const arrow = document.getElementById('quickPayBtnArrow');
+
+            // Validate card inputs
+            const cardNumber = document.getElementById('quickCardNumber').value.replace(/\s/g, '');
+            const cardExpiry = document.getElementById('quickCardExpiry').value;
+            const cardCvc = document.getElementById('quickCardCvc').value;
+
+            if (cardNumber.length < 15) {
+                alert('Please enter a valid card number');
+                return;
+            }
+            if (!cardExpiry || cardExpiry.length < 4) {
+                alert('Please enter a valid expiry date');
+                return;
+            }
+            if (!cardCvc || cardCvc.length < 3) {
+                alert('Please enter a valid CVC');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            arrow.style.display = 'none';
+            spinner.style.display = 'inline-flex';
+
+            try {
+                // Create the booking
+                const bookingData = {
+                    eventId: 'feb-2026',
+                    ticketId: quickBookingData.membership === 'full' ? 'cruise' : 'dinner',
+                    ticketName: quickBookingData.ticketName,
+                    ticketPrice: quickBookingData.ticketPrice,
+                    userId: quickBookingData.userId,
+                    firstName: quickBookingData.firstName,
+                    lastName: quickBookingData.lastName,
+                    email: quickBookingData.email,
+                    paymentIntentId: quickBookingData.paymentIntentId || 'demo-' + Date.now(),
+                    paymentStatus: 'completed',
+                    bookedAt: new Date().toISOString()
+                };
+
+                // Store booking locally
+                const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+                bookings.push(bookingData);
+                localStorage.setItem('founders_vietnam_bookings', JSON.stringify(bookings));
+
+                // Success!
+                closeQuickBookModal();
+
+                // Show success message
+                alert(`🎉 Booking confirmed!\n\nYou're all set for the ${quickBookingData.ticketName} on February 10, 2026.\n\nA confirmation has been sent to ${quickBookingData.email}.`);
+
+                // Update booking stats
+                updateBookingStats();
+
+                // Optionally redirect to ticket page
+                // window.location.href = 'ticket.html?booking=' + bookingData.paymentIntentId;
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                arrow.style.display = 'inline';
+                spinner.style.display = 'none';
+            }
         }
 
         // Close modal when clicking outside
@@ -1331,10 +1711,18 @@
             }
         });
 
+        // Close quick book modal when clicking outside
+        document.getElementById('quickBookModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeQuickBookModal();
+            }
+        });
+
         // Close modal with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeApplicationModal();
+                closeQuickBookModal();
             }
         });
 
