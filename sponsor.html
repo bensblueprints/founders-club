@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor Founders Vietnam | Reach Elite Entrepreneurs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .sponsor-hero {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 140px 20px 80px;
+            background: linear-gradient(180deg, rgba(201, 162, 39, 0.05) 0%, transparent 50%);
+            position: relative;
+        }
+
+        .sponsor-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100px;
+            background: linear-gradient(180deg, #c9a227, transparent);
+        }
+
+        .sponsor-hero-content {
+            max-width: 800px;
+        }
+
+        .sponsor-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(201, 162, 39, 0.15);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #c9a227;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .sponsor-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            letter-spacing: 0.02em;
+            line-height: 0.95;
+            margin-bottom: 24px;
+        }
+
+        .sponsor-title span {
+            color: #c9a227;
+        }
+
+        .sponsor-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .sponsor-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .sponsor-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #c9a227, #b8922a);
+            color: #1a1a1a;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .sponsor-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201, 162, 39, 0.3);
+        }
+
+        .sponsor-cta-secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .sponsor-cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: none;
+        }
+
+        /* Stats Section */
+        .sponsor-stats {
+            padding: 80px 20px;
+            background: rgba(201, 162, 39, 0.03);
+            border-top: 1px solid rgba(201, 162, 39, 0.1);
+            border-bottom: 1px solid rgba(201, 162, 39, 0.1);
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .stats-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .stats-header p {
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .revenue-showcase {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .total-revenue {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.15), rgba(201, 162, 39, 0.05));
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .total-revenue-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+        }
+
+        .total-revenue-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 10vw, 5rem);
+            color: #c9a227;
+            letter-spacing: 0.02em;
+        }
+
+        .total-revenue-note {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+        }
+
+        .revenue-tiers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .revenue-tiers {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .revenue-tiers {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .revenue-tier {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .revenue-tier:hover {
+            border-color: rgba(201, 162, 39, 0.3);
+        }
+
+        .tier-amount {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: #c9a227;
+            margin-bottom: 4px;
+        }
+
+        .tier-count {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tier-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Audience Section */
+        .audience-section {
+            padding: 100px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .audience-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .audience-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.2), rgba(201, 162, 39, 0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #c9a227;
+        }
+
+        .audience-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .audience-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+
+        /* Sponsorship Packages */
+        .packages-section {
+            padding: 100px 20px;
+            background: rgba(201, 162, 39, 0.02);
+        }
+
+        .packages-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .package-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-card.platinum {
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent);
+            border-color: rgba(201, 162, 39, 0.3);
+        }
+
+        .package-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 6px 12px;
+            background: #c9a227;
+            color: #1a1a1a;
+            border-radius: 4px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .package-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .package-price {
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 24px;
+        }
+
+        .package-price .amount {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #c9a227;
+        }
+
+        .package-price .period {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1rem;
+        }
+
+        .package-spots {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 24px;
+        }
+
+        .package-features {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+
+        .package-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .package-features li:last-child {
+            border-bottom: none;
+        }
+
+        .package-features svg {
+            flex-shrink: 0;
+            color: #c9a227;
+            margin-top: 2px;
+        }
+
+        .package-cta {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #c9a227, #b8922a);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .package-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201, 162, 39, 0.3);
+        }
+
+        /* Past Sponsors */
+        .past-sponsors {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .past-sponsors h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 32px;
+        }
+
+        .sponsor-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            opacity: 0.4;
+        }
+
+        .sponsor-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Application Form */
+        .application-section {
+            padding: 100px 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 48px;
+        }
+
+        @media (max-width: 480px) {
+            .form-card {
+                padding: 32px 20px;
+            }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .form-header p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(201, 162, 39, 0.5);
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #c9a227, #b8922a);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 16px;
+        }
+
+        .form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201, 162, 39, 0.3);
+        }
+
+        .form-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Footer */
+        .sponsor-footer {
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sponsor-footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .sponsor-footer a {
+            color: #c9a227;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#events">Events</a>
+            <a href="members.html">Members</a>
+            <a href="sponsor.html" class="active">Sponsor</a>
+            <a href="login.html" class="nav-cta">Login</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="sponsor-hero">
+        <div class="sponsor-hero-content">
+            <div class="sponsor-badge">Limited Sponsorship Opportunities</div>
+            <h1 class="sponsor-title">
+                Get In Front of<br><span>Vietnam's Top Founders</span>
+            </h1>
+            <p class="sponsor-subtitle">
+                Connect your brand with an elite, vetted community of entrepreneurs
+                generating $150M+ in combined annual revenue.
+            </p>
+            <div class="sponsor-cta-row">
+                <a href="#packages" class="sponsor-cta">View Packages</a>
+                <a href="#apply" class="sponsor-cta sponsor-cta-secondary">Apply to Sponsor</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Revenue Stats Section -->
+    <section class="sponsor-stats">
+        <div class="stats-header">
+            <h2>Our Members Mean Business</h2>
+            <p>Real founders with real revenue. No wannabes, no dreamers—just results.</p>
+        </div>
+
+        <div class="revenue-showcase">
+            <div class="total-revenue">
+                <div class="total-revenue-label">Combined Annual Revenue of Members</div>
+                <div class="total-revenue-value">$150M+</div>
+                <div class="total-revenue-note">Verified revenue from vetted founders</div>
+            </div>
+
+            <div class="revenue-tiers">
+                <div class="revenue-tier">
+                    <div class="tier-amount">$1M+</div>
+                    <div class="tier-count">12</div>
+                    <div class="tier-label">Founders</div>
+                </div>
+                <div class="revenue-tier">
+                    <div class="tier-amount">$5M+</div>
+                    <div class="tier-count">8</div>
+                    <div class="tier-label">Founders</div>
+                </div>
+                <div class="revenue-tier">
+                    <div class="tier-amount">$10M+</div>
+                    <div class="tier-count">5</div>
+                    <div class="tier-label">Founders</div>
+                </div>
+                <div class="revenue-tier">
+                    <div class="tier-amount">$50M+</div>
+                    <div class="tier-count">3</div>
+                    <div class="tier-label">Founders</div>
+                </div>
+                <div class="revenue-tier">
+                    <div class="tier-amount">$100M+</div>
+                    <div class="tier-count">2</div>
+                    <div class="tier-label">Founders</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audience Section -->
+    <section class="audience-section">
+        <div class="section-header">
+            <h2>Who You'll Reach</h2>
+        </div>
+
+        <div class="audience-grid">
+            <div class="audience-card">
+                <div class="audience-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <h3>Vetted Founders Only</h3>
+                <p>Every member is verified with $10K+/month minimum revenue. No tire-kickers.</p>
+            </div>
+            <div class="audience-card">
+                <div class="audience-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+                <h3>Decision Makers</h3>
+                <p>CEOs, founders, and C-level executives with purchasing authority.</p>
+            </div>
+            <div class="audience-card">
+                <div class="audience-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                </div>
+                <h3>Tech-Savvy Early Adopters</h3>
+                <p>Founders who invest in tools and are eager to try new solutions.</p>
+            </div>
+            <div class="audience-card">
+                <div class="audience-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <h3>Word-of-Mouth Amplifiers</h3>
+                <p>Influential founders who share recommendations with their networks.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Packages Section -->
+    <section id="packages" class="packages-section">
+        <div class="section-header">
+            <h2>Sponsorship Packages</h2>
+            <p style="color: rgba(255,255,255,0.6); max-width: 500px; margin: 16px auto 0;">Limited availability to ensure exclusivity and maximum impact for our sponsors.</p>
+        </div>
+
+        <div class="packages-grid">
+            <div class="package-card">
+                <h3 class="package-name">Event Sponsor</h3>
+                <div class="package-price">
+                    <span class="amount">$1,500</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="package-spots">4 spots available per month</div>
+                <ul class="package-features">
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Logo placement at monthly dinner event</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>2-minute pitch slot during founder introductions</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Featured in event email (sent to all members)</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Company profile in Members Portal</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Social media mention (1 post)</span>
+                    </li>
+                </ul>
+                <a href="#apply" class="package-cta">Apply to Sponsor</a>
+            </div>
+
+            <div class="package-card platinum">
+                <div class="package-badge">Premium</div>
+                <h3 class="package-name">Platinum Sponsor</h3>
+                <div class="package-price">
+                    <span class="amount">$5,000</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="package-spots">1 exclusive spot per month</div>
+                <ul class="package-features">
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Everything in Event Sponsor package</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span><strong>Exclusive:</strong> Only platinum sponsor at the event</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>5-minute keynote speaking slot</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Logo on Poseidon Cruise (30 founders)</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Dedicated email blast to all members</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Social media feature (3 posts + stories)</span>
+                    </li>
+                    <li>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Website homepage logo placement</span>
+                    </li>
+                </ul>
+                <a href="#apply" class="package-cta">Apply for Platinum</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Past Sponsors (placeholder for social proof) -->
+    <section class="past-sponsors">
+        <h3>Ideal For Companies Like</h3>
+        <div class="sponsor-logos">
+            <span class="sponsor-logo">Anthropic</span>
+            <span class="sponsor-logo">Shopify</span>
+            <span class="sponsor-logo">Klaviyo</span>
+            <span class="sponsor-logo">Notion</span>
+            <span class="sponsor-logo">Linear</span>
+            <span class="sponsor-logo">Vercel</span>
+        </div>
+    </section>
+
+    <!-- Application Form -->
+    <section id="apply" class="application-section">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Apply to Sponsor</h2>
+                <p>Tell us about your company and sponsorship goals</p>
+            </div>
+
+            <form id="sponsorForm">
+                <div class="form-group">
+                    <label>Company Name *</label>
+                    <input type="text" name="companyName" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Name *</label>
+                        <input type="text" name="contactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title *</label>
+                        <input type="text" name="jobTitle" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Website *</label>
+                    <input type="url" name="website" placeholder="https://" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Sponsorship Package *</label>
+                    <select name="package" required>
+                        <option value="">Select a package</option>
+                        <option value="event">Event Sponsor ($1,500/month)</option>
+                        <option value="platinum">Platinum Sponsor ($5,000/month)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Which month(s) are you interested in? *</label>
+                    <select name="months" required>
+                        <option value="">Select timeframe</option>
+                        <option value="february">February 2026</option>
+                        <option value="march">March 2026</option>
+                        <option value="q1">Q1 2026 (Jan-Mar)</option>
+                        <option value="q2">Q2 2026 (Apr-Jun)</option>
+                        <option value="multiple">Multiple months (specify below)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>What's your primary goal for sponsoring? *</label>
+                    <select name="goal" required>
+                        <option value="">Select your goal</option>
+                        <option value="awareness">Brand awareness</option>
+                        <option value="leads">Lead generation</option>
+                        <option value="customers">Direct customer acquisition</option>
+                        <option value="partnerships">Partnership opportunities</option>
+                        <option value="recruiting">Recruiting/talent acquisition</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tell us about your product/service</label>
+                    <textarea name="about" rows="4" placeholder="What problem does your company solve? Why would it resonate with our founders?"></textarea>
+                </div>
+
+                <button type="submit" class="form-submit">Submit Sponsorship Application</button>
+
+                <p class="form-note">We'll review your application and respond within 2 business days.</p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="sponsor-footer">
+        <p>Questions? Contact <a href="mailto:sponsors@foundersvietnam.com">sponsors@foundersvietnam.com</a></p>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('sponsorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Store sponsorship application
+            const applications = JSON.parse(localStorage.getItem('founders_vietnam_sponsor_applications') || '[]');
+            applications.push({
+                id: 'sponsor-' + Date.now(),
+                ...data,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('founders_vietnam_sponsor_applications', JSON.stringify(applications));
+
+            alert(`Thank you for your interest in sponsoring Founders Vietnam!\n\nWe'll review your application and get back to you within 2 business days at ${data.email}.`);
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>
