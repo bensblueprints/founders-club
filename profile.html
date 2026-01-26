@@ -544,8 +544,9 @@
             e.preventDefault();
 
             const btn = e.target.querySelector('.submit-btn');
+            const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span>Saving...</span>';
+            btn.innerHTML = '<span>Saving to database...</span>';
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
@@ -570,21 +571,99 @@
 
             console.log('Saving profile data:', data);
 
-            // Save to database/localStorage
-            const success = Auth.updateProfile(data);
-            console.log('Profile save result:', success);
+            try {
+                // Step 1: Save to localStorage first (instant)
+                btn.innerHTML = '<span>Saving locally...</span>';
+                const localSuccess = Auth.updateProfile(data);
+                console.log('Local save result:', localSuccess);
 
-            if (success) {
-                btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                btn.style.background = '#4ade80';
+                // Step 2: Save to Supabase database
+                btn.innerHTML = '<span>Syncing to database...</span>';
+
+                const client = window.SupabaseConfig?.client;
+                if (client) {
+                    // Get current user ID
+                    const { data: { user: authUser } } = await client.auth.getUser();
+
+                    if (authUser) {
+                        const { data: dbResult, error: dbError } = await client
+                            .from('members')
+                            .update({
+                                first_name: data.firstName,
+                                last_name: data.lastName,
+                                bio: data.bio,
+                                company: data.company,
+                                role: data.role,
+                                industry: data.industry,
+                                website: data.website,
+                                websites: data.websites,
+                                whatsapp: data.whatsapp,
+                                zalo: data.zalo,
+                                telegram: data.telegram,
+                                linkedin: data.linkedin,
+                                twitter: data.twitter,
+                                wechat: data.wechat,
+                                facebook: data.facebook,
+                                instagram: data.instagram,
+                                profile_photo: user.profilePhoto || null,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', authUser.id)
+                            .select();
+
+                        if (dbError) {
+                            console.error('Database save error:', dbError);
+                            // Still show success since localStorage saved
+                            btn.innerHTML = '<span>Saved locally (database sync pending)</span>';
+                            btn.style.background = '#f59e0b'; // Warning orange
+                        } else {
+                            console.log('Database save successful:', dbResult);
+
+                            // Step 3: Verify the save by re-reading
+                            btn.innerHTML = '<span>Verifying...</span>';
+
+                            const { data: verifyData, error: verifyError } = await client
+                                .from('members')
+                                .select('*')
+                                .eq('id', authUser.id)
+                                .single();
+
+                            if (verifyError) {
+                                console.error('Verification error:', verifyError);
+                            } else {
+                                console.log('Verified data:', verifyData);
+                            }
+
+                            btn.innerHTML = '<span>Saved to database!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                            btn.style.background = '#4ade80';
+                        }
+                    } else {
+                        // No auth user, just local save
+                        btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                        btn.style.background = '#4ade80';
+                    }
+                } else {
+                    // No Supabase client, just local save
+                    console.log('Supabase not configured, saved locally only');
+                    btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    btn.style.background = '#4ade80';
+                }
 
                 setTimeout(() => {
                     window.location.href = 'members.html';
                 }, 1500);
-            } else {
+
+            } catch (error) {
+                console.error('Profile save error:', error);
                 btn.innerHTML = '<span>Error saving. Try again.</span>';
                 btn.style.background = '#ef4444';
                 btn.disabled = false;
+
+                setTimeout(() => {
+                    btn.innerHTML = originalBtnHtml;
+                    btn.style.background = '';
+                    btn.disabled = false;
+                }, 3000);
             }
         });
 
