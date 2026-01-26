@@ -412,6 +412,14 @@ const Admin = {
                     })
                 });
 
+                // Check for HTTP errors
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('HTTP Error:', response.status, errorText);
+                    alert(`Failed to send email (HTTP ${response.status}): ${errorText}`);
+                    return;
+                }
+
                 const result = await response.json();
 
                 this.closeModal('actionsModal');
@@ -419,7 +427,7 @@ const Admin = {
                 if (result.success) {
                     alert(`Welcome email sent to ${member.email}${result.mock ? ' (logged - email service not configured)' : ''}`);
                 } else {
-                    alert('Failed to send email: ' + (result.error || 'Unknown error'));
+                    alert('Failed to send email: ' + (result.error || 'Unknown error') + (result.details ? '\n\nDetails: ' + result.details : ''));
                 }
             } catch (error) {
                 console.error('Email error:', error);
