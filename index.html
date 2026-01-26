@@ -950,51 +950,72 @@
 
                     <!-- Payment Form Container -->
                     <div id="paymentFormContainer">
-                        <!-- Card Payment Form -->
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px;">
-                            <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
-                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                                    <line x1="1" y1="10" x2="23" y2="10"/>
-                                </svg>
-                                Card Details
-                            </h4>
-
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Cardholder Name</label>
-                                <input type="text" id="cardholderName" placeholder="Name on card" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Card Number</label>
-                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 2px;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                <div class="form-group">
-                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Expiry Date</label>
-                                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-                                </div>
-                                <div class="form-group">
-                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">CVC</label>
-                                    <input type="text" id="cardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-                                </div>
-                            </div>
+                        <!-- Loading state while initializing Airwallex -->
+                        <div id="paymentLoading" style="text-align: center; padding: 40px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; color: #c9a227;">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                            </svg>
+                            <p style="color: rgba(255,255,255,0.7); margin-top: 16px;">Initializing secure payment...</p>
                         </div>
 
-                        <!-- Pay Button -->
-                        <button type="button" id="payNowBtn" onclick="processPayment()" style="width: 100%; margin-top: 24px; padding: 18px 40px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                            <span id="payBtnText">Pay Now</span>
-                            <span id="paySpinner" style="display: none;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                        <!-- Airwallex Drop-in Container -->
+                        <div id="airwallexDropin" style="display: none;">
+                            <div id="dropIn"></div>
+                        </div>
+
+                        <!-- Fallback Card Form (when Airwallex not configured) -->
+                        <div id="fallbackCardForm" style="display: none;">
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px;">
+                                <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                    Card Details (Demo Mode)
+                                </h4>
+
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Cardholder Name</label>
+                                    <input type="text" id="cardholderName" placeholder="Name on card" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Card Number</label>
+                                    <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 2px;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <div class="form-group">
+                                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">Expiry Date</label>
+                                        <input type="text" id="cardExpiry" placeholder="12/28" maxlength="5" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 8px;">CVC</label>
+                                        <input type="text" id="cardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c9a227'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+                                    </div>
+                                </div>
+
+                                <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px;">
+                                    <p style="margin: 0; color: #ffc107; font-size: 0.85rem;">
+                                        <strong>Demo Mode:</strong> Use test card 4242 4242 4242 4242
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Pay Button for fallback -->
+                            <button type="button" id="payNowBtn" onclick="processPayment()" style="width: 100%; margin-top: 24px; padding: 18px 40px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span id="payBtnText">Pay Now (Demo)</span>
+                                <span id="paySpinner" style="display: none;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                                    </svg>
+                                    Processing...
+                                </span>
+                                <svg id="payBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                Processing...
-                            </span>
-                            <svg id="payBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
+                            </button>
+                        </div>
 
                         <!-- Security Note -->
                         <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; color: rgba(255,255,255,0.5); font-size: 0.85rem;">
@@ -1099,6 +1120,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Airwallex SDK -->
+    <script src="https://checkout.airwallex.com/assets/elements.bundle.min.js"></script>
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1327,7 +1351,6 @@
                 document.getElementById('paymentTicketName').textContent = ticketName;
                 document.getElementById('paymentPrice').textContent = '$' + price;
                 document.getElementById('paymentTotal').textContent = '$' + price;
-                document.getElementById('cardholderName').value = `${formData.firstName} ${formData.lastName}`;
 
                 // Show payment step
                 document.getElementById('applicationStep1').style.display = 'none';
@@ -1335,6 +1358,11 @@
 
                 // Scroll to top of modal
                 document.querySelector('.modal-content').scrollTop = 0;
+
+                // Initialize Airwallex payment after a short delay
+                setTimeout(() => {
+                    initializeAirwallexPayment();
+                }, 100);
 
             } catch (error) {
                 console.error('Validation error:', error);
@@ -1351,30 +1379,192 @@
         function goBackToApplication() {
             document.getElementById('applicationStep2').style.display = 'none';
             document.getElementById('applicationStep1').style.display = 'block';
+            // Reset payment form state
+            document.getElementById('paymentLoading').style.display = 'block';
+            document.getElementById('airwallexDropin').style.display = 'none';
+            document.getElementById('fallbackCardForm').style.display = 'none';
         }
 
-        // Format card number with spaces
-        document.getElementById('cardNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formatted;
-        });
+        // Initialize card input formatting for fallback form
+        function initFallbackCardInputs() {
+            const cardNumberEl = document.getElementById('cardNumber');
+            const cardExpiryEl = document.getElementById('cardExpiry');
+            const cardCvcEl = document.getElementById('cardCvc');
 
-        // Format expiry date
-        document.getElementById('cardExpiry').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            if (cardNumberEl) {
+                cardNumberEl.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                    e.target.value = formatted;
+                });
             }
-            e.target.value = value;
-        });
 
-        // Only allow numbers in CVC
-        document.getElementById('cardCvc').addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/\D/g, '');
-        });
+            if (cardExpiryEl) {
+                cardExpiryEl.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
 
-        // Process Payment - Step 2
+            if (cardCvcEl) {
+                cardCvcEl.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                });
+            }
+        }
+
+        // Initialize Airwallex Drop-in
+        let airwallexDropinElement = null;
+
+        async function initializeAirwallexPayment() {
+            if (!pendingApplicationData) {
+                console.error('No pending application data');
+                return;
+            }
+
+            try {
+                // First, create the payment intent
+                const paymentResponse = await fetch('/.netlify/functions/create-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productIds: [pendingApplicationData.productId],
+                        customerEmail: pendingApplicationData.email,
+                        customerName: `${pendingApplicationData.firstName} ${pendingApplicationData.lastName}`,
+                        eventId: 'feb-2026',
+                        applicationType: 'membership_application'
+                    })
+                });
+
+                const paymentResult = await paymentResponse.json();
+                console.log('Payment intent result:', paymentResult);
+
+                if (!paymentResult.success && !paymentResult.mock) {
+                    throw new Error(paymentResult.error || 'Failed to create payment');
+                }
+
+                // Store payment intent ID
+                pendingApplicationData.paymentIntentId = paymentResult.paymentIntentId;
+                pendingApplicationData.orderId = paymentResult.orderId;
+                pendingApplicationData.clientSecret = paymentResult.clientSecret;
+
+                // Check if this is mock mode (Airwallex not configured)
+                if (paymentResult.mock) {
+                    console.log('Running in mock mode - showing fallback card form');
+                    document.getElementById('paymentLoading').style.display = 'none';
+                    document.getElementById('fallbackCardForm').style.display = 'block';
+                    document.getElementById('cardholderName').value = `${pendingApplicationData.firstName} ${pendingApplicationData.lastName}`;
+                    initFallbackCardInputs();
+                    return;
+                }
+
+                // Initialize Airwallex with Drop-in
+                const env = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'demo' : 'prod';
+
+                // Check if Airwallex SDK is loaded
+                if (typeof Airwallex === 'undefined') {
+                    console.error('Airwallex SDK not loaded');
+                    throw new Error('Payment system not available');
+                }
+
+                // Initialize Airwallex
+                Airwallex.init({
+                    env: env,
+                    origin: window.location.origin
+                });
+
+                // Create Drop-in element
+                const dropIn = Airwallex.createElement('dropIn', {
+                    intent_id: paymentResult.paymentIntentId,
+                    client_secret: paymentResult.clientSecret,
+                    currency: 'USD',
+                    mode: 'payment',
+                    // Styling to match our dark theme
+                    style: {
+                        base: {
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontFamily: 'Outfit, sans-serif',
+                            '::placeholder': {
+                                color: 'rgba(255, 255, 255, 0.4)'
+                            }
+                        },
+                        variant: 'bootstrap',
+                        popupWidth: 400,
+                        popupHeight: 549
+                    },
+                    customer: {
+                        email: pendingApplicationData.email,
+                        first_name: pendingApplicationData.firstName,
+                        last_name: pendingApplicationData.lastName
+                    },
+                    // Show card payment method
+                    methods: ['card'],
+                    withBilling: false,
+                    autoCapture: true
+                });
+
+                // Mount the drop-in
+                dropIn.mount('dropIn');
+                airwallexDropinElement = dropIn;
+
+                // Hide loading, show drop-in
+                document.getElementById('paymentLoading').style.display = 'none';
+                document.getElementById('airwallexDropin').style.display = 'block';
+
+                // Handle payment success
+                window.addEventListener('onSuccess', async (event) => {
+                    console.log('Payment successful:', event.detail);
+
+                    // Submit application with payment info
+                    try {
+                        const result = await Database.submitApplication({
+                            ...pendingApplicationData,
+                            paymentIntentId: pendingApplicationData.paymentIntentId,
+                            paymentStatus: 'paid',
+                            amountPaid: pendingApplicationData.ticketPrice
+                        });
+
+                        if (result.error) {
+                            throw new Error(result.error);
+                        }
+
+                        // Store for success page
+                        localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplicationData));
+
+                        // Redirect to success page
+                        window.location.href = `payment-success.html?order=${pendingApplicationData.orderId}&type=application`;
+                    } catch (error) {
+                        console.error('Error saving application:', error);
+                        alert('Payment successful but there was an error saving your application. Please contact support with order ID: ' + pendingApplicationData.orderId);
+                    }
+                });
+
+                // Handle payment error
+                window.addEventListener('onError', (event) => {
+                    console.error('Payment error:', event.detail);
+                    alert('Payment failed: ' + (event.detail?.message || 'Please try again'));
+                });
+
+                // Handle ready state
+                window.addEventListener('onReady', (event) => {
+                    console.log('Airwallex Drop-in ready');
+                });
+
+            } catch (error) {
+                console.error('Error initializing payment:', error);
+                // Fall back to demo form
+                document.getElementById('paymentLoading').style.display = 'none';
+                document.getElementById('fallbackCardForm').style.display = 'block';
+                document.getElementById('cardholderName').value = `${pendingApplicationData.firstName} ${pendingApplicationData.lastName}`;
+                initFallbackCardInputs();
+            }
+        }
+
+        // Process Payment - Fallback for demo mode
         async function processPayment() {
             if (!pendingApplicationData) {
                 alert('Application data not found. Please start over.');
@@ -1416,39 +1606,13 @@
             spinner.style.display = 'flex';
 
             try {
-                // Create payment intent with Airwallex
-                const paymentResponse = await fetch('/.netlify/functions/create-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        productIds: [pendingApplicationData.productId],
-                        customerEmail: pendingApplicationData.email,
-                        customerName: `${pendingApplicationData.firstName} ${pendingApplicationData.lastName}`,
-                        eventId: 'feb-2026',
-                        applicationType: 'membership_application'
-                    })
-                });
-
-                const paymentResult = await paymentResponse.json();
-
-                if (!paymentResult.success && !paymentResult.mock) {
-                    throw new Error(paymentResult.error || 'Failed to create payment');
-                }
-
-                // Store payment intent ID
-                pendingApplicationData.paymentIntentId = paymentResult.paymentIntentId;
-                pendingApplicationData.orderId = paymentResult.orderId;
-
-                // For now, in demo/mock mode, we'll simulate the payment processing
-                // In production with real Airwallex integration, you would use Airwallex.js SDK
-
-                // Simulate payment processing
+                // Simulate payment processing in demo mode
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
                 // Submit application with payment info
                 const result = await Database.submitApplication({
                     ...pendingApplicationData,
-                    paymentIntentId: paymentResult.paymentIntentId || `mock-${Date.now()}`,
+                    paymentIntentId: pendingApplicationData.paymentIntentId || `demo-${Date.now()}`,
                     paymentStatus: 'paid',
                     amountPaid: pendingApplicationData.ticketPrice,
                     cardLast4: cardNumber.slice(-4)
@@ -1465,7 +1629,7 @@
                 closeApplicationModal();
 
                 // Redirect to payment success page
-                window.location.href = `payment-success.html?order=${paymentResult.orderId || 'APP-' + Date.now()}&type=application`;
+                window.location.href = `payment-success.html?order=${pendingApplicationData.orderId || 'APP-' + Date.now()}&type=application`;
 
             } catch (error) {
                 console.error('Payment error:', error);

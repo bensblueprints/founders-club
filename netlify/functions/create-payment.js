@@ -13,7 +13,7 @@ const PRODUCTS = {
     'founding-member': { price: 250, currency: 'USD', name: 'Founding Member', type: 'membership' },
     'platinum-founding': { price: 500, currency: 'USD', name: 'Platinum Founding Member', type: 'membership' },
     // Event Tickets
-    'platinum-cruise': { price: 349, currency: 'USD', name: 'Poseidon Cruise', type: 'event' },
+    'platinum-cruise': { price: 498, currency: 'USD', name: 'Founders Dinner + Poseidon Cruise', type: 'event' },
     'founding-dinner': { price: 149, currency: 'USD', name: 'Founders Dinner', type: 'event' },
     // Upsells
     'plus-one-cruise': { price: 250, currency: 'USD', name: 'Plus One - Cruise', type: 'upsell' },
