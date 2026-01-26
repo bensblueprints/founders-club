@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply to Speak | Founders Vietnam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .speak-page {
+            min-height: 100vh;
+            padding: 120px 20px 80px;
+        }
+
+        .speak-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .speak-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .speak-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.2), rgba(201, 162, 39, 0.1));
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #c9a227;
+            margin-bottom: 20px;
+        }
+
+        .speak-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+
+        .speak-title span {
+            color: #c9a227;
+        }
+
+        .speak-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .speak-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(201, 162, 39, 0.05);
+            border: 1px solid rgba(201, 162, 39, 0.15);
+            border-radius: 12px;
+        }
+
+        .benefit {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .benefit h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .benefit p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .speak-form {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 35px;
+        }
+
+        .form-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #c9a227;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(201, 162, 39, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #c9a227;
+            background: rgba(201, 162, 39, 0.05);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            display: block;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 6px;
+        }
+
+        .topic-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .topic-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .topic-tag:hover {
+            border-color: rgba(201, 162, 39, 0.5);
+        }
+
+        .topic-tag.selected {
+            background: rgba(201, 162, 39, 0.15);
+            border-color: #c9a227;
+            color: #c9a227;
+        }
+
+        .topic-tag input {
+            display: none;
+        }
+
+        .waiver-notice {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .waiver-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .waiver-icon svg {
+            color: #10b981;
+        }
+
+        .waiver-text h4 {
+            font-family: 'Outfit', sans-serif;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .waiver-text p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #c9a227, #e5c464);
+            color: #1a1a1a;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(201, 162, 39, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-disclaimer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 20px;
+        }
+
+        /* Success State */
+        .success-message {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .success-icon svg {
+            color: #10b981;
+        }
+
+        @media (max-width: 600px) {
+            .speak-form {
+                padding: 25px 20px;
+            }
+
+            .speak-benefits {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="events.html">Events</a>
+        </div>
+    </nav>
+
+    <main class="speak-page">
+        <div class="speak-container">
+            <div class="speak-header">
+                <div class="speak-badge">Share Your Expertise</div>
+                <h1 class="speak-title">Apply to <span>Speak</span></h1>
+                <p class="speak-subtitle">
+                    Share your founder journey with Vietnam's most ambitious entrepreneurs.
+                    Inspire, educate, and connect with a room full of decision-makers.
+                </p>
+            </div>
+
+            <div class="speak-benefits">
+                <div class="benefit">
+                    <div class="benefit-icon">🎤</div>
+                    <h4>15-20 Min Spotlight</h4>
+                    <p>Dedicated time to share your story</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">🎟️</div>
+                    <h4>Free Attendance</h4>
+                    <p>Your membership fee is waived</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">🤝</div>
+                    <h4>VIP Networking</h4>
+                    <p>Priority introductions to members</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">📸</div>
+                    <h4>Photo & Video</h4>
+                    <p>Professional content for your brand</p>
+                </div>
+            </div>
+
+            <form class="speak-form" id="speakerForm">
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h3 class="form-section-title">About You</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+84...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="linkedIn">LinkedIn Profile *</label>
+                        <input type="url" id="linkedIn" name="linkedIn" placeholder="https://linkedin.com/in/..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="headshot">Headshot URL</label>
+                        <input type="url" id="headshot" name="headshot" placeholder="Link to your professional photo">
+                        <span class="form-hint">High-resolution photo for event promotion</span>
+                    </div>
+                </div>
+
+                <!-- Professional Background -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Professional Background</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="company">Company / Venture *</label>
+                            <input type="text" id="company" name="company" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Your Role *</label>
+                            <input type="text" id="role" name="role" placeholder="e.g., Founder & CEO" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="companyDescription">What does your company do? *</label>
+                        <textarea id="companyDescription" name="companyDescription" placeholder="Brief description of your business, product, or service..." required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="founded">Year Founded</label>
+                            <input type="number" id="founded" name="founded" min="1990" max="2026" placeholder="2020">
+                        </div>
+                        <div class="form-group">
+                            <label for="teamSize">Team Size</label>
+                            <select id="teamSize" name="teamSize">
+                                <option value="">Select...</option>
+                                <option value="solo">Solo</option>
+                                <option value="2-5">2-5</option>
+                                <option value="6-15">6-15</option>
+                                <option value="16-50">16-50</option>
+                                <option value="50+">50+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="achievements">Notable Achievements *</label>
+                        <textarea id="achievements" name="achievements" placeholder="Revenue milestones, funding raised, awards, press coverage, exits, etc." required></textarea>
+                        <span class="form-hint">What gives you credibility to speak on this topic?</span>
+                    </div>
+                </div>
+
+                <!-- Talk Details -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Your Talk</h3>
+
+                    <div class="form-group">
+                        <label for="talkTitle">Proposed Talk Title *</label>
+                        <input type="text" id="talkTitle" name="talkTitle" placeholder="e.g., How I Scaled from $0 to $1M ARR in 18 Months" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Topic Category *</label>
+                        <div class="topic-tags">
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="growth">
+                                Growth & Scaling
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="fundraising">
+                                Fundraising
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="sales">
+                                Sales & Revenue
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="product">
+                                Product Development
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="leadership">
+                                Leadership & Team
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="marketing">
+                                Marketing & Branding
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="operations">
+                                Operations & Systems
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="mindset">
+                                Founder Mindset
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="exit">
+                                Exits & M&A
+                            </label>
+                            <label class="topic-tag">
+                                <input type="checkbox" name="topics" value="international">
+                                International Expansion
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="talkDescription">Talk Description *</label>
+                        <textarea id="talkDescription" name="talkDescription" placeholder="What will attendees learn? What's your unique angle? What actionable takeaways will you provide?" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="talkOutline">Talk Outline</label>
+                        <textarea id="talkOutline" name="talkOutline" placeholder="Key points you'll cover (bullet points are fine)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="audienceValue">Why should our members hear this? *</label>
+                        <textarea id="audienceValue" name="audienceValue" placeholder="What specific value will founders at $10K-$500K+/month revenue get from your talk?" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Availability</h3>
+
+                    <div class="form-group">
+                        <label for="preferredEvent">Preferred Event Date</label>
+                        <select id="preferredEvent" name="preferredEvent">
+                            <option value="">Flexible / Any upcoming event</option>
+                            <option value="feb-2026">February 10, 2026</option>
+                            <option value="mar-2026">March 11, 2026</option>
+                            <option value="apr-2026">April 14, 2026</option>
+                            <option value="may-2026">May 13, 2026</option>
+                            <option value="jun-2026">June 9, 2026</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="previousSpeaking">Previous Speaking Experience</label>
+                        <textarea id="previousSpeaking" name="previousSpeaking" placeholder="Conferences, podcasts, events where you've spoken before. Include links to recordings if available."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalNotes">Anything else we should know?</label>
+                        <textarea id="additionalNotes" name="additionalNotes" placeholder="Special requirements, co-speakers, equipment needs, etc."></textarea>
+                    </div>
+                </div>
+
+                <div class="waiver-notice">
+                    <div class="waiver-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <div class="waiver-text">
+                        <h4>Membership Fee Waived</h4>
+                        <p>Selected speakers attend the event for free. You'll also be featured in our member directory and event promotions.</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Submit Speaker Application</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <p class="form-disclaimer">
+                    Applications are reviewed within 5 business days. We'll reach out via email with next steps.
+                </p>
+            </form>
+
+            <!-- Success Message (hidden by default) -->
+            <div class="speak-form success-message" id="successMessage" style="display: none;">
+                <div class="success-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #10b981; margin-bottom: 15px;">Application Submitted!</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 30px; line-height: 1.6;">
+                    Thank you for your interest in speaking at Founders Vietnam. Our team will review your application and get back to you within 5 business days.
+                </p>
+                <a href="index.html" class="submit-btn" style="display: inline-flex; width: auto;">
+                    Return to Homepage
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="padding: 40px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
+        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">&copy; 2026 Founders Vietnam. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
+            Website by <a href="https://advancedmarketing.co" target="_blank" rel="noopener" style="color: #c9a227; text-decoration: none;">Advanced Marketing Limited</a>
+        </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="database.js"></script>
+    <script>
+        // Topic tag selection
+        document.querySelectorAll('.topic-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                tag.classList.toggle('selected');
+            });
+        });
+
+        // Form submission
+        document.getElementById('speakerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Submitting...</span>';
+
+            // Gather form data
+            const formData = new FormData(form);
+            const data = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                linkedIn: formData.get('linkedIn'),
+                headshot: formData.get('headshot'),
+                company: formData.get('company'),
+                role: formData.get('role'),
+                companyDescription: formData.get('companyDescription'),
+                founded: formData.get('founded'),
+                teamSize: formData.get('teamSize'),
+                achievements: formData.get('achievements'),
+                talkTitle: formData.get('talkTitle'),
+                topics: formData.getAll('topics'),
+                talkDescription: formData.get('talkDescription'),
+                talkOutline: formData.get('talkOutline'),
+                audienceValue: formData.get('audienceValue'),
+                preferredEvent: formData.get('preferredEvent'),
+                previousSpeaking: formData.get('previousSpeaking'),
+                additionalNotes: formData.get('additionalNotes'),
+                submittedAt: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            try {
+                // Store in localStorage
+                const speakers = JSON.parse(localStorage.getItem('founders_vietnam_speakers') || '[]');
+                data.id = 'speaker-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                speakers.unshift(data);
+                localStorage.setItem('founders_vietnam_speakers', JSON.stringify(speakers));
+
+                // Show success message
+                document.getElementById('speakerForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('There was an error submitting your application. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    </script>
+</body>
+</html>
