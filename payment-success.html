@@ -197,32 +197,79 @@
     <script src="supabase-config.js"></script>
     <script src="database.js"></script>
     <script src="auth.js"></script>
+    <script src="events-data.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Get order info from URL
             const params = new URLSearchParams(window.location.search);
             const orderId = params.get('order');
+            const paymentIntentId = params.get('payment_intent_id');
 
             if (orderId) {
                 document.getElementById('orderId').textContent = orderId;
             }
 
-            // Check for stored booking info
-            const lastBooking = localStorage.getItem('founders_vietnam_last_booking');
-            if (lastBooking) {
+            // Check for pending booking that needs to be completed after Airwallex payment
+            const pendingBookingStr = localStorage.getItem('founders_vietnam_pending_booking');
+            if (pendingBookingStr) {
                 try {
-                    const booking = JSON.parse(lastBooking);
-                    document.getElementById('orderItems').textContent = booking.items || '-';
-                    document.getElementById('orderAmount').textContent = booking.amount ? `$${booking.amount}` : '-';
+                    const pendingBooking = JSON.parse(pendingBookingStr);
 
-                    if (booking.isPlatinum) {
+                    // Display booking info
+                    document.getElementById('orderItems').textContent = pendingBooking.ticketName || '-';
+                    document.getElementById('orderAmount').textContent = pendingBooking.ticketPrice ? `$${pendingBooking.ticketPrice}` : '-';
+
+                    // Show platinum message if applicable
+                    if (pendingBooking.ticketId === 'cruise') {
                         document.getElementById('platinumMessage').style.display = 'block';
                     }
 
-                    // Clear the stored booking
-                    localStorage.removeItem('founders_vietnam_last_booking');
+                    // Create the actual booking
+                    const bookingResult = await Events.createBooking(
+                        pendingBooking.userId,
+                        pendingBooking.eventId,
+                        pendingBooking.ticketId,
+                        paymentIntentId || orderId || `paid-${Date.now()}`
+                    );
+
+                    if (!bookingResult.error) {
+                        // Store completed booking for ticket page
+                        const bookingData = {
+                            ...bookingResult,
+                            eventName: pendingBooking.eventName,
+                            ticketName: pendingBooking.ticketName
+                        };
+                        localStorage.setItem('founders_vietnam_last_booking', JSON.stringify(bookingData));
+
+                        // Update actions to include ticket link
+                        const actionsDiv = document.querySelector('.success-actions');
+                        actionsDiv.innerHTML = `
+                            <a href="ticket.html?id=${bookingResult.id}" class="btn-primary">View Your Ticket</a>
+                            <a href="events.html" class="btn-secondary">View Upcoming Events</a>
+                        `;
+                    }
+
+                    // Clear pending booking
+                    localStorage.removeItem('founders_vietnam_pending_booking');
+
                 } catch (e) {
-                    console.error('Error parsing booking:', e);
+                    console.error('Error completing booking:', e);
+                }
+            } else {
+                // Check for already completed booking info
+                const lastBooking = localStorage.getItem('founders_vietnam_last_booking');
+                if (lastBooking) {
+                    try {
+                        const booking = JSON.parse(lastBooking);
+                        document.getElementById('orderItems').textContent = booking.ticketName || booking.items || '-';
+                        document.getElementById('orderAmount').textContent = booking.ticketPrice ? `$${booking.ticketPrice}` : (booking.amount ? `$${booking.amount}` : '-');
+
+                        if (booking.ticketId === 'cruise' || booking.isPlatinum) {
+                            document.getElementById('platinumMessage').style.display = 'block';
+                        }
+                    } catch (e) {
+                        console.error('Error parsing booking:', e);
+                    }
                 }
             }
         });

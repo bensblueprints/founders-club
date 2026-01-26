@@ -302,6 +302,23 @@
             spinner.style.display = 'inline';
 
             try {
+                // Store pending booking info for after payment
+                const pendingBooking = {
+                    eventId: selectedEvent.id,
+                    eventName: selectedEvent.name,
+                    ticketId: selectedTicket.id,
+                    ticketName: selectedTicket.name,
+                    ticketPrice: selectedTicket.price,
+                    userId: user.id,
+                    userEmail: user.email,
+                    userName: `${user.firstName} ${user.lastName}`,
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('founders_vietnam_pending_booking', JSON.stringify(pendingBooking));
+
+                // Determine product ID for Airwallex
+                const productId = selectedTicket.id === 'cruise' ? 'platinum-cruise' : 'founding-dinner';
+
                 // Create payment intent
                 const paymentResult = await Payment.createPaymentIntent(
                     selectedTicket.price,
@@ -313,12 +330,25 @@
                     selectedTicket.id
                 );
 
-                if (paymentResult.error) {
-                    // For demo purposes, simulate successful payment
-                    console.log('Payment API not configured, simulating success...');
+                if (paymentResult.error && !paymentResult.mock) {
+                    throw new Error(paymentResult.error);
                 }
 
-                // Create booking
+                // If Airwallex is properly configured, redirect to hosted payment page
+                if (paymentResult.clientSecret && !paymentResult.mock) {
+                    // Redirect to Airwallex hosted payment page
+                    const airwallexEnv = window.location.hostname === 'localhost' ? 'demo' : 'prod';
+                    const airwallexUrl = airwallexEnv === 'prod'
+                        ? 'https://checkout.airwallex.com'
+                        : 'https://checkout-demo.airwallex.com';
+
+                    window.location.href = `${airwallexUrl}/checkout/${paymentResult.paymentIntentId}?client_secret=${paymentResult.clientSecret}`;
+                    return;
+                }
+
+                // If Airwallex not configured (mock mode), create booking directly
+                console.log('Airwallex not configured, creating booking directly...');
+
                 const bookingResult = await Events.createBooking(
                     user.id,
                     selectedEvent.id,
@@ -337,6 +367,7 @@
                     ticketName: selectedTicket.name
                 };
                 localStorage.setItem('founders_vietnam_last_booking', JSON.stringify(bookingData));
+                localStorage.removeItem('founders_vietnam_pending_booking');
 
                 closePaymentModal();
 
