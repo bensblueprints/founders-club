@@ -1168,7 +1168,12 @@
                             <p style="color: rgba(255,255,255,0.7); margin-top: 16px;">Initializing secure payment...</p>
                         </div>
 
-                        <!-- Fallback Card Form -->
+                        <!-- Airwallex Drop-in Container -->
+                        <div id="quickAirwallexDropin" style="display: none;">
+                            <div id="quickDropIn"></div>
+                        </div>
+
+                        <!-- Fallback Card Form (only for demo/mock mode) -->
                         <div id="quickFallbackCardForm" style="display: none;">
                             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px;">
                                 <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
@@ -1578,6 +1583,9 @@
             }
         }
 
+        // Quick booking Airwallex drop-in element
+        let quickAirwallexDropin = null;
+
         // Initialize quick booking payment
         async function initializeQuickBookPayment() {
             if (!quickBookingData) {
@@ -1611,19 +1619,78 @@
                 quickBookingData.orderId = paymentResult.orderId;
                 quickBookingData.clientSecret = paymentResult.clientSecret;
 
-                // Show fallback card form (or Airwallex)
+                // Check if mock mode
                 if (paymentResult.mock) {
+                    console.log('Running in mock mode - showing fallback card form');
                     document.getElementById('quickPaymentLoading').style.display = 'none';
                     document.getElementById('quickFallbackCardForm').style.display = 'block';
                     document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
                     initQuickBookCardInputs();
-                } else {
-                    // Initialize Airwallex Drop-in here if configured
-                    document.getElementById('quickPaymentLoading').style.display = 'none';
-                    document.getElementById('quickFallbackCardForm').style.display = 'block';
-                    document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
-                    initQuickBookCardInputs();
+                    return;
                 }
+
+                // Initialize real Airwallex Drop-in
+                const env = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'demo' : 'prod';
+
+                if (typeof Airwallex === 'undefined') {
+                    console.error('Airwallex SDK not loaded');
+                    throw new Error('Payment system not available');
+                }
+
+                // Initialize Airwallex
+                Airwallex.init({
+                    env: env,
+                    origin: window.location.origin
+                });
+
+                // Create Drop-in element
+                quickAirwallexDropin = Airwallex.createElement('dropIn', {
+                    intent_id: paymentResult.paymentIntentId,
+                    client_secret: paymentResult.clientSecret,
+                    currency: 'USD',
+                    mode: 'payment',
+                    style: {
+                        base: {
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontFamily: 'Outfit, sans-serif',
+                            '::placeholder': {
+                                color: 'rgba(255, 255, 255, 0.4)'
+                            }
+                        },
+                        variant: 'bootstrap',
+                        popupWidth: 400,
+                        popupHeight: 549
+                    },
+                    customer: {
+                        email: quickBookingData.email,
+                        first_name: quickBookingData.firstName,
+                        last_name: quickBookingData.lastName
+                    },
+                    methods: ['card'],
+                    withBilling: false,
+                    autoCapture: true
+                });
+
+                // Mount the drop-in
+                quickAirwallexDropin.mount('quickDropIn');
+
+                // Hide loading, show drop-in
+                document.getElementById('quickPaymentLoading').style.display = 'none';
+                document.getElementById('quickAirwallexDropin').style.display = 'block';
+
+                // Handle payment success for quick booking
+                window.addEventListener('onSuccess', async (event) => {
+                    console.log('Quick booking payment successful:', event.detail);
+                    await handleQuickBookingSuccess();
+                });
+
+                // Handle payment error
+                window.addEventListener('onError', (event) => {
+                    console.error('Quick booking payment error:', event.detail);
+                    alert('Payment failed. Please try again.');
+                });
+
             } catch (error) {
                 console.error('Payment initialization error:', error);
                 // Show fallback on error
@@ -1631,6 +1698,54 @@
                 document.getElementById('quickFallbackCardForm').style.display = 'block';
                 document.getElementById('quickCardholderName').value = `${quickBookingData.firstName} ${quickBookingData.lastName}`;
                 initQuickBookCardInputs();
+            }
+        }
+
+        // Handle successful quick booking payment
+        async function handleQuickBookingSuccess() {
+            const transactionId = 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            try {
+                // Create transaction record
+                await Database.createTransaction({
+                    id: transactionId,
+                    userId: quickBookingData.userId,
+                    email: quickBookingData.email,
+                    firstName: quickBookingData.firstName,
+                    lastName: quickBookingData.lastName,
+                    amount: quickBookingData.ticketPrice,
+                    currency: 'USD',
+                    status: 'completed',
+                    paymentIntentId: quickBookingData.paymentIntentId,
+                    paymentMethod: 'card',
+                    productId: quickBookingData.productId,
+                    productName: quickBookingData.ticketName,
+                    eventId: 'feb-2026'
+                });
+
+                // Create booking record
+                await Database.createBooking({
+                    userId: quickBookingData.userId,
+                    email: quickBookingData.email,
+                    firstName: quickBookingData.firstName,
+                    lastName: quickBookingData.lastName,
+                    eventId: 'feb-2026',
+                    ticketType: quickBookingData.membership === 'full' ? 'cruise' : 'dinner',
+                    ticketName: quickBookingData.ticketName,
+                    ticketPrice: quickBookingData.ticketPrice,
+                    transactionId: transactionId,
+                    paymentStatus: 'completed',
+                    bookingStatus: 'confirmed'
+                });
+
+                // Close modal and show success
+                closeQuickBookModal();
+                alert(`🎉 Booking confirmed!\n\nYou're all set for the ${quickBookingData.ticketName} on February 10, 2026.\n\nA confirmation has been sent to ${quickBookingData.email}.`);
+                updateBookingStats();
+
+            } catch (error) {
+                console.error('Error saving booking:', error);
+                alert('Payment successful but there was an error saving your booking. Please contact support.');
             }
         }
 

@@ -195,7 +195,7 @@ const Admin = {
         this.renderMembers(this.members);
     },
 
-    loadStats() {
+    async loadStats() {
         const total = this.members.length;
         const platinum = this.members.filter(m => m.memberType === 'platinum_founding').length;
         const pendingApps = Applications.getCounts().pending;
@@ -203,7 +203,18 @@ const Admin = {
         document.getElementById('totalMembers').textContent = total;
         document.getElementById('platinumMembers').textContent = platinum;
         document.getElementById('totalEvents').textContent = '6';
-        document.getElementById('totalRevenue').textContent = '$12,500'; // Placeholder
+
+        // Calculate revenue from completed transactions
+        let totalRevenue = 0;
+        try {
+            const transactions = await Database.getAllTransactions(500);
+            totalRevenue = transactions
+                .filter(t => t.status === 'completed')
+                .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+        } catch (error) {
+            console.error('Error calculating revenue:', error);
+        }
+        document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
 
         // Update applications tab badge
         const appTab = document.querySelector('[data-tab="applications"]');

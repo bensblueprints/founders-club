@@ -109,48 +109,63 @@
                     </div>
                 </div>
 
-                <!-- Card Payment Form -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
-                    <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                            <line x1="1" y1="10" x2="23" y2="10"/>
-                        </svg>
-                        Card Details
-                    </h4>
-
-                    <div style="margin-bottom: 14px;">
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Cardholder Name</label>
-                        <input type="text" id="evtCardholderName" placeholder="Name on card" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
-                    </div>
-
-                    <div style="margin-bottom: 14px;">
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Card Number</label>
-                        <input type="text" id="evtCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; letter-spacing: 2px;">
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                        <div>
-                            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Expiry Date</label>
-                            <input type="text" id="evtCardExpiry" placeholder="MM/YY" maxlength="5" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
-                        </div>
-                        <div>
-                            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">CVC</label>
-                            <input type="text" id="evtCardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
-                        </div>
-                    </div>
+                <!-- Payment Loading -->
+                <div id="evtPaymentLoading" style="text-align: center; padding: 40px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; color: #c9a227;">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                    </svg>
+                    <p style="color: rgba(255,255,255,0.7); margin-top: 16px;">Initializing secure payment...</p>
                 </div>
 
-                <!-- Pay Button -->
-                <button type="button" id="confirmPayment" onclick="confirmPayment()" style="width: 100%; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <span id="paymentBtnText">Pay Now</span>
-                    <span id="paymentSpinner" style="display: none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
-                        </svg>
-                        Processing...
-                    </span>
-                </button>
+                <!-- Airwallex Drop-in Container -->
+                <div id="evtAirwallexDropin" style="display: none;">
+                    <div id="evtDropIn"></div>
+                </div>
+
+                <!-- Fallback Card Payment Form (for demo mode only) -->
+                <div id="evtFallbackForm" style="display: none;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
+                        <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                            </svg>
+                            Card Details
+                        </h4>
+
+                        <div style="margin-bottom: 14px;">
+                            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Cardholder Name</label>
+                            <input type="text" id="evtCardholderName" placeholder="Name on card" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
+                        </div>
+
+                        <div style="margin-bottom: 14px;">
+                            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Card Number</label>
+                            <input type="text" id="evtCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; letter-spacing: 2px;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                            <div>
+                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Expiry Date</label>
+                                <input type="text" id="evtCardExpiry" placeholder="MM/YY" maxlength="5" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">CVC</label>
+                                <input type="text" id="evtCardCvc" placeholder="123" maxlength="4" style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pay Button for fallback -->
+                    <button type="button" id="confirmPayment" onclick="confirmPayment()" style="width: 100%; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span id="paymentBtnText">Pay Now</span>
+                        <span id="paymentSpinner" style="display: none;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
+                            </svg>
+                            Processing...
+                        </span>
+                    </button>
+                </div>
 
                 <!-- Security Note -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">
@@ -175,6 +190,9 @@
             to { transform: rotate(360deg); }
         }
     </style>
+
+    <!-- Airwallex SDK -->
+    <script src="https://checkout.airwallex.com/assets/elements.bundle.min.js"></script>
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -393,7 +411,11 @@
             selectedTicket = null;
         }
 
-        function proceedToPayment() {
+        // Events page Airwallex drop-in
+        let evtAirwallexDropin = null;
+        let evtPaymentData = null;
+
+        async function proceedToPayment() {
             console.log('proceedToPayment called');
             console.log('selectedEvent:', selectedEvent);
             console.log('selectedTicket:', selectedTicket);
@@ -413,30 +435,194 @@
                 return;
             }
 
+            // Store payment data
+            evtPaymentData = {
+                userId: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                eventId: selectedEvent.id,
+                eventName: selectedEvent.name,
+                ticketId: selectedTicket.id,
+                ticketName: selectedTicket.name,
+                ticketPrice: selectedTicket.price
+            };
+
             // Update payment modal with event and ticket info
             document.getElementById('paymentEventName').textContent = selectedEvent.name;
             document.getElementById('paymentTicketName').textContent = selectedTicket.name;
             document.getElementById('paymentAmount').textContent = `$${selectedTicket.price}`;
 
-            // Pre-fill cardholder name
-            document.getElementById('evtCardholderName').value = `${user.firstName} ${user.lastName}`;
-
-            // Clear other fields
-            document.getElementById('evtCardNumber').value = '';
-            document.getElementById('evtCardExpiry').value = '';
-            document.getElementById('evtCardCvc').value = '';
+            // Reset payment form state
+            document.getElementById('evtPaymentLoading').style.display = 'block';
+            document.getElementById('evtAirwallexDropin').style.display = 'none';
+            document.getElementById('evtFallbackForm').style.display = 'none';
 
             // Close booking modal and open payment modal
             closeBookingModal();
 
             const paymentModal = document.getElementById('paymentModal');
-            console.log('Payment modal element:', paymentModal);
             paymentModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            console.log('Payment modal classes:', paymentModal.className);
 
-            // Setup card input formatting
-            setupCardInputFormatting();
+            // Initialize Airwallex payment
+            await initializeEventsPayment();
+        }
+
+        async function initializeEventsPayment() {
+            try {
+                // Create payment intent
+                const paymentResponse = await fetch('/.netlify/functions/create-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productIds: [evtPaymentData.ticketId],
+                        customerEmail: evtPaymentData.email,
+                        customerName: `${evtPaymentData.firstName} ${evtPaymentData.lastName}`,
+                        eventId: evtPaymentData.eventId,
+                        applicationType: 'event_booking',
+                        amount: evtPaymentData.ticketPrice
+                    })
+                });
+
+                const paymentResult = await paymentResponse.json();
+                console.log('Events payment intent:', paymentResult);
+
+                if (!paymentResult.success && !paymentResult.mock) {
+                    throw new Error(paymentResult.error || 'Failed to create payment');
+                }
+
+                // Store payment info
+                evtPaymentData.paymentIntentId = paymentResult.paymentIntentId;
+                evtPaymentData.orderId = paymentResult.orderId;
+                evtPaymentData.clientSecret = paymentResult.clientSecret;
+
+                // Check if mock mode
+                if (paymentResult.mock) {
+                    console.log('Running in mock mode - showing fallback card form');
+                    document.getElementById('evtPaymentLoading').style.display = 'none';
+                    document.getElementById('evtFallbackForm').style.display = 'block';
+                    document.getElementById('evtCardholderName').value = `${evtPaymentData.firstName} ${evtPaymentData.lastName}`;
+                    setupCardInputFormatting();
+                    return;
+                }
+
+                // Initialize real Airwallex Drop-in
+                const env = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'demo' : 'prod';
+
+                if (typeof Airwallex === 'undefined') {
+                    console.error('Airwallex SDK not loaded');
+                    throw new Error('Payment system not available');
+                }
+
+                // Initialize Airwallex
+                Airwallex.init({
+                    env: env,
+                    origin: window.location.origin
+                });
+
+                // Create Drop-in element
+                evtAirwallexDropin = Airwallex.createElement('dropIn', {
+                    intent_id: paymentResult.paymentIntentId,
+                    client_secret: paymentResult.clientSecret,
+                    currency: 'USD',
+                    mode: 'payment',
+                    style: {
+                        base: {
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontFamily: 'Outfit, sans-serif',
+                            '::placeholder': {
+                                color: 'rgba(255, 255, 255, 0.4)'
+                            }
+                        },
+                        variant: 'bootstrap',
+                        popupWidth: 400,
+                        popupHeight: 549
+                    },
+                    customer: {
+                        email: evtPaymentData.email,
+                        first_name: evtPaymentData.firstName,
+                        last_name: evtPaymentData.lastName
+                    },
+                    methods: ['card'],
+                    withBilling: false,
+                    autoCapture: true
+                });
+
+                // Mount the drop-in
+                evtAirwallexDropin.mount('evtDropIn');
+
+                // Hide loading, show drop-in
+                document.getElementById('evtPaymentLoading').style.display = 'none';
+                document.getElementById('evtAirwallexDropin').style.display = 'block';
+
+                // Handle payment success
+                window.addEventListener('onSuccess', async (event) => {
+                    console.log('Events payment successful:', event.detail);
+                    await handleEventsPaymentSuccess();
+                });
+
+                // Handle payment error
+                window.addEventListener('onError', (event) => {
+                    console.error('Events payment error:', event.detail);
+                    alert('Payment failed. Please try again.');
+                });
+
+            } catch (error) {
+                console.error('Payment initialization error:', error);
+                // Show fallback on error
+                document.getElementById('evtPaymentLoading').style.display = 'none';
+                document.getElementById('evtFallbackForm').style.display = 'block';
+                document.getElementById('evtCardholderName').value = `${evtPaymentData.firstName} ${evtPaymentData.lastName}`;
+                setupCardInputFormatting();
+            }
+        }
+
+        async function handleEventsPaymentSuccess() {
+            const transactionId = 'txn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            try {
+                // Create transaction record
+                await Database.createTransaction({
+                    id: transactionId,
+                    userId: evtPaymentData.userId,
+                    email: evtPaymentData.email,
+                    firstName: evtPaymentData.firstName,
+                    lastName: evtPaymentData.lastName,
+                    amount: evtPaymentData.ticketPrice,
+                    currency: 'USD',
+                    status: 'completed',
+                    paymentIntentId: evtPaymentData.paymentIntentId,
+                    paymentMethod: 'card',
+                    productId: evtPaymentData.ticketId,
+                    productName: evtPaymentData.ticketName,
+                    eventId: evtPaymentData.eventId
+                });
+
+                // Create booking record
+                await Database.createBooking({
+                    userId: evtPaymentData.userId,
+                    email: evtPaymentData.email,
+                    firstName: evtPaymentData.firstName,
+                    lastName: evtPaymentData.lastName,
+                    eventId: evtPaymentData.eventId,
+                    ticketType: evtPaymentData.ticketId,
+                    ticketName: evtPaymentData.ticketName,
+                    ticketPrice: evtPaymentData.ticketPrice,
+                    transactionId: transactionId,
+                    paymentStatus: 'completed',
+                    bookingStatus: 'confirmed'
+                });
+
+                // Close modal and redirect to ticket
+                closePaymentModal();
+                window.location.href = `ticket.html?id=${transactionId}`;
+
+            } catch (error) {
+                console.error('Error saving booking:', error);
+                alert('Payment successful but there was an error saving your booking. Please contact support.');
+            }
         }
 
         function setupCardInputFormatting() {
