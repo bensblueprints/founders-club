@@ -3,7 +3,7 @@
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 // Use verified domain email or Resend's test email for development
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Founders Vietnam <onboarding@resend.dev>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Founders Vietnam <noreply@foundersvietnam.com>';
 
 exports.handler = async (event, context) => {
     // Handle CORS preflight
