@@ -1,8 +1,9 @@
 // ========================================
 // FOUNDERS VIETNAM - Authentication System
+// Supports both Supabase and localStorage fallback
 // ========================================
 
-// Sample members data (in production, this would come from a database)
+// Sample members data for localStorage fallback
 const SAMPLE_MEMBERS = [
     {
         id: 1,
@@ -166,47 +167,108 @@ const SAMPLE_MEMBERS = [
     }
 ];
 
-// Auth namespace
+// Auth namespace - works with Supabase or localStorage
 const Auth = {
     STORAGE_KEY: 'founders_vietnam_auth',
     MEMBERS_KEY: 'founders_vietnam_members',
 
-    // Initialize members data
+    // Check if Supabase is available
+    useSupabase() {
+        return window.SupabaseConfig?.isConfigured() && window.Database;
+    },
+
+    // Initialize
     init() {
-        if (!localStorage.getItem(this.MEMBERS_KEY)) {
-            localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
+        if (!this.useSupabase()) {
+            // Initialize localStorage fallback
+            if (!localStorage.getItem(this.MEMBERS_KEY)) {
+                localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
+            }
         }
     },
 
     // Get all members
-    getMembers() {
+    async getMembers() {
+        if (this.useSupabase()) {
+            return await Database.getMembers();
+        }
+        this.init();
+        return JSON.parse(localStorage.getItem(this.MEMBERS_KEY) || '[]');
+    },
+
+    // Sync version for compatibility
+    getMembersSync() {
         this.init();
         return JSON.parse(localStorage.getItem(this.MEMBERS_KEY) || '[]');
     },
 
     // Get member by ID
-    getMemberById(id) {
-        const members = this.getMembers();
-        return members.find(m => m.id === id);
+    async getMemberById(id) {
+        if (this.useSupabase()) {
+            return await Database.getMemberById(id);
+        }
+        const members = this.getMembersSync();
+        return members.find(m => m.id === id || m.id === parseInt(id));
+    },
+
+    // Sync version
+    getMemberByIdSync(id) {
+        const members = this.getMembersSync();
+        return members.find(m => m.id === id || m.id === parseInt(id));
     },
 
     // Check if logged in
-    isLoggedIn() {
-        const auth = localStorage.getItem(this.STORAGE_KEY);
-        return auth !== null;
+    async isLoggedIn() {
+        if (this.useSupabase()) {
+            return await Database.isLoggedIn();
+        }
+        return localStorage.getItem(this.STORAGE_KEY) !== null;
+    },
+
+    // Sync version
+    isLoggedInSync() {
+        if (this.useSupabase()) {
+            // For sync check, use session storage cache
+            return localStorage.getItem(this.STORAGE_KEY) !== null;
+        }
+        return localStorage.getItem(this.STORAGE_KEY) !== null;
     },
 
     // Get current user
-    getCurrentUser() {
-        if (!this.isLoggedIn()) return null;
+    async getCurrentUser() {
+        if (this.useSupabase()) {
+            return await Database.getCurrentUser();
+        }
+        if (!this.isLoggedInSync()) return null;
         const auth = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
-        const members = this.getMembers();
+        const members = this.getMembersSync();
+        return members.find(m => m.id === auth.userId);
+    },
+
+    // Sync version
+    getCurrentUserSync() {
+        if (!this.isLoggedInSync()) return null;
+        const auth = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
+        const members = this.getMembersSync();
         return members.find(m => m.id === auth.userId);
     },
 
     // Login
-    login(email, password) {
-        const members = this.getMembers();
+    async login(email, password) {
+        if (this.useSupabase()) {
+            const result = await Database.signIn(email, password);
+            if (!result.error) {
+                // Cache for sync access
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+                    userId: result.data.user.id,
+                    loggedInAt: new Date().toISOString()
+                }));
+            }
+            return !result.error;
+        }
+
+        // localStorage fallback
+        const members = this.getMembersSync();
         const user = members.find(m => m.email === email && m.password === password);
         
         if (user) {
@@ -220,10 +282,21 @@ const Auth = {
     },
 
     // Register
-    register(data) {
-        const members = this.getMembers();
+    async register(data) {
+        if (this.useSupabase()) {
+            const result = await Database.signUp(data.email, data.password, data);
+            if (!result.error) {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+                    userId: result.data.user.id,
+                    loggedInAt: new Date().toISOString()
+                }));
+            }
+            return !result.error;
+        }
+
+        // localStorage fallback
+        const members = this.getMembersSync();
         
-        // Check if email exists
         if (members.find(m => m.email === data.email)) {
             return false;
         }
@@ -252,7 +325,6 @@ const Auth = {
         members.push(newUser);
         localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
 
-        // Auto login
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
             userId: newUser.id,
             loggedInAt: new Date().toISOString()
@@ -262,11 +334,19 @@ const Auth = {
     },
 
     // Update profile
-    updateProfile(data) {
-        const user = this.getCurrentUser();
+    async updateProfile(data) {
+        if (this.useSupabase()) {
+            const user = await this.getCurrentUser();
+            if (!user) return false;
+            const result = await Database.updateMemberProfile(user.id, data);
+            return !result.error;
+        }
+
+        // localStorage fallback
+        const user = this.getCurrentUserSync();
         if (!user) return false;
 
-        const members = this.getMembers();
+        const members = this.getMembersSync();
         const index = members.findIndex(m => m.id === user.id);
         
         if (index === -1) return false;
@@ -295,8 +375,28 @@ const Auth = {
     },
 
     // Logout
-    logout() {
+    async logout() {
+        if (this.useSupabase()) {
+            await Database.signOut();
+        }
         localStorage.removeItem(this.STORAGE_KEY);
+    },
+
+    // For backwards compatibility
+    getMembers() {
+        return this.getMembersSync();
+    },
+
+    getMemberById(id) {
+        return this.getMemberByIdSync(id);
+    },
+
+    isLoggedIn() {
+        return this.isLoggedInSync();
+    },
+
+    getCurrentUser() {
+        return this.getCurrentUserSync();
     }
 };
 
