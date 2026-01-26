@@ -193,40 +193,76 @@ const Database = {
     // ========================================
 
     async submitApplication(applicationData) {
+        // Try Supabase first, fallback to localStorage
         const client = this.getClient();
-        if (!client) return { error: 'Database not configured' };
 
-        const { data, error } = await client
-            .from('applications')
-            .insert({
-                first_name: applicationData.firstName,
-                last_name: applicationData.lastName,
-                email: applicationData.email,
-                age: applicationData.age,
-                social_link: applicationData.socialLink,
-                company: applicationData.company,
-                role: applicationData.role,
-                industry: applicationData.industry,
-                revenue: applicationData.revenue,
-                team_size: applicationData.teamSize,
-                biggest_challenge: applicationData.biggestChallenge,
-                unique_value: applicationData.uniqueValue,
-                goals_12_month: applicationData.goals12Month,
-                why_join: applicationData.whyJoin,
-                referral: applicationData.referral,
-                referrer_name: applicationData.referrerName,
-                event_interest: applicationData.event,
-                membership_type: applicationData.membership
-            })
-            .select()
-            .single();
+        if (client) {
+            try {
+                const { data, error } = await client
+                    .from('applications')
+                    .insert({
+                        first_name: applicationData.firstName,
+                        last_name: applicationData.lastName,
+                        email: applicationData.email,
+                        age: applicationData.age,
+                        social_link: applicationData.socialLink,
+                        company: applicationData.company,
+                        role: applicationData.role,
+                        industry: applicationData.industry,
+                        revenue: applicationData.revenue,
+                        team_size: applicationData.teamSize,
+                        biggest_challenge: applicationData.biggestChallenge,
+                        unique_value: applicationData.uniqueValue,
+                        goals_12_month: applicationData.goals12Month,
+                        why_join: applicationData.whyJoin,
+                        referral: applicationData.referral,
+                        referrer_name: applicationData.referrerName,
+                        event_interest: applicationData.event,
+                        membership_type: applicationData.membership
+                    })
+                    .select()
+                    .single();
 
-        if (error) {
-            console.error('Submit application error:', error);
-            return { data: null, error: error.message };
+                if (!error) {
+                    return { data, error: null };
+                }
+                // Fall through to localStorage if Supabase fails
+                console.log('Supabase failed, using localStorage fallback');
+            } catch (e) {
+                console.log('Supabase error, using localStorage fallback');
+            }
         }
 
-        return { data, error: null };
+        // localStorage fallback
+        const application = {
+            id: 'app-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            status: 'pending',
+            submittedAt: new Date().toISOString(),
+            firstName: applicationData.firstName,
+            lastName: applicationData.lastName,
+            email: applicationData.email,
+            age: applicationData.age,
+            socialLink: applicationData.socialLink,
+            company: applicationData.company,
+            role: applicationData.role,
+            industry: applicationData.industry,
+            revenue: applicationData.revenue,
+            teamSize: applicationData.teamSize,
+            biggestChallenge: applicationData.biggestChallenge,
+            uniqueValue: applicationData.uniqueValue,
+            goals12Month: applicationData.goals12Month,
+            whyJoin: applicationData.whyJoin,
+            referral: applicationData.referral,
+            referrerName: applicationData.referrerName,
+            event: applicationData.event,
+            membership: applicationData.membership
+        };
+
+        const apps = JSON.parse(localStorage.getItem('founders_vietnam_applications') || '[]');
+        apps.unshift(application);
+        localStorage.setItem('founders_vietnam_applications', JSON.stringify(apps));
+
+        return { data: application, error: null };
     },
 
     async getApplications(status = null) {
