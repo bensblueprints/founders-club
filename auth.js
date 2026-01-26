@@ -4,7 +4,58 @@
 // ========================================
 
 // Sample members data for localStorage fallback
+// Member Types: owner, admin, organiser, platinum_founding, founding, member
 const SAMPLE_MEMBERS = [
+    // ===== ADMIN USERS =====
+    {
+        id: 100,
+        email: 'admin@advancedmarketing.co',
+        password: 'PAssword123$$!!',
+        firstName: 'Benjamin',
+        lastName: 'Boyce',
+        company: 'Advanced Marketing',
+        role: 'Founder',
+        industry: 'agency',
+        memberType: 'owner',
+        status: 'active',
+        joinedAt: '2026-01-01T00:00:00.000Z',
+        requirePasswordReset: true,
+        bio: 'Founder of Advanced Marketing and Founders Vietnam.',
+        website: 'https://advancedmarketing.co',
+        whatsapp: '',
+        zalo: '',
+        telegram: '',
+        linkedin: '',
+        twitter: '',
+        wechat: '',
+        facebook: '',
+        instagram: ''
+    },
+    {
+        id: 101,
+        email: 'David@advancedmarketing.co',
+        password: 'PAssword123$$!!',
+        firstName: 'David',
+        lastName: 'Nass',
+        company: 'Advanced Marketing',
+        role: 'Co-Founder',
+        industry: 'agency',
+        memberType: 'admin',
+        status: 'active',
+        joinedAt: '2026-01-01T00:00:00.000Z',
+        requirePasswordReset: true,
+        bio: 'Co-Founder of Advanced Marketing.',
+        website: 'https://advancedmarketing.co',
+        whatsapp: '',
+        zalo: '',
+        telegram: '',
+        linkedin: '',
+        twitter: '',
+        wechat: '',
+        facebook: '',
+        instagram: ''
+    },
+    // ===== DEMO USER =====
     {
         id: 1,
         email: 'demo@foundersvietnam.com',
@@ -14,6 +65,9 @@ const SAMPLE_MEMBERS = [
         company: 'VietTech Solutions',
         role: 'Founder & CEO',
         industry: 'saas',
+        memberType: 'founding',
+        status: 'active',
+        joinedAt: '2026-01-15T00:00:00.000Z',
         bio: 'Building enterprise SaaS for Southeast Asian businesses. Previously exited a logistics startup.',
         website: 'https://viettech.vn',
         whatsapp: '+84 909 123 456',
@@ -25,6 +79,7 @@ const SAMPLE_MEMBERS = [
         facebook: '',
         instagram: ''
     },
+    // ===== REGULAR MEMBERS =====
     {
         id: 2,
         email: 'sarah@example.com',
@@ -34,6 +89,9 @@ const SAMPLE_MEMBERS = [
         company: 'GreenLeaf Commerce',
         role: 'Co-Founder',
         industry: 'ecommerce',
+        memberType: 'platinum_founding',
+        status: 'active',
+        joinedAt: '2026-01-10T00:00:00.000Z',
         bio: 'Sustainable e-commerce platform connecting local artisans with global markets. $2M ARR.',
         website: 'https://greenleafcommerce.com',
         whatsapp: '+84 912 345 678',
@@ -47,13 +105,16 @@ const SAMPLE_MEMBERS = [
     },
     {
         id: 3,
-        email: 'david@example.com',
+        email: 'davidpark@example.com',
         password: 'password',
         firstName: 'David',
         lastName: 'Park',
         company: 'FinanceFlow',
         role: 'CEO',
         industry: 'fintech',
+        memberType: 'platinum_founding',
+        status: 'active',
+        joinedAt: '2026-01-08T00:00:00.000Z',
         bio: 'Revolutionizing cross-border payments in ASEAN. Ex-Goldman Sachs. Series A funded.',
         website: 'https://financeflow.io',
         whatsapp: '+84 903 456 789',
@@ -74,6 +135,9 @@ const SAMPLE_MEMBERS = [
         company: 'MediViet',
         role: 'Founder',
         industry: 'healthtech',
+        memberType: 'founding',
+        status: 'active',
+        joinedAt: '2026-01-12T00:00:00.000Z',
         bio: 'Telemedicine platform serving 500K+ patients across Vietnam. Doctor by training, entrepreneur by passion.',
         website: 'https://mediviet.vn',
         whatsapp: '',
@@ -94,6 +158,9 @@ const SAMPLE_MEMBERS = [
         company: 'BrandForge Agency',
         role: 'Founder & Creative Director',
         industry: 'agency',
+        memberType: 'founding',
+        status: 'active',
+        joinedAt: '2026-01-14T00:00:00.000Z',
         bio: 'Full-service branding agency for tech startups. Worked with 50+ funded companies. Based in HCMC.',
         website: 'https://brandforge.co',
         whatsapp: '+84 901 234 567',
@@ -114,6 +181,9 @@ const SAMPLE_MEMBERS = [
         company: 'AIStudio',
         role: 'CTO & Co-Founder',
         industry: 'ai',
+        memberType: 'member',
+        status: 'active',
+        joinedAt: '2026-01-18T00:00:00.000Z',
         bio: 'AI/ML consulting and product development. PhD in Computer Science. Building AI tools for SMBs.',
         website: 'https://aistudio.tech',
         whatsapp: '+84 907 654 321',
@@ -134,6 +204,9 @@ const SAMPLE_MEMBERS = [
         company: 'PropTech Vietnam',
         role: 'Founder',
         industry: 'real-estate',
+        memberType: 'member',
+        status: 'active',
+        joinedAt: '2026-01-20T00:00:00.000Z',
         bio: 'Digital platform for real estate investment in Vietnam. Helping foreigners invest safely.',
         website: 'https://proptechvn.com',
         whatsapp: '+84 905 111 222',
@@ -154,6 +227,9 @@ const SAMPLE_MEMBERS = [
         company: 'EduSmart',
         role: 'CEO',
         industry: 'edtech',
+        memberType: 'member',
+        status: 'active',
+        joinedAt: '2026-01-22T00:00:00.000Z',
         bio: 'Online learning platform for K-12 students. 100K+ active users. Expanding to Thailand.',
         website: 'https://edusmart.vn',
         whatsapp: '',
@@ -171,6 +247,7 @@ const SAMPLE_MEMBERS = [
 const Auth = {
     STORAGE_KEY: 'founders_vietnam_auth',
     MEMBERS_KEY: 'founders_vietnam_members',
+    DATA_VERSION: '2.0', // Increment to force refresh localStorage data
 
     // Check if Supabase is available
     useSupabase() {
@@ -179,8 +256,15 @@ const Auth = {
 
     // Initialize
     init() {
-        // Always initialize localStorage with sample members as fallback
-        // This ensures sync methods work even when Supabase is configured
+        // Check data version - refresh if outdated
+        const storedVersion = localStorage.getItem('founders_vietnam_version');
+        if (storedVersion !== this.DATA_VERSION) {
+            // Clear old data and refresh with new sample members
+            localStorage.removeItem(this.MEMBERS_KEY);
+            localStorage.setItem('founders_vietnam_version', this.DATA_VERSION);
+        }
+
+        // Initialize localStorage with sample members as fallback
         if (!localStorage.getItem(this.MEMBERS_KEY)) {
             localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
         }
