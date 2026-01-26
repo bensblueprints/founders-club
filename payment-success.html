@@ -209,6 +209,56 @@
                 document.getElementById('orderId').textContent = orderId;
             }
 
+            // Check for pending APPLICATION that needs to be completed after Airwallex payment
+            const pendingApplicationStr = localStorage.getItem('founders_vietnam_pending_application');
+            if (pendingApplicationStr) {
+                try {
+                    const pendingApp = JSON.parse(pendingApplicationStr);
+
+                    // Update UI for application
+                    document.querySelector('.success-title').textContent = 'Application Submitted!';
+                    document.querySelector('.success-message').textContent = `Thank you, ${pendingApp.firstName}! Your application has been submitted and payment received. We'll review it within 48 hours and email you at ${pendingApp.email}. If not accepted, your payment will be refunded in full.`;
+
+                    // Display application info
+                    document.getElementById('orderItems').textContent = pendingApp.ticketName || '-';
+                    document.getElementById('orderAmount').textContent = pendingApp.ticketPrice ? `$${pendingApp.ticketPrice}` : '-';
+
+                    // Show platinum message if cruise
+                    if (pendingApp.membership === 'full') {
+                        const platinumDiv = document.getElementById('platinumMessage');
+                        platinumDiv.style.display = 'block';
+                        platinumDiv.querySelector('h4').textContent = 'Dinner + Cruise Package Selected';
+                        platinumDiv.querySelector('p').textContent = 'Once accepted, you\'ll have access to both the Founders Dinner and the exclusive Poseidon Cruise.';
+                    }
+
+                    // Submit the application to database
+                    const result = await Database.submitApplication({
+                        ...pendingApp,
+                        paymentIntentId: paymentIntentId || pendingApp.paymentIntentId || orderId,
+                        paymentStatus: 'paid',
+                        amountPaid: pendingApp.ticketPrice
+                    });
+
+                    if (result.error) {
+                        console.error('Error submitting application:', result.error);
+                    }
+
+                    // Clear pending application
+                    localStorage.removeItem('founders_vietnam_pending_application');
+
+                    // Update actions for application
+                    const actionsDiv = document.querySelector('.success-actions');
+                    actionsDiv.innerHTML = `
+                        <a href="index.html" class="btn-primary">Return Home</a>
+                        <a href="index.html#faq" class="btn-secondary">View FAQ</a>
+                    `;
+
+                } catch (e) {
+                    console.error('Error completing application:', e);
+                }
+                return; // Don't process booking logic
+            }
+
             // Check for pending booking that needs to be completed after Airwallex payment
             const pendingBookingStr = localStorage.getItem('founders_vietnam_pending_booking');
             if (pendingBookingStr) {

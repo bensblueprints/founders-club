@@ -25,6 +25,7 @@
             <a href="#events">Events</a>
             <a href="members.html">Members</a>
             <a href="#membership">Membership</a>
+            <a href="#faq">FAQ</a>
             <a href="login.html" class="nav-login" id="navLogin">Login</a>
             <a href="#" class="nav-profile" id="navProfile" style="display: none;">
                 <span class="profile-avatar" id="navAvatar">JD</span>
@@ -531,11 +532,93 @@
         </div>
     </section>
 
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="section-header">
+            <span class="section-number">04</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>How does the application process work?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>Our process is simple: <strong>Apply and Pay.</strong> You submit your application with payment to secure your spot. Our team reviews all applications within 48 hours. If accepted, you're confirmed for the event. If not accepted, you receive a <strong>full refund immediately</strong>—no questions asked.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>What happens if my application is rejected?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>If by any chance you are not accepted to Founders Vietnam, <strong>your payment will be refunded in full immediately</strong>. We process refunds through Airwallex, and funds typically return to your account within 5-10 business days depending on your bank. There's zero risk to apply.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>What are the membership requirements?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>We require a minimum of <strong>$10,000/month in revenue</strong> to join. This ensures our community is filled with serious, established founders who can both contribute to and benefit from our network. We also look for founders who are genuinely interested in building meaningful connections, not just collecting business cards.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>What's included in the Founders Dinner ($149)?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>Your ticket includes a <strong>full dinner and drinks</strong>, structured founder introductions where everyone gets to share their story, and access to the <strong>Members Portal</strong> where you can see who's attending before the event and research potential connections.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>What's the Poseidon Cruise experience?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>After the dinner, a select group of <strong>30 founders</strong> continue networking on a private yacht cruise along the Da Nang coast. This intimate setting—with premium open bar—is where the deepest connections happen. Limited spots available each month.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Can I get a refund after being accepted?</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 8L10 13L15 8"/>
+                    </svg>
+                </button>
+                <div class="faq-answer">
+                    <p>Once accepted, refunds are available up to <strong>7 days before the event</strong>. After that, we've already made commitments to venues and vendors. You can transfer your ticket to another qualified founder with admin approval. See our <a href="refund.html">full refund policy</a> for details.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Application Section (CTA to open modal) -->
     <section id="apply" class="apply">
         <div class="apply-container">
             <div class="apply-header">
-                <span class="section-number">04</span>
+                <span class="section-number">05</span>
                 <h2 class="section-title">Apply for Membership</h2>
                 <p class="apply-subtitle">
                     This is not for everyone. We're looking for founders generating real revenue
@@ -550,7 +633,7 @@
                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <p style="margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Applications reviewed within 48 hours</p>
+                <p style="margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Apply & pay to secure your spot • Full refund if not accepted</p>
             </div>
         </div>
     </section>
@@ -749,15 +832,17 @@
                     </label>
                 </div>
 
-                <button type="submit" class="submit-btn">
-                    <span>Submit Application</span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <button type="submit" class="submit-btn" id="applicationSubmitBtn">
+                    <span id="submitBtnText">Submit & Pay to Apply</span>
+                    <span id="submitSpinner" style="display: none;">Processing...</span>
+                    <svg id="submitBtnArrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                
+
                 <p class="form-disclaimer">
-                    Applications are reviewed within 48 hours. We'll reach out via email with next steps.
+                    <strong>Apply & Pay:</strong> Your payment secures your spot. Applications reviewed within 48 hours.<br>
+                    <span style="color: #10b981;">✓ Full refund if not accepted—no questions asked.</span>
                 </p>
             </form>
         </div>
@@ -976,6 +1061,141 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeApplicationModal();
+            }
+        });
+
+        // FAQ Toggle
+        function toggleFaq(button) {
+            const faqItem = button.closest('.faq-item');
+            const isOpen = faqItem.classList.contains('open');
+
+            // Close all FAQs
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('open');
+            });
+
+            // Open clicked one if it wasn't open
+            if (!isOpen) {
+                faqItem.classList.add('open');
+            }
+        }
+
+        // Application Form Submission with Payment
+        document.getElementById('applicationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('applicationSubmitBtn');
+            const btnText = document.getElementById('submitBtnText');
+            const spinner = document.getElementById('submitSpinner');
+            const arrow = document.getElementById('submitBtnArrow');
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            arrow.style.display = 'none';
+            spinner.style.display = 'inline';
+
+            try {
+                // Collect form data
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    age: document.getElementById('age').value,
+                    socialLink: document.getElementById('socialLink').value,
+                    company: document.getElementById('company').value,
+                    role: document.getElementById('role').value,
+                    industry: document.getElementById('industry').value,
+                    revenue: document.getElementById('revenue').value,
+                    teamSize: document.getElementById('teamSize').value,
+                    biggestChallenge: document.getElementById('biggestChallenge').value,
+                    uniqueValue: document.getElementById('uniqueValue').value,
+                    goals12Month: document.getElementById('goals12Month').value,
+                    whyJoin: document.getElementById('whyJoin').value,
+                    referral: document.getElementById('referral').value,
+                    referrerName: document.getElementById('referrerName')?.value || '',
+                    event: 'feb-2026',
+                    membership: document.querySelector('input[name="membership"]:checked')?.value
+                };
+
+                // Determine price based on membership selection
+                const price = formData.membership === 'full' ? 498 : 149;
+                const productId = formData.membership === 'full' ? 'platinum-cruise' : 'founding-dinner';
+                const ticketName = formData.membership === 'full' ? 'Founders Dinner + Poseidon Cruise' : 'Founders Dinner';
+
+                // Store application data temporarily (will be completed after payment)
+                const pendingApplication = {
+                    ...formData,
+                    ticketPrice: price,
+                    ticketName: ticketName,
+                    productId: productId,
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplication));
+
+                // Create payment intent
+                const paymentResponse = await fetch('/.netlify/functions/create-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productIds: [productId],
+                        customerEmail: formData.email,
+                        customerName: `${formData.firstName} ${formData.lastName}`,
+                        eventId: 'feb-2026',
+                        applicationType: 'membership_application'
+                    })
+                });
+
+                const paymentResult = await paymentResponse.json();
+
+                if (!paymentResult.success && !paymentResult.mock) {
+                    throw new Error(paymentResult.error || 'Failed to create payment');
+                }
+
+                // Store payment intent ID with the pending application
+                pendingApplication.paymentIntentId = paymentResult.paymentIntentId;
+                pendingApplication.orderId = paymentResult.orderId;
+                localStorage.setItem('founders_vietnam_pending_application', JSON.stringify(pendingApplication));
+
+                // If Airwallex is properly configured, redirect to hosted payment page
+                if (paymentResult.clientSecret && !paymentResult.mock) {
+                    const airwallexEnv = window.location.hostname === 'localhost' ? 'demo' : 'prod';
+                    const airwallexUrl = airwallexEnv === 'prod'
+                        ? 'https://checkout.airwallex.com'
+                        : 'https://checkout-demo.airwallex.com';
+
+                    window.location.href = `${airwallexUrl}/checkout/${paymentResult.paymentIntentId}?client_secret=${paymentResult.clientSecret}`;
+                    return;
+                }
+
+                // If Airwallex not configured (mock mode), submit application directly
+                console.log('Airwallex not configured, submitting application directly...');
+
+                const result = await Database.submitApplication({
+                    ...formData,
+                    paymentIntentId: paymentResult.paymentIntentId || `mock-${Date.now()}`,
+                    paymentStatus: 'paid',
+                    amountPaid: price
+                });
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Clear pending application
+                localStorage.removeItem('founders_vietnam_pending_application');
+
+                // Show success
+                closeApplicationModal();
+                alert(`Thank you, ${formData.firstName}! Your application has been submitted.\n\nWe'll review it within 48 hours and email you at ${formData.email}.\n\nIf not accepted, your payment of $${price} will be refunded in full.`);
+
+            } catch (error) {
+                console.error('Application error:', error);
+                alert('Error submitting application: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                arrow.style.display = 'inline';
+                spinner.style.display = 'none';
             }
         });
     </script>

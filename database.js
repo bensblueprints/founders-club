@@ -238,6 +238,7 @@ const Database = {
             id: 'app-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
             status: 'pending',
             submittedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             firstName: applicationData.firstName,
             lastName: applicationData.lastName,
             email: applicationData.email,
@@ -255,7 +256,11 @@ const Database = {
             referral: applicationData.referral,
             referrerName: applicationData.referrerName,
             event: applicationData.event,
-            membership: applicationData.membership
+            membership: applicationData.membership,
+            // Payment info
+            paymentIntentId: applicationData.paymentIntentId || null,
+            paymentStatus: applicationData.paymentStatus || 'pending',
+            amountPaid: applicationData.amountPaid || 0
         };
 
         const apps = JSON.parse(localStorage.getItem('founders_vietnam_applications') || '[]');

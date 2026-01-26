@@ -283,12 +283,14 @@ const Admin = {
                         <span class="detail-value">${app.teamSize || 'N/A'}</span>
                     </div>
                     <div class="app-detail">
-                        <span class="detail-label">Event Interest</span>
-                        <span class="detail-value">${app.event || 'N/A'}</span>
-                    </div>
-                    <div class="app-detail">
                         <span class="detail-label">Membership</span>
                         <span class="detail-value membership-${app.membership}">${app.membership === 'full' ? 'Dinner + Cruise ($498)' : 'Dinner ($149)'}</span>
+                    </div>
+                    <div class="app-detail">
+                        <span class="detail-label">Payment</span>
+                        <span class="detail-value ${app.paymentStatus === 'paid' ? 'payment-paid' : 'payment-pending'}">
+                            ${app.paymentStatus === 'paid' ? `✓ Paid $${app.amountPaid || 0}` : 'Pending'}
+                        </span>
                     </div>
                 </div>
                 <div class="app-actions">
@@ -420,26 +422,92 @@ const Admin = {
         this.loadStats();
     },
 
-    rejectApplication(id) {
+    async rejectApplication(id) {
         const app = Applications.getApplicationById(id);
         if (!app) return;
 
-        const reason = prompt(`Reject application from ${app.firstName} ${app.lastName}?\n\nOptionally enter a reason (or leave blank):`);
+        const reason = prompt(`Reject application from ${app.firstName} ${app.lastName}?\n\nThis will process a full refund of their payment.\n\nOptionally enter a reason (or leave blank):`);
 
         if (reason === null) return; // User cancelled
 
-        const currentUser = Auth.getCurrentUser();
-        const result = Applications.rejectApplication(id, currentUser.email, reason);
-
-        if (result.error) {
-            alert('Error: ' + result.error);
-            return;
+        // Show loading state
+        const rejectBtn = document.querySelector(`[onclick*="rejectApplication('${id}')"]`);
+        if (rejectBtn) {
+            rejectBtn.disabled = true;
+            rejectBtn.textContent = 'Processing...';
         }
 
-        alert('Application rejected.');
-        this.closeModal('applicationModal');
-        this.loadApplications();
-        this.loadStats();
+        try {
+            // Process refund if payment was made
+            if (app.paymentIntentId && app.paymentStatus === 'paid') {
+                console.log('Processing refund for payment:', app.paymentIntentId);
+
+                const refundResponse = await fetch('/.netlify/functions/process-refund', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        paymentIntentId: app.paymentIntentId,
+                        amount: app.amountPaid,
+                        reason: reason || 'Application not accepted - full refund per policy',
+                        applicationId: id,
+                        customerEmail: app.email,
+                        customerName: `${app.firstName} ${app.lastName}`
+                    })
+                });
+
+                const refundResult = await refundResponse.json();
+
+                if (!refundResult.success) {
+                    throw new Error(refundResult.error || 'Failed to process refund');
+                }
+
+                console.log('Refund processed:', refundResult);
+            }
+
+            // Update application status
+            const currentUser = Auth.getCurrentUser();
+            const result = Applications.rejectApplication(id, currentUser.email, reason);
+
+            if (result.error) {
+                alert('Error: ' + result.error);
+                return;
+            }
+
+            // Send rejection email (optional - if function exists)
+            try {
+                await fetch('/.netlify/functions/send-welcome-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: app.email,
+                        firstName: app.firstName,
+                        lastName: app.lastName,
+                        type: 'rejection',
+                        refundAmount: app.amountPaid || 0
+                    })
+                });
+            } catch (emailError) {
+                console.log('Could not send rejection email:', emailError);
+            }
+
+            const refundMessage = app.paymentIntentId && app.paymentStatus === 'paid'
+                ? `\n\nRefund of $${app.amountPaid || 0} has been processed.`
+                : '';
+
+            alert(`Application rejected.${refundMessage}`);
+            this.closeModal('applicationModal');
+            this.loadApplications();
+            this.loadStats();
+
+        } catch (error) {
+            console.error('Rejection error:', error);
+            alert('Error processing rejection: ' + error.message);
+        } finally {
+            if (rejectBtn) {
+                rejectBtn.disabled = false;
+                rejectBtn.textContent = 'Reject';
+            }
+        }
     },
 
     loadTransactions() {

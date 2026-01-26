@@ -698,7 +698,7 @@ const Applications = {
     },
 
     // Reject application
-    rejectApplication(id, reviewedBy, reason = '') {
+    rejectApplication(id, reviewedBy, reason = '', refundInfo = null) {
         const app = this.getApplicationById(id);
         if (!app) return { error: 'Application not found' };
 
@@ -709,6 +709,13 @@ const Applications = {
         apps[index].reviewedAt = new Date().toISOString();
         apps[index].reviewedBy = reviewedBy;
         apps[index].rejectionReason = reason;
+
+        // Store refund info if provided
+        if (refundInfo) {
+            apps[index].refundId = refundInfo.refundId;
+            apps[index].refundStatus = refundInfo.status;
+            apps[index].refundProcessedAt = new Date().toISOString();
+        }
 
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(apps));
 
