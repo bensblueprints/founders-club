@@ -9,6 +9,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
+    <style>
+        .forgot-password-link {
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #c9a227;
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+        }
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="noise"></div>
@@ -44,6 +80,7 @@
                     <div class="form-group">
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" name="password" required>
+                        <a href="#" class="forgot-password-link" id="showForgotPassword">Forgot Password?</a>
                     </div>
                     <button type="submit" class="submit-btn">
                         <span>Login</span>
@@ -52,7 +89,7 @@
                         </svg>
                     </button>
                 </form>
-                
+
                 <div class="auth-footer">
                     <p>Don't have an account? <a href="#" id="showRegister">Register here</a></p>
                 </div>
@@ -128,6 +165,61 @@
                     <p>Already have an account? <a href="#" id="showLogin">Login here</a></p>
                 </div>
             </div>
+
+            <!-- Forgot Password Form -->
+            <div class="auth-card" id="forgotCard" style="display: none;">
+                <div class="auth-header">
+                    <h1>Reset Password</h1>
+                    <p>Enter your email to receive reset instructions</p>
+                </div>
+
+                <form class="auth-form" id="forgotForm">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email Address</label>
+                        <input type="email" id="forgotEmail" name="email" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>Send Reset Link</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Remember your password? <a href="#" id="backToLogin">Back to Login</a></p>
+                </div>
+            </div>
+
+            <!-- Reset Password Form (shown after clicking email link or for demo) -->
+            <div class="auth-card" id="resetCard" style="display: none;">
+                <div class="auth-header">
+                    <h1>Set New Password</h1>
+                    <p>Enter your new password below</p>
+                </div>
+
+                <form class="auth-form" id="resetForm">
+                    <input type="hidden" id="resetEmail" name="email">
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>Reset Password</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p><a href="#" id="backToLoginFromReset">Back to Login</a></p>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -137,17 +229,38 @@
     <script src="database.js"></script>
     <script src="auth.js"></script>
     <script>
+        // Helper to show a specific card and hide others
+        function showCard(cardId) {
+            ['loginCard', 'registerCard', 'forgotCard', 'resetCard'].forEach(id => {
+                document.getElementById(id).style.display = id === cardId ? 'block' : 'none';
+            });
+        }
+
         // Toggle between login and register
         document.getElementById('showRegister').addEventListener('click', (e) => {
             e.preventDefault();
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('registerCard').style.display = 'block';
+            showCard('registerCard');
         });
 
         document.getElementById('showLogin').addEventListener('click', (e) => {
             e.preventDefault();
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'block';
+            showCard('loginCard');
+        });
+
+        // Forgot password navigation
+        document.getElementById('showForgotPassword').addEventListener('click', (e) => {
+            e.preventDefault();
+            showCard('forgotCard');
+        });
+
+        document.getElementById('backToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            showCard('loginCard');
+        });
+
+        document.getElementById('backToLoginFromReset').addEventListener('click', (e) => {
+            e.preventDefault();
+            showCard('loginCard');
         });
 
         // Login form
@@ -189,6 +302,108 @@
                 alert('Email already registered');
                 btn.disabled = false;
                 btn.innerHTML = '<span>Create Account</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            }
+        });
+
+        // Forgot password form
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Sending...</span>';
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Check if email exists in our system
+            const members = Auth.getMembers();
+            const user = members.find(m => m.email.toLowerCase() === email.toLowerCase());
+
+            if (user) {
+                // Store email for reset form
+                document.getElementById('resetEmail').value = email;
+
+                // Show success message and reset form
+                const forgotCard = document.getElementById('forgotCard');
+                forgotCard.innerHTML = `
+                    <div class="auth-header">
+                        <h1>Check Your Email</h1>
+                    </div>
+                    <div class="success-message">
+                        <p>If an account exists for <strong>${email}</strong>, you will receive password reset instructions.</p>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; text-align: center; margin-bottom: 20px;">
+                        For demo purposes, click below to reset your password directly:
+                    </p>
+                    <button type="button" class="submit-btn" onclick="showCard('resetCard'); document.getElementById('resetEmail').value='${email}';">
+                        <span>Reset Password Now</span>
+                    </button>
+                    <div class="auth-footer" style="margin-top: 20px;">
+                        <p><a href="#" onclick="location.reload()">Back to Login</a></p>
+                    </div>
+                `;
+            } else {
+                // Show same message for security (don't reveal if email exists)
+                const forgotCard = document.getElementById('forgotCard');
+                forgotCard.innerHTML = `
+                    <div class="auth-header">
+                        <h1>Check Your Email</h1>
+                    </div>
+                    <div class="success-message">
+                        <p>If an account exists for <strong>${email}</strong>, you will receive password reset instructions.</p>
+                    </div>
+                    <div class="auth-footer" style="margin-top: 20px;">
+                        <p><a href="#" onclick="location.reload()">Back to Login</a></p>
+                    </div>
+                `;
+            }
+        });
+
+        // Reset password form
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Resetting...</span>';
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Update password in localStorage
+            const success = Auth.resetPassword(email, newPassword);
+
+            if (success) {
+                const resetCard = document.getElementById('resetCard');
+                resetCard.innerHTML = `
+                    <div class="auth-header">
+                        <h1>Password Reset!</h1>
+                    </div>
+                    <div class="success-message">
+                        <p>Your password has been successfully reset. You can now login with your new password.</p>
+                    </div>
+                    <button type="button" class="submit-btn" onclick="location.reload()">
+                        <span>Go to Login</span>
+                    </button>
+                `;
+            } else {
+                alert('Error resetting password. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Reset Password</span>';
             }
         });
 

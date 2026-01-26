@@ -466,6 +466,23 @@ const Auth = {
         return true;
     },
 
+    // Reset password
+    resetPassword(email, newPassword) {
+        // For Supabase, this would use supabase.auth.updateUser({ password: newPassword })
+        // For localStorage, we update the member's password directly
+
+        const members = this.getMembersSync();
+        const index = members.findIndex(m => m.email.toLowerCase() === email.toLowerCase());
+
+        if (index === -1) return false;
+
+        members[index].password = newPassword;
+        members[index].requirePasswordReset = false; // Clear the reset flag
+        localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
+
+        return true;
+    },
+
     // Logout
     async logout() {
         if (this.useSupabase()) {
