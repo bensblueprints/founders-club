@@ -1206,11 +1206,40 @@
                         cta.href = 'events.html';
                     });
 
-                    // Update event reserve/waitlist buttons
+                    // Update event reserve/waitlist buttons - remove onclick and set href
                     document.querySelectorAll('.event-reserve-btn, .event-waitlist-btn').forEach(btn => {
                         btn.textContent = 'Book Event';
                         btn.href = 'events.html';
+                        btn.onclick = null; // Remove the openApplicationModal handler
+                        btn.removeAttribute('onclick');
                     });
+
+                    // Update hero CTA onclick
+                    const heroCtaEl = document.querySelector('.hero-cta');
+                    if (heroCtaEl) {
+                        heroCtaEl.onclick = null;
+                        heroCtaEl.removeAttribute('onclick');
+                    }
+
+                    // Update pricing CTAs onclick
+                    document.querySelectorAll('.pricing-cta').forEach(cta => {
+                        cta.onclick = null;
+                        cta.removeAttribute('onclick');
+                    });
+
+                    // Update gallery btn
+                    const galleryBtn = document.querySelector('.gallery-btn');
+                    if (galleryBtn) {
+                        galleryBtn.href = 'events.html';
+                        galleryBtn.onclick = null;
+                        galleryBtn.removeAttribute('onclick');
+                    }
+
+                    // Update nav apply
+                    if (navApply) {
+                        navApply.onclick = null;
+                        navApply.removeAttribute('onclick');
+                    }
 
                     // Hide application section for logged-in members, show member dashboard link
                     const applySection = document.getElementById('apply');
