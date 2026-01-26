@@ -9,6 +9,103 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
+    <style>
+        .avatar-preview.clickable {
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-preview.clickable:hover .avatar-overlay {
+            opacity: 1;
+        }
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border-radius: 50%;
+            color: white;
+            gap: 4px;
+        }
+        .avatar-overlay span {
+            font-size: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .remove-photo-btn {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .remove-photo-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        .website-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .website-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .website-input-row input {
+            flex: 1;
+        }
+        .remove-website-btn {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .remove-website-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        .add-website-btn {
+            background: transparent;
+            border: 1px dashed rgba(201, 162, 39, 0.4);
+            color: #c9a227;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .add-website-btn:hover {
+            background: rgba(201, 162, 39, 0.1);
+            border-color: #c9a227;
+        }
+    </style>
 </head>
 <body>
     <div class="noise"></div>
@@ -41,11 +138,21 @@
                 <div class="profile-section">
                     <h3 class="section-title-gold">Profile Photo</h3>
                     <div class="avatar-upload">
-                        <div class="avatar-preview" id="avatarPreview">
+                        <div class="avatar-preview clickable" id="avatarPreview" onclick="document.getElementById('photoInput').click()">
+                            <img id="avatarImage" src="" alt="" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                             <span id="avatarInitials">JD</span>
+                            <div class="avatar-overlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                                <span>Upload</span>
+                            </div>
                         </div>
+                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
                         <div class="avatar-info">
-                            <p>Your initials will be displayed. Profile photos coming soon.</p>
+                            <p>Click to upload a profile photo (400x400 pixels recommended)</p>
+                            <button type="button" id="removePhoto" class="remove-photo-btn" style="display: none;">Remove Photo</button>
                         </div>
                     </div>
                 </div>
@@ -107,8 +214,19 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="website">Company Website</label>
-                        <input type="url" id="website" name="website" placeholder="https://yourcompany.com">
+                        <label for="website">Company Website(s)</label>
+                        <div class="website-list" id="websiteList">
+                            <div class="website-input-row">
+                                <input type="url" id="website" name="website" placeholder="https://yourcompany.com">
+                            </div>
+                        </div>
+                        <button type="button" class="add-website-btn" id="addWebsiteBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Add Another Website
+                        </button>
                     </div>
                 </div>
 
@@ -283,7 +401,9 @@
         document.getElementById('company').value = user.company || '';
         document.getElementById('role').value = user.role || '';
         document.getElementById('industry').value = user.industry || '';
-        document.getElementById('website').value = user.website || '';
+        // Handle websites (can be array or single string)
+        const userWebsites = user.websites || (user.website ? [user.website] : []);
+        document.getElementById('website').value = userWebsites[0] || '';
         document.getElementById('whatsapp').value = user.whatsapp || '';
         document.getElementById('zalo').value = user.zalo || '';
         document.getElementById('telegram').value = user.telegram || '';
@@ -296,13 +416,24 @@
         // Handle form submit
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const btn = e.target.querySelector('.submit-btn');
             btn.disabled = true;
             btn.innerHTML = '<span>Saving...</span>';
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
+
+            // Collect all websites into an array
+            const websiteInputs = websiteList.querySelectorAll('input[type="url"]');
+            const websites = [];
+            websiteInputs.forEach(input => {
+                if (input.value.trim()) {
+                    websites.push(input.value.trim());
+                }
+            });
+            data.websites = websites;
+            data.website = websites[0] || ''; // Keep first website for backwards compatibility
 
             await new Promise(r => setTimeout(r, 1000));
 
@@ -315,6 +446,167 @@
                 window.location.href = 'members.html';
             }, 1500);
         });
+
+        // Multiple Websites Handler
+        const websiteList = document.getElementById('websiteList');
+        const addWebsiteBtn = document.getElementById('addWebsiteBtn');
+        let websiteCount = 1;
+
+        // Load existing websites - called after populating form
+        function loadWebsites() {
+            const userWebsites = user.websites || (user.website ? [user.website] : []);
+            if (userWebsites.length > 1) {
+                // Load additional websites beyond the first one
+                userWebsites.slice(1).forEach(url => {
+                    addWebsiteRow(url);
+                });
+            }
+        }
+
+        function addWebsiteRow(value = '') {
+            websiteCount++;
+            const row = document.createElement('div');
+            row.className = 'website-input-row';
+            row.innerHTML = `
+                <input type="url" name="website${websiteCount}" placeholder="https://anothersite.com" value="${value}">
+                <button type="button" class="remove-website-btn" onclick="removeWebsiteRow(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+            websiteList.appendChild(row);
+        }
+
+        window.removeWebsiteRow = function(btn) {
+            btn.closest('.website-input-row').remove();
+        };
+
+        addWebsiteBtn.addEventListener('click', () => {
+            addWebsiteRow();
+        });
+
+        loadWebsites();
+
+        // Profile Photo Upload
+        const photoInput = document.getElementById('photoInput');
+        const avatarImage = document.getElementById('avatarImage');
+        const avatarInitials = document.getElementById('avatarInitials');
+        const removePhotoBtn = document.getElementById('removePhoto');
+
+        // Load existing photo if available
+        if (user.profilePhoto) {
+            avatarImage.src = user.profilePhoto;
+            avatarImage.style.display = 'block';
+            avatarInitials.style.display = 'none';
+            removePhotoBtn.style.display = 'inline-block';
+        }
+
+        photoInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be less than 5MB');
+                return;
+            }
+
+            try {
+                const resizedImage = await resizeImage(file, 400, 400);
+
+                // Display the image
+                avatarImage.src = resizedImage;
+                avatarImage.style.display = 'block';
+                avatarInitials.style.display = 'none';
+                removePhotoBtn.style.display = 'inline-block';
+
+                // Save to user profile
+                Auth.updateProfile({ profilePhoto: resizedImage });
+
+                // Update nav avatar too
+                document.getElementById('navAvatar').innerHTML = `<img src="${resizedImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+
+            } catch (error) {
+                console.error('Error processing image:', error);
+                alert('Failed to process image. Please try again.');
+            }
+        });
+
+        removePhotoBtn.addEventListener('click', () => {
+            avatarImage.src = '';
+            avatarImage.style.display = 'none';
+            avatarInitials.style.display = 'flex';
+            removePhotoBtn.style.display = 'none';
+            photoInput.value = '';
+
+            // Remove from profile
+            Auth.updateProfile({ profilePhoto: null });
+
+            // Reset nav avatar
+            document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+        });
+
+        // Resize image to 400x400 pixels
+        function resizeImage(file, maxWidth, maxHeight) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate crop dimensions (center crop for square)
+                        let sourceX = 0;
+                        let sourceY = 0;
+                        let sourceWidth = width;
+                        let sourceHeight = height;
+
+                        if (width > height) {
+                            sourceX = (width - height) / 2;
+                            sourceWidth = height;
+                        } else if (height > width) {
+                            sourceY = (height - width) / 2;
+                            sourceHeight = width;
+                        }
+
+                        // Set canvas to target size
+                        canvas.width = maxWidth;
+                        canvas.height = maxHeight;
+
+                        const ctx = canvas.getContext('2d');
+
+                        // Enable image smoothing for better quality
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+
+                        // Draw cropped and resized image
+                        ctx.drawImage(
+                            img,
+                            sourceX, sourceY, sourceWidth, sourceHeight,
+                            0, 0, maxWidth, maxHeight
+                        );
+
+                        // Convert to base64 (JPEG for smaller file size)
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
         // Populate membership status
         function renderMembershipStatus() {

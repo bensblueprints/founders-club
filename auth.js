@@ -436,23 +436,30 @@ const Auth = {
         
         if (index === -1) return false;
 
+        // Handle profilePhoto (can be set to null to remove)
+        if (data.hasOwnProperty('profilePhoto')) {
+            members[index].profilePhoto = data.profilePhoto;
+        }
+
         members[index] = {
             ...members[index],
             firstName: data.firstName || members[index].firstName,
             lastName: data.lastName || members[index].lastName,
-            bio: data.bio || '',
+            bio: data.bio !== undefined ? data.bio : members[index].bio || '',
             company: data.company || members[index].company,
             role: data.role || members[index].role,
             industry: data.industry || members[index].industry,
-            website: data.website || '',
-            whatsapp: data.whatsapp || '',
-            zalo: data.zalo || '',
-            telegram: data.telegram || '',
-            linkedin: data.linkedin || '',
-            twitter: data.twitter || '',
-            wechat: data.wechat || '',
-            facebook: data.facebook || '',
-            instagram: data.instagram || ''
+            website: data.website !== undefined ? data.website : members[index].website || '',
+            websites: data.websites !== undefined ? data.websites : members[index].websites || [],
+            whatsapp: data.whatsapp !== undefined ? data.whatsapp : members[index].whatsapp || '',
+            zalo: data.zalo !== undefined ? data.zalo : members[index].zalo || '',
+            telegram: data.telegram !== undefined ? data.telegram : members[index].telegram || '',
+            linkedin: data.linkedin !== undefined ? data.linkedin : members[index].linkedin || '',
+            twitter: data.twitter !== undefined ? data.twitter : members[index].twitter || '',
+            wechat: data.wechat !== undefined ? data.wechat : members[index].wechat || '',
+            facebook: data.facebook !== undefined ? data.facebook : members[index].facebook || '',
+            instagram: data.instagram !== undefined ? data.instagram : members[index].instagram || '',
+            profilePhoto: members[index].profilePhoto
         };
 
         localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
