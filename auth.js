@@ -55,6 +55,54 @@ const SAMPLE_MEMBERS = [
         facebook: '',
         instagram: ''
     },
+    {
+        id: 102,
+        email: 'saurebh@advancedmarketing.co',
+        password: 'PAssword123$$!!',
+        firstName: 'Saurebh',
+        lastName: '',
+        company: 'Advanced Marketing',
+        role: 'Admin',
+        industry: 'agency',
+        memberType: 'admin',
+        status: 'active',
+        joinedAt: '2026-01-26T00:00:00.000Z',
+        requirePasswordReset: true,
+        bio: '',
+        website: 'https://advancedmarketing.co',
+        whatsapp: '',
+        zalo: '',
+        telegram: '',
+        linkedin: '',
+        twitter: '',
+        wechat: '',
+        facebook: '',
+        instagram: ''
+    },
+    {
+        id: 103,
+        email: 'pratham@advancedmarketing.co',
+        password: 'PAssword123$$!!',
+        firstName: 'Pratham',
+        lastName: '',
+        company: 'Advanced Marketing',
+        role: 'Admin',
+        industry: 'agency',
+        memberType: 'admin',
+        status: 'active',
+        joinedAt: '2026-01-26T00:00:00.000Z',
+        requirePasswordReset: true,
+        bio: '',
+        website: 'https://advancedmarketing.co',
+        whatsapp: '',
+        zalo: '',
+        telegram: '',
+        linkedin: '',
+        twitter: '',
+        wechat: '',
+        facebook: '',
+        instagram: ''
+    },
     // ===== DEMO USER =====
     {
         id: 1,
@@ -247,7 +295,7 @@ const SAMPLE_MEMBERS = [
 const Auth = {
     STORAGE_KEY: 'founders_vietnam_auth',
     MEMBERS_KEY: 'founders_vietnam_members',
-    DATA_VERSION: '2.0', // Increment to force refresh localStorage data
+    DATA_VERSION: '3.0', // Increment to force refresh localStorage data
 
     // Check if Supabase is available
     useSupabase() {

@@ -394,6 +394,40 @@ const Admin = {
         }
     },
 
+    async sendWelcomeEmail() {
+        const member = this.members.find(m => m.id == this.currentMemberId);
+        if (!member) return;
+
+        if (confirm(`Send welcome email to ${member.email}?`)) {
+            try {
+                const response = await fetch('/.netlify/functions/send-welcome-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: member.email,
+                        firstName: member.firstName,
+                        lastName: member.lastName,
+                        tempPassword: member.password,
+                        type: 'welcome'
+                    })
+                });
+
+                const result = await response.json();
+
+                this.closeModal('actionsModal');
+
+                if (result.success) {
+                    alert(`Welcome email sent to ${member.email}${result.mock ? ' (logged - email service not configured)' : ''}`);
+                } else {
+                    alert('Failed to send email: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Email error:', error);
+                alert('Error sending email: ' + error.message);
+            }
+        }
+    },
+
     // ========================================
     // MASQUERADE
     // ========================================
