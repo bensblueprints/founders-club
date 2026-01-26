@@ -292,10 +292,10 @@ const Admin = {
                     </div>
                 </div>
                 <div class="app-actions">
-                    <button class="btn-view" onclick="Admin.viewApplication(${app.id})">View Details</button>
+                    <button class="btn-view" onclick="Admin.viewApplication('${app.id}')">View Details</button>
                     ${app.status === 'pending' ? `
-                        <button class="btn-accept" onclick="Admin.acceptApplication(${app.id})">Accept</button>
-                        <button class="btn-reject" onclick="Admin.rejectApplication(${app.id})">Reject</button>
+                        <button class="btn-accept" onclick="Admin.acceptApplication('${app.id}')">Accept</button>
+                        <button class="btn-reject" onclick="Admin.rejectApplication('${app.id}')">Reject</button>
                     ` : ''}
                 </div>
             </div>
