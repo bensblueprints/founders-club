@@ -3,7 +3,11 @@
     "allow": [
       "Bash(git --version:*)",
       "Bash(gh:*)",
-      "Bash(netlify --version:*)"
+      "Bash(netlify --version:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(netlify deploy:*)"
     ]
   }
 }

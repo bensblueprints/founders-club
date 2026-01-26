@@ -1,0 +1,10 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Environment variables should be set in Netlify dashboard
+# AIRWALLEX_API_KEY = "your-api-key"
+# AIRWALLEX_CLIENT_ID = "your-client-id"

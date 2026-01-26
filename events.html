@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | Founders Vietnam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="members.css">
+    <link rel="stylesheet" href="events.css">
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="events.html" class="active">Events</a>
+            <a href="past-events.html">Past Events</a>
+            <a href="login.html" class="nav-login" id="navLogin">Login</a>
+            <a href="#" class="nav-profile" id="navProfile" style="display: none;">
+                <span class="profile-avatar" id="navAvatar">JD</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="events-main">
+        <div class="events-header">
+            <h1>Upcoming Events</h1>
+            <p class="events-subtitle">Exclusive gatherings for Vietnam's most ambitious founders</p>
+        </div>
+
+        <!-- Upcoming Events Grid -->
+        <div class="events-grid" id="upcomingEventsGrid">
+            <!-- Populated by JS -->
+        </div>
+    </main>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="bookingEventName">Book Event</h2>
+                <button class="close-modal" onclick="closeBookingModal()">&times;</button>
+            </div>
+            <div class="booking-content">
+                <div class="event-details-section">
+                    <div class="event-meta">
+                        <span class="event-date" id="bookingEventDate"></span>
+                        <span class="event-location" id="bookingEventLocation"></span>
+                    </div>
+                    <p class="event-description" id="bookingEventDescription"></p>
+                </div>
+
+                <div class="tickets-section">
+                    <h3>Select Ticket</h3>
+                    <div class="tickets-list" id="ticketsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="booking-summary" id="bookingSummary" style="display: none;">
+                    <h3>Booking Summary</h3>
+                    <div class="summary-row">
+                        <span>Ticket:</span>
+                        <span id="summaryTicketName"></span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="summaryTotal"></span>
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <button class="btn-secondary" onclick="closeBookingModal()">Cancel</button>
+                    <button class="btn-primary" id="proceedToPayment" onclick="proceedToPayment()" disabled>
+                        Proceed to Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Complete Payment</h2>
+                <button class="close-modal" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="payment-content">
+                <div class="payment-amount">
+                    <span class="amount-label">Amount to Pay</span>
+                    <span class="amount-value" id="paymentAmount">$0</span>
+                </div>
+
+                <div class="payment-info">
+                    <p>You will be redirected to our secure payment provider (Airwallex) to complete your purchase.</p>
+                </div>
+
+                <div class="payment-actions">
+                    <button class="btn-secondary" onclick="closePaymentModal()">Cancel</button>
+                    <button class="btn-primary" id="confirmPayment" onclick="confirmPayment()">
+                        <span id="paymentBtnText">Pay Now</span>
+                        <span id="paymentSpinner" style="display: none;">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="events-data.js"></script>
+    <script>
+        let selectedEvent = null;
+        let selectedTicket = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initEventsPage();
+        });
+
+        function initEventsPage() {
+            // Update nav
+            if (Auth.isLoggedIn()) {
+                const user = Auth.getCurrentUser();
+                document.getElementById('navLogin').style.display = 'none';
+                document.getElementById('navProfile').style.display = 'flex';
+                document.getElementById('navProfile').href = 'profile.html';
+                document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+            }
+
+            // Load events
+            loadUpcomingEvents();
+        }
+
+        function loadUpcomingEvents() {
+            const events = Events.getUpcomingEvents();
+            const grid = document.getElementById('upcomingEventsGrid');
+
+            if (events.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-events">
+                        <h3>No upcoming events</h3>
+                        <p>Check back soon for new events!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = events.map(event => `
+                <div class="event-card ${event.isPlatinumEvent ? 'platinum-event' : ''}">
+                    ${event.isPlatinumEvent ? '<div class="platinum-badge">Platinum Event</div>' : ''}
+                    <div class="event-card-header">
+                        <span class="event-type">${event.type}</span>
+                        <span class="event-spots ${event.spotsRemaining < 5 ? 'low' : ''}">${event.spotsRemaining} spots left</span>
+                    </div>
+                    <h3 class="event-card-title">${event.name}</h3>
+                    <div class="event-card-meta">
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span>${event.displayDate}</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span>${event.time}</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span>${event.location}</span>
+                        </div>
+                    </div>
+                    <p class="event-card-description">${event.description.substring(0, 150)}${event.description.length > 150 ? '...' : ''}</p>
+                    <div class="event-card-footer">
+                        <span class="event-price">From $${Math.min(...event.tickets.map(t => t.price))}</span>
+                        <button class="book-btn" onclick="openBookingModal('${event.id}')" ${event.status !== 'open' ? 'disabled' : ''}>
+                            ${event.status === 'open' ? 'Book Now' : event.status === 'soldout' ? 'Sold Out' : 'Closed'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openBookingModal(eventId) {
+            if (!Auth.isLoggedIn()) {
+                alert('Please log in to book events.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = Auth.getCurrentUser();
+            if (Events.hasUserBookedEvent(user.id, eventId)) {
+                alert('You have already booked this event!');
+                return;
+            }
+
+            selectedEvent = Events.getUpcomingEventById(eventId);
+            if (!selectedEvent) return;
+
+            document.getElementById('bookingEventName').textContent = selectedEvent.name;
+            document.getElementById('bookingEventDate').textContent = `${selectedEvent.displayDate} • ${selectedEvent.time}`;
+            document.getElementById('bookingEventLocation').textContent = selectedEvent.location;
+            document.getElementById('bookingEventDescription').textContent = selectedEvent.description;
+
+            // Render tickets
+            const ticketsList = document.getElementById('ticketsList');
+            ticketsList.innerHTML = selectedEvent.tickets.map(ticket => `
+                <div class="ticket-option" data-ticket-id="${ticket.id}" onclick="selectTicket('${ticket.id}')">
+                    <div class="ticket-header">
+                        <span class="ticket-name">${ticket.name}</span>
+                        <span class="ticket-price">$${ticket.price} ${ticket.currency}</span>
+                    </div>
+                    <p class="ticket-description">${ticket.description}</p>
+                    <ul class="ticket-perks">
+                        ${ticket.perks.map(perk => `<li>${perk}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+
+            selectedTicket = null;
+            document.getElementById('bookingSummary').style.display = 'none';
+            document.getElementById('proceedToPayment').disabled = true;
+
+            document.getElementById('bookingModal').classList.add('active');
+        }
+
+        function selectTicket(ticketId) {
+            selectedTicket = selectedEvent.tickets.find(t => t.id === ticketId);
+            if (!selectedTicket) return;
+
+            // Update UI
+            document.querySelectorAll('.ticket-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`[data-ticket-id="${ticketId}"]`).classList.add('selected');
+
+            // Show summary
+            document.getElementById('summaryTicketName').textContent = selectedTicket.name;
+            document.getElementById('summaryTotal').textContent = `$${selectedTicket.price} ${selectedTicket.currency}`;
+            document.getElementById('bookingSummary').style.display = 'block';
+            document.getElementById('proceedToPayment').disabled = false;
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+            selectedEvent = null;
+            selectedTicket = null;
+        }
+
+        function proceedToPayment() {
+            if (!selectedEvent || !selectedTicket) return;
+
+            document.getElementById('paymentAmount').textContent = `$${selectedTicket.price} ${selectedTicket.currency}`;
+            closeBookingModal();
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+        }
+
+        async function confirmPayment() {
+            if (!selectedEvent || !selectedTicket) return;
+
+            const user = Auth.getCurrentUser();
+            const btn = document.getElementById('confirmPayment');
+            const btnText = document.getElementById('paymentBtnText');
+            const spinner = document.getElementById('paymentSpinner');
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline';
+
+            try {
+                // Create payment intent
+                const paymentResult = await Payment.createPaymentIntent(
+                    selectedTicket.price,
+                    selectedTicket.currency,
+                    `${selectedEvent.name} - ${selectedTicket.name}`,
+                    user.email,
+                    `${user.firstName} ${user.lastName}`,
+                    selectedEvent.id,
+                    selectedTicket.id
+                );
+
+                if (paymentResult.error) {
+                    // For demo purposes, simulate successful payment
+                    console.log('Payment API not configured, simulating success...');
+                }
+
+                // Create booking (simulated for demo)
+                const bookingResult = await Events.createBooking(
+                    user.id,
+                    selectedEvent.id,
+                    selectedTicket.id,
+                    paymentResult.paymentIntentId || `demo-${Date.now()}`
+                );
+
+                if (bookingResult.error) {
+                    throw new Error(bookingResult.error);
+                }
+
+                closePaymentModal();
+                alert(`Booking confirmed! You're registered for ${selectedEvent.name}.${selectedEvent.isPlatinumEvent ? '\n\nCongratulations! You are now a Platinum Founding Member!' : ''}`);
+
+                // Refresh page
+                loadUpcomingEvents();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment processing failed. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

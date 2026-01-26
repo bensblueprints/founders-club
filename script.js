@@ -193,8 +193,23 @@ function initFormHandling() {
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             
-            // Simulate submission (replace with actual API call)
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            // Submit to database if configured
+            if (window.SupabaseConfig?.isConfigured() && window.Database) {
+                const result = await Database.submitApplication(data);
+                if (result.error) {
+                    alert('Error submitting application: ' + result.error);
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+            } else {
+                // Simulate submission for localStorage mode
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                // Store in localStorage as fallback
+                const applications = JSON.parse(localStorage.getItem('founders_vietnam_applications') || '[]');
+                applications.push({ ...data, id: Date.now(), status: 'pending', createdAt: new Date().toISOString() });
+                localStorage.setItem('founders_vietnam_applications', JSON.stringify(applications));
+            }
             
             // Success state
             submitBtn.innerHTML = `

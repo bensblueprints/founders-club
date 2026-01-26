@@ -1,6 +1,381 @@
 /* ========================================
-   FOUNDERS VIETNAM - Past Events Styles
+   FOUNDERS VIETNAM - Events Styles
    ======================================== */
+
+/* ========================================
+   UPCOMING EVENTS PAGE
+   ======================================== */
+.events-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 120px 40px 60px;
+}
+
+.events-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.events-header h1 {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+}
+
+.events-subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+/* Events Grid */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.event-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.event-card:hover {
+    border-color: rgba(201, 162, 39, 0.3);
+    transform: translateY(-4px);
+}
+
+.event-card.platinum-event {
+    border-color: rgba(201, 162, 39, 0.4);
+    background: linear-gradient(135deg, rgba(201, 162, 39, 0.05), transparent);
+}
+
+.platinum-badge {
+    position: absolute;
+    top: -1px;
+    right: 20px;
+    background: linear-gradient(135deg, #c9a227, #e5c464);
+    color: #1a1a1a;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 0 0 6px 6px;
+}
+
+.event-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.event-type {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    background: rgba(201, 162, 39, 0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.event-spots {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.event-spots.low {
+    color: #ef4444;
+}
+
+.event-card-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.event-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.meta-item svg {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.event-card-description {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.event-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.event-price {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-accent);
+}
+
+.book-btn {
+    background: linear-gradient(135deg, #c9a227, #e5c464);
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.book-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+}
+
+.book-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+}
+
+/* Booking Modal */
+.booking-content {
+    padding: 24px;
+}
+
+.event-details-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.event-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.event-date, .event-location {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.event-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+.tickets-section h3 {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ticket-option {
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ticket-option:hover {
+    border-color: rgba(201, 162, 39, 0.3);
+}
+
+.ticket-option.selected {
+    border-color: var(--color-accent);
+    background: rgba(201, 162, 39, 0.1);
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ticket-name {
+    font-weight: 500;
+    color: #fff;
+}
+
+.ticket-price {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-accent);
+}
+
+.ticket-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+}
+
+.ticket-perks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ticket-perks li {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.ticket-option.selected .ticket-perks li {
+    background: rgba(201, 162, 39, 0.2);
+    color: var(--color-accent);
+}
+
+.booking-summary {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 24px 0;
+}
+
+.booking-summary h3 {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--color-accent);
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.booking-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+/* Payment Modal */
+.payment-content {
+    padding: 24px;
+    text-align: center;
+}
+
+.payment-amount {
+    margin-bottom: 24px;
+}
+
+.amount-label {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.amount-value {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-accent);
+}
+
+.payment-info {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.payment-info p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.payment-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.no-events {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.no-events h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .events-main {
+        padding: 100px 20px 40px;
+    }
+
+    .events-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* ========================================
    PAST EVENTS PAGE
