@@ -105,6 +105,29 @@
             background: rgba(201, 162, 39, 0.1);
             border-color: #c9a227;
         }
+        .save-website-btn {
+            background: transparent;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .save-website-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+        .save-website-btn.saved {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -217,7 +240,12 @@
                         <label for="website">Company Website(s)</label>
                         <div class="website-list" id="websiteList">
                             <div class="website-input-row">
-                                <input type="url" id="website" name="website" placeholder="https://yourcompany.com">
+                                <input type="url" id="website" name="website" placeholder="https://yourcompany.com" onkeydown="handleWebsiteKeydown(event)">
+                                <button type="button" class="save-website-btn" onclick="saveWebsiteField(this)" title="Save this website">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 6L9 17l-5-5"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                         <button type="button" class="add-website-btn" id="addWebsiteBtn">
@@ -432,7 +460,12 @@
             const row = document.createElement('div');
             row.className = 'website-input-row';
             row.innerHTML = `
-                <input type="url" name="website${websiteCount}" placeholder="https://anothersite.com" value="${value}">
+                <input type="url" name="website${websiteCount}" placeholder="https://anothersite.com" value="${value}" onkeydown="handleWebsiteKeydown(event)">
+                <button type="button" class="save-website-btn" onclick="saveWebsiteField(this)" title="Save this website">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                </button>
                 <button type="button" class="remove-website-btn" onclick="removeWebsiteRow(this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -445,13 +478,65 @@
 
         window.removeWebsiteRow = function(btn) {
             btn.closest('.website-input-row').remove();
+            // Auto-save after removing
+            saveAllWebsites();
         };
+
+        // Prevent form submission on Enter in website fields
+        window.handleWebsiteKeydown = function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                // Save this website instead
+                const btn = event.target.nextElementSibling;
+                if (btn && btn.classList.contains('save-website-btn')) {
+                    saveWebsiteField(btn);
+                }
+            }
+        };
+
+        // Save individual website field
+        window.saveWebsiteField = function(btn) {
+            const input = btn.previousElementSibling;
+            if (input && input.value.trim()) {
+                // Visual feedback
+                btn.classList.add('saved');
+                setTimeout(() => btn.classList.remove('saved'), 1500);
+
+                // Save all websites to profile
+                saveAllWebsites();
+            }
+        };
+
+        // Save all websites to the profile
+        function saveAllWebsites() {
+            const websiteInputs = websiteList.querySelectorAll('input[type="url"]');
+            const websites = [];
+            websiteInputs.forEach(input => {
+                if (input.value.trim()) {
+                    websites.push(input.value.trim());
+                }
+            });
+
+            // Update profile with websites
+            Auth.updateProfile({
+                websites: websites,
+                website: websites[0] || ''
+            });
+            console.log('Websites saved:', websites);
+        }
 
         addWebsiteBtn.addEventListener('click', () => {
             addWebsiteRow();
         });
 
         loadWebsites();
+
+        // Prevent Enter key from submitting form on text inputs
+        document.getElementById('profileForm').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+                e.preventDefault();
+            }
+        });
 
         // Handle form submit
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
@@ -475,9 +560,18 @@
             data.websites = websites;
             data.website = websites[0] || ''; // Keep first website for backwards compatibility
 
+            // Remove individual website fields from data (we use the array instead)
+            Object.keys(data).forEach(key => {
+                if (key.startsWith('website') && key !== 'website' && key !== 'websites') {
+                    delete data[key];
+                }
+            });
+
+            console.log('Saving profile data:', data);
+
             // Save to database/localStorage
             const success = Auth.updateProfile(data);
-            console.log('Profile save result:', success, data);
+            console.log('Profile save result:', success);
 
             if (success) {
                 btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
