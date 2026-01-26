@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Founders Vietnam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="members.css">
+</head>
+<body>
+    <div class="noise"></div>
+    
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html#about">About</a>
+            <a href="index.html#events">Events</a>
+            <a href="members.html">Members</a>
+            <a href="index.html#apply" class="nav-cta">Apply Now</a>
+        </div>
+    </nav>
+
+    <main class="auth-main">
+        <div class="auth-container">
+            <!-- Login Form -->
+            <div class="auth-card" id="loginCard">
+                <div class="auth-header">
+                    <h1>Welcome Back</h1>
+                    <p>Login to access the member directory</p>
+                </div>
+                
+                <form class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>Login</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" id="showRegister">Register here</a></p>
+                </div>
+
+                <div class="demo-credentials">
+                    <p><strong>Demo Credentials:</strong></p>
+                    <p>Email: demo@foundersvietnam.com</p>
+                    <p>Password: demo123</p>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-card" id="registerCard" style="display: none;">
+                <div class="auth-header">
+                    <h1>Create Account</h1>
+                    <p>Set up your member profile</p>
+                </div>
+                
+                <form class="auth-form" id="registerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="regFirstName">First Name</label>
+                            <input type="text" id="regFirstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regLastName">Last Name</label>
+                            <input type="text" id="regLastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" name="password" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regCompany">Company Name</label>
+                        <input type="text" id="regCompany" name="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regRole">Your Role</label>
+                        <input type="text" id="regRole" name="role" placeholder="Founder, CEO, Co-Founder..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regIndustry">Industry</label>
+                        <select id="regIndustry" name="industry" required>
+                            <option value="">Select industry</option>
+                            <option value="saas">SaaS / Software</option>
+                            <option value="ecommerce">E-Commerce</option>
+                            <option value="fintech">Fintech</option>
+                            <option value="healthtech">Healthtech</option>
+                            <option value="edtech">Edtech</option>
+                            <option value="agency">Agency / Services</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="real-estate">Real Estate</option>
+                            <option value="crypto">Crypto / Web3</option>
+                            <option value="ai">AI / Machine Learning</option>
+                            <option value="consumer">Consumer Products</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>Create Account</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" id="showLogin">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script>
+        // Toggle between login and register
+        document.getElementById('showRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('registerCard').style.display = 'block';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
+        });
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Logging in...</span>';
+
+            await new Promise(r => setTimeout(r, 1000));
+
+            if (Auth.login(email, password)) {
+                window.location.href = 'members.html';
+            } else {
+                alert('Invalid email or password');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Login</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            }
+        });
+
+        // Register form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Creating account...</span>';
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            if (Auth.register(data)) {
+                window.location.href = 'profile.html?setup=true';
+            } else {
+                alert('Email already registered');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Create Account</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            }
+        });
+
+        // Redirect if already logged in
+        if (Auth.isLoggedIn()) {
+            window.location.href = 'members.html';
+        }
+    </script>
+</body>
+</html>

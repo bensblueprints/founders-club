@@ -1,0 +1,927 @@
+/* ========================================
+   FOUNDERS VIETNAM - Members Directory Styles
+   ======================================== */
+
+/* ========================================
+   LOGIN REQUIRED OVERLAY
+   ======================================== */
+.login-required {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    padding-top: 100px;
+}
+
+.login-required-content {
+    text-align: center;
+    max-width: 450px;
+}
+
+.lock-icon {
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+.login-required-content h2 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+}
+
+.login-required-content > p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.login-required-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-block;
+    padding: 1rem 2rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    transition: var(--transition-base);
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: var(--color-bg);
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-light);
+}
+
+.btn-secondary {
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-accent-dark);
+    color: var(--color-accent);
+}
+
+/* ========================================
+   AUTH PAGES (LOGIN/REGISTER)
+   ======================================== */
+.auth-main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    padding-top: 100px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    padding: 3rem;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: var(--color-text-muted);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.auth-footer p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.auth-footer a {
+    color: var(--color-accent);
+    transition: var(--transition-fast);
+}
+
+.auth-footer a:hover {
+    color: var(--color-accent-light);
+}
+
+.demo-credentials {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(201, 169, 98, 0.1);
+    border: 1px solid rgba(201, 169, 98, 0.2);
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.demo-credentials p {
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.demo-credentials p:first-child {
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   DIRECTORY MAIN
+   ======================================== */
+.directory-main {
+    padding: 120px 4rem 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.directory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.directory-header h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.directory-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+.edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent-dark);
+    transition: var(--transition-base);
+}
+
+.edit-profile-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+}
+
+/* ========================================
+   SEARCH & FILTERS
+   ======================================== */
+.directory-filters {
+    margin-bottom: 3rem;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-box svg {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-subtle);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--color-text);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    transition: var(--transition-base);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.search-box input::placeholder {
+    color: var(--color-text-subtle);
+}
+
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.filter-tag {
+    padding: 0.5rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border-subtle);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.filter-tag:hover {
+    border-color: var(--color-accent-dark);
+    color: var(--color-accent);
+}
+
+.filter-tag.active {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+}
+
+/* ========================================
+   MEMBER GRID
+   ======================================== */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.member-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    padding: 1.5rem;
+    transition: var(--transition-base);
+}
+
+.member-card:hover {
+    border-color: var(--color-accent-dark);
+    transform: translateY(-4px);
+}
+
+.member-card-header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.member-avatar {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--color-accent-dark), var(--color-accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-bg);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+}
+
+.member-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.member-name {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-role {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.member-company {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    margin-bottom: 0.75rem;
+}
+
+.member-industry {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    background: rgba(201, 169, 98, 0.1);
+    padding: 0.35rem 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.member-bio {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.member-quick-links {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.quick-link {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.quick-link.whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+}
+
+.quick-link.whatsapp:hover {
+    background: #25d366;
+    color: white;
+}
+
+.quick-link.telegram {
+    background: rgba(0, 136, 204, 0.15);
+    color: #0088cc;
+}
+
+.quick-link.telegram:hover {
+    background: #0088cc;
+    color: white;
+}
+
+.quick-link.zalo {
+    background: rgba(0, 104, 255, 0.15);
+    color: #0068ff;
+}
+
+.quick-link.zalo:hover {
+    background: #0068ff;
+    color: white;
+}
+
+.quick-link.linkedin {
+    background: rgba(0, 119, 181, 0.15);
+    color: #0077b5;
+}
+
+.quick-link.linkedin:hover {
+    background: #0077b5;
+    color: white;
+}
+
+.view-profile-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border-subtle);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.view-profile-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state svg {
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-family: var(--font-body);
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-muted);
+}
+
+.empty-state p {
+    font-size: 0.9rem;
+    color: var(--color-text-subtle);
+}
+
+/* ========================================
+   MEMBER MODAL
+   ======================================== */
+.member-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 2rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-base);
+}
+
+.member-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.member-modal {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(20px);
+    transition: var(--transition-base);
+}
+
+.member-modal-overlay.active .member-modal {
+    transform: translateY(0);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+    color: var(--color-text);
+}
+
+.modal-profile-header {
+    display: flex;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--color-bg-card), rgba(201, 169, 98, 0.08));
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.modal-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-accent-dark), var(--color-accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--color-bg);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+}
+
+.modal-info h2 {
+    font-family: var(--font-body);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.modal-role {
+    color: var(--color-accent);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.modal-company {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.modal-industry {
+    padding: 0 2rem;
+    margin-top: -0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.industry-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    background: var(--color-bg);
+    border: 1px solid var(--color-accent-dark);
+    padding: 0.4rem 1rem;
+}
+
+.modal-bio {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.modal-bio p {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+.modal-bio .no-bio {
+    font-style: italic;
+    color: var(--color-text-subtle);
+}
+
+.modal-social {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.modal-social h4 {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-muted);
+    transition: var(--transition-fast);
+}
+
+.social-link:hover {
+    border-color: var(--color-accent-dark);
+    color: var(--color-text);
+}
+
+.social-link svg {
+    flex-shrink: 0;
+}
+
+.social-link span {
+    font-size: 0.9rem;
+}
+
+.no-links {
+    font-style: italic;
+    color: var(--color-text-subtle);
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   PROFILE PAGE
+   ======================================== */
+.profile-main {
+    padding: 120px 4rem 4rem;
+}
+
+.profile-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    margin-bottom: 3rem;
+}
+
+.profile-header h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.profile-header p {
+    color: var(--color-text-muted);
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.section-title-gold {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+}
+
+.section-description {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    margin-top: -0.5rem;
+}
+
+/* Avatar Upload */
+.avatar-upload {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.avatar-preview {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-accent-dark), var(--color-accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--color-bg);
+    letter-spacing: 0.05em;
+}
+
+.avatar-info p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+/* Social Input Group */
+.social-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.social-input {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    padding: 0.25rem 1rem 0.25rem 0.25rem;
+    transition: var(--transition-base);
+}
+
+.social-input:focus-within {
+    border-color: var(--color-accent);
+}
+
+.social-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.social-icon.whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+}
+
+.social-icon.zalo {
+    background: rgba(0, 104, 255, 0.15);
+    color: #0068ff;
+}
+
+.social-icon.telegram {
+    background: rgba(0, 136, 204, 0.15);
+    color: #0088cc;
+}
+
+.social-icon.linkedin {
+    background: rgba(0, 119, 181, 0.15);
+    color: #0077b5;
+}
+
+.social-icon.twitter {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+}
+
+.social-icon.wechat {
+    background: rgba(9, 184, 58, 0.15);
+    color: #09b83a;
+}
+
+.social-icon.facebook {
+    background: rgba(24, 119, 242, 0.15);
+    color: #1877f2;
+}
+
+.social-icon.instagram {
+    background: linear-gradient(135deg, rgba(131, 58, 180, 0.15), rgba(253, 29, 29, 0.15));
+    color: #e1306c;
+}
+
+.social-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--color-text);
+    padding: 0.75rem 0;
+}
+
+.social-input input:focus {
+    outline: none;
+}
+
+.social-input input::placeholder {
+    color: var(--color-text-subtle);
+}
+
+.input-label {
+    font-size: 0.75rem;
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+}
+
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.cancel-btn {
+    padding: 1rem 2rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    transition: var(--transition-fast);
+}
+
+.cancel-btn:hover {
+    color: var(--color-text);
+}
+
+.profile-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.logout-btn:hover {
+    color: #ef4444;
+}
+
+/* ========================================
+   NAV PROFILE
+   ======================================== */
+.nav-profile {
+    display: flex;
+    align-items: center;
+}
+
+.profile-avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--color-accent-dark), var(--color-accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    color: var(--color-bg);
+    letter-spacing: 0.03em;
+}
+
+.nav-links a.active {
+    color: var(--color-accent);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .directory-main,
+    .profile-main {
+        padding: 100px 1.5rem 2rem;
+    }
+
+    .directory-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .member-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-card {
+        padding: 2rem;
+    }
+
+    .modal-profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .social-input {
+        flex-wrap: wrap;
+    }
+
+    .input-label {
+        display: none;
+    }
+}
