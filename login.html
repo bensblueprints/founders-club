@@ -162,7 +162,7 @@
 
             await new Promise(r => setTimeout(r, 1000));
 
-            if (Auth.login(email, password)) {
+            if (await Auth.login(email, password)) {
                 window.location.href = 'members.html';
             } else {
                 alert('Invalid email or password');
@@ -183,7 +183,7 @@
 
             await new Promise(r => setTimeout(r, 1500));
 
-            if (Auth.register(data)) {
+            if (await Auth.register(data)) {
                 window.location.href = 'profile.html?setup=true';
             } else {
                 alert('Email already registered');
