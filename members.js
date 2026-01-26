@@ -141,7 +141,8 @@ function openMemberModal(memberId) {
     if (!member) return;
 
     const modal = document.getElementById('memberModal');
-    
+    modal.dataset.memberId = memberId;
+
     document.getElementById('modalAvatar').textContent = member.firstName[0] + member.lastName[0];
     document.getElementById('modalName').textContent = `${member.firstName} ${member.lastName}`;
     document.getElementById('modalRole').textContent = member.role;
@@ -235,5 +236,90 @@ function debounce(func, wait) {
 
 // Close modal on escape
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+        closeModal();
+        closeMessageModal();
+    }
 });
+
+// ========================================
+// MESSAGING SYSTEM
+// ========================================
+
+let currentMessageRecipient = null;
+
+function openMessageModal() {
+    const memberModal = document.getElementById('memberModal');
+    const memberName = document.getElementById('modalName').textContent;
+    const memberId = memberModal.dataset.memberId;
+
+    if (!memberId) return;
+
+    currentMessageRecipient = {
+        id: parseInt(memberId),
+        name: memberName
+    };
+
+    document.getElementById('messageRecipient').textContent = memberName;
+    document.getElementById('messageContent').value = '';
+    document.getElementById('messageModal').classList.add('active');
+}
+
+function closeMessageModal() {
+    document.getElementById('messageModal').classList.remove('active');
+    currentMessageRecipient = null;
+}
+
+function sendMessage() {
+    if (!currentMessageRecipient) return;
+
+    const content = document.getElementById('messageContent').value.trim();
+    if (!content) {
+        alert('Please write a message.');
+        return;
+    }
+
+    const currentUser = Auth.getCurrentUser();
+    if (!currentUser) {
+        alert('You must be logged in to send messages.');
+        return;
+    }
+
+    const result = Messages.send(currentUser.id, currentMessageRecipient.id, content);
+
+    if (result.error) {
+        alert('Error sending message: ' + result.error);
+        return;
+    }
+
+    alert(`Message sent to ${currentMessageRecipient.name}!`);
+    closeMessageModal();
+    closeModal();
+}
+
+function updateMessageBadge() {
+    const currentUser = Auth.getCurrentUser();
+    if (!currentUser) return;
+
+    const unreadCount = Messages.getUnreadCount(currentUser.id);
+    const badge = document.getElementById('messageBadge');
+    const navMessages = document.getElementById('navMessages');
+
+    if (navMessages) {
+        navMessages.style.display = 'flex';
+    }
+
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Update badge on page load
+if (Auth.isLoggedIn()) {
+    updateMessageBadge();
+}

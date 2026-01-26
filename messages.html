@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | Founders Vietnam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="members.css">
+    <style>
+        .messages-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+            min-height: 100vh;
+        }
+
+        .messages-header {
+            margin-bottom: 30px;
+        }
+
+        .messages-header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .messages-header p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .messages-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            min-height: 500px;
+        }
+
+        @media (max-width: 768px) {
+            .messages-layout {
+                grid-template-columns: 1fr;
+            }
+            .conversation-panel {
+                display: none;
+            }
+            .conversation-panel.active {
+                display: flex;
+                position: fixed;
+                inset: 0;
+                z-index: 1000;
+            }
+        }
+
+        .conversations-list {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .conversations-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .conversation-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .conversation-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .conversation-item.active {
+            background: rgba(201, 162, 39, 0.1);
+            border-left: 3px solid #c9a227;
+        }
+
+        .conversation-item.unread {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .conversation-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.3), rgba(201, 162, 39, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #c9a227;
+            flex-shrink: 0;
+        }
+
+        .conversation-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 400;
+        }
+
+        .conversation-preview {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-item.unread .conversation-preview {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background: #c9a227;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .conversation-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .conversation-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+            margin-right: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .back-btn {
+                display: block;
+            }
+        }
+
+        .panel-user-info h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .panel-user-info p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .messages-thread {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .message-bubble.sent {
+            background: linear-gradient(135deg, #c9a227, #b8922a);
+            color: #1a1a1a;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble.received {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message-bubble.sent .message-time {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .compose-area {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 12px;
+        }
+
+        .compose-area textarea {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+        }
+
+        .compose-area textarea:focus {
+            outline: none;
+            border-color: rgba(201, 162, 39, 0.5);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c9a227, #b8922a);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn svg {
+            color: #1a1a1a;
+        }
+
+        .empty-conversation {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-conversation svg {
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-conversations {
+            padding: 60px 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-conversations svg {
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-conversations a {
+            color: #c9a227;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <span class="logo-text">FOUNDERS</span>
+            <span class="logo-accent">VIETNAM</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html#about">About</a>
+            <a href="events.html">Events</a>
+            <a href="members.html">Members</a>
+            <a href="messages.html" class="active">Messages</a>
+            <a href="#" class="nav-profile" id="navProfile" style="display: none;">
+                <span class="profile-avatar" id="navAvatar">JD</span>
+            </a>
+            <a href="login.html" class="nav-cta" id="navLogin">Login</a>
+        </div>
+    </nav>
+
+    <main class="messages-container">
+        <div class="messages-header">
+            <h1>Messages</h1>
+            <p>Connect privately with fellow founders</p>
+        </div>
+
+        <div class="messages-layout">
+            <!-- Conversations List -->
+            <div class="conversations-list">
+                <div class="conversations-header">Conversations</div>
+                <div id="conversationsList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Conversation Panel -->
+            <div class="conversation-panel" id="conversationPanel">
+                <div class="empty-conversation" id="emptyConversation">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <p>Select a conversation to view messages</p>
+                </div>
+                <div id="activeConversation" style="display: none; flex-direction: column; height: 100%;">
+                    <div class="conversation-panel-header">
+                        <button class="back-btn" onclick="closeConversation()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 18l-6-6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="conversation-avatar" id="panelAvatar">JD</div>
+                        <div class="panel-user-info">
+                            <h3 id="panelName">John Doe</h3>
+                            <p id="panelCompany">Acme Inc.</p>
+                        </div>
+                    </div>
+                    <div class="messages-thread" id="messagesThread">
+                        <!-- Messages populated by JS -->
+                    </div>
+                    <div class="compose-area">
+                        <textarea id="replyContent" placeholder="Type a message..." rows="1" onkeydown="handleReplyKeydown(event)"></textarea>
+                        <button class="send-btn" onclick="sendReply()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        let currentConversationUserId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            if (!Auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Update nav
+            const user = Auth.getCurrentUser();
+            if (user) {
+                document.getElementById('navLogin').style.display = 'none';
+                document.getElementById('navProfile').style.display = 'flex';
+                document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+                document.getElementById('navProfile').href = 'profile.html';
+            }
+
+            // Load conversations
+            loadConversations();
+
+            // Check for direct message from URL
+            const params = new URLSearchParams(window.location.search);
+            const toUserId = params.get('to');
+            if (toUserId) {
+                openConversation(parseInt(toUserId));
+            }
+        });
+
+        function loadConversations() {
+            const user = Auth.getCurrentUser();
+            const conversations = Messages.getConversations(user.id);
+            const container = document.getElementById('conversationsList');
+
+            if (conversations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-conversations">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <p>No messages yet</p>
+                        <p style="margin-top: 8px;"><a href="members.html">Browse members</a> and start a conversation</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = conversations.map(conv => {
+                const otherUser = Auth.getMemberById(conv.otherUserId);
+                if (!otherUser) return '';
+
+                const isUnread = conv.unreadCount > 0;
+                const preview = conv.lastMessage.senderId == user.id
+                    ? `You: ${conv.lastMessage.content}`
+                    : conv.lastMessage.content;
+
+                return `
+                    <div class="conversation-item ${isUnread ? 'unread' : ''} ${currentConversationUserId == conv.otherUserId ? 'active' : ''}"
+                         onclick="openConversation(${conv.otherUserId})">
+                        <div class="conversation-avatar">${otherUser.firstName[0]}${otherUser.lastName[0]}</div>
+                        <div class="conversation-info">
+                            <div class="conversation-name">
+                                <span>${otherUser.firstName} ${otherUser.lastName}</span>
+                                <span class="conversation-time">${formatTime(conv.lastMessage.createdAt)}</span>
+                            </div>
+                            <div class="conversation-preview">${truncateText(preview, 40)}</div>
+                        </div>
+                        ${isUnread ? '<div class="unread-dot"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openConversation(otherUserId) {
+            currentConversationUserId = otherUserId;
+            const user = Auth.getCurrentUser();
+            const otherUser = Auth.getMemberById(otherUserId);
+
+            if (!otherUser) {
+                alert('User not found');
+                return;
+            }
+
+            // Mark messages as read
+            Messages.markConversationAsRead(user.id, otherUserId);
+
+            // Update panel header
+            document.getElementById('panelAvatar').textContent = otherUser.firstName[0] + otherUser.lastName[0];
+            document.getElementById('panelName').textContent = `${otherUser.firstName} ${otherUser.lastName}`;
+            document.getElementById('panelCompany').textContent = otherUser.company;
+
+            // Load messages
+            loadMessages(otherUserId);
+
+            // Show active conversation
+            document.getElementById('emptyConversation').style.display = 'none';
+            document.getElementById('activeConversation').style.display = 'flex';
+
+            // Update list to show active state
+            loadConversations();
+
+            // Mobile: show panel
+            document.getElementById('conversationPanel').classList.add('active');
+        }
+
+        function loadMessages(otherUserId) {
+            const user = Auth.getCurrentUser();
+            const messages = Messages.getConversation(user.id, otherUserId);
+            const container = document.getElementById('messagesThread');
+
+            container.innerHTML = messages.map(msg => {
+                const isSent = msg.senderId == user.id;
+                return `
+                    <div class="message-bubble ${isSent ? 'sent' : 'received'}">
+                        ${msg.content}
+                        <div class="message-time">${formatDateTime(msg.createdAt)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendReply() {
+            if (!currentConversationUserId) return;
+
+            const content = document.getElementById('replyContent').value.trim();
+            if (!content) return;
+
+            const user = Auth.getCurrentUser();
+            const result = Messages.send(user.id, currentConversationUserId, content);
+
+            if (result.error) {
+                alert('Error sending message: ' + result.error);
+                return;
+            }
+
+            document.getElementById('replyContent').value = '';
+            loadMessages(currentConversationUserId);
+            loadConversations();
+        }
+
+        function handleReplyKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendReply();
+            }
+        }
+
+        function closeConversation() {
+            currentConversationUserId = null;
+            document.getElementById('conversationPanel').classList.remove('active');
+            document.getElementById('emptyConversation').style.display = 'flex';
+            document.getElementById('activeConversation').style.display = 'none';
+            loadConversations();
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd';
+            return date.toLocaleDateString();
+        }
+
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function truncateText(str, len) {
+            if (str.length <= len) return str;
+            return str.substring(0, len) + '...';
+        }
+    </script>
+</body>
+</html>

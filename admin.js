@@ -815,6 +815,43 @@ const Admin = {
         }
     },
 
+    deleteMember() {
+        const member = this.members.find(m => m.id == this.currentMemberId);
+        if (!member) return;
+
+        const confirmText = prompt(`WARNING: This will permanently delete ${member.firstName} ${member.lastName} and all their data.\n\nType "DELETE" to confirm:`);
+
+        if (confirmText !== 'DELETE') {
+            if (confirmText !== null) {
+                alert('Deletion cancelled. You must type "DELETE" exactly to confirm.');
+            }
+            return;
+        }
+
+        const members = JSON.parse(localStorage.getItem('founders_vietnam_members') || '[]');
+        const index = members.findIndex(m => m.id == this.currentMemberId);
+
+        if (index !== -1) {
+            members.splice(index, 1);
+            localStorage.setItem('founders_vietnam_members', JSON.stringify(members));
+        }
+
+        // Also remove from any bookings
+        const bookings = JSON.parse(localStorage.getItem('founders_vietnam_bookings') || '[]');
+        const filteredBookings = bookings.filter(b => b.userId != this.currentMemberId);
+        localStorage.setItem('founders_vietnam_bookings', JSON.stringify(filteredBookings));
+
+        // Remove their messages
+        const messages = JSON.parse(localStorage.getItem('founders_vietnam_messages') || '[]');
+        const filteredMessages = messages.filter(m => m.senderId != this.currentMemberId && m.recipientId != this.currentMemberId);
+        localStorage.setItem('founders_vietnam_messages', JSON.stringify(filteredMessages));
+
+        this.closeModal('actionsModal');
+        this.loadMembers();
+        this.loadStats();
+        alert(`${member.firstName} ${member.lastName} has been permanently deleted.`);
+    },
+
     resetPassword() {
         const member = this.members.find(m => m.id == this.currentMemberId);
         if (!member) return;

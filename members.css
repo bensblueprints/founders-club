@@ -925,3 +925,183 @@
         display: none;
     }
 }
+
+/* ========================================
+   MESSAGING STYLES
+   ======================================== */
+
+.nav-messages {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-text-muted);
+    transition: color 0.2s;
+}
+
+.nav-messages:hover {
+    color: var(--color-accent);
+}
+
+.message-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 18px;
+    height: 18px;
+    background: #ef4444;
+    color: white;
+    border-radius: 9px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+}
+
+.modal-message-action {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.send-message-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #c9a227, #b8922a);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.send-message-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+}
+
+.send-message-btn svg {
+    flex-shrink: 0;
+}
+
+/* Message Modal */
+.message-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    padding: 20px;
+}
+
+.message-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.message-modal {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: transform 0.3s;
+}
+
+.message-modal-overlay.active .message-modal {
+    transform: scale(1);
+}
+
+.message-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-modal-header h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.message-recipient {
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recipient-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+}
+
+.recipient-name {
+    font-weight: 500;
+    color: #c9a227;
+}
+
+.message-compose {
+    padding: 20px 24px;
+}
+
+.message-compose textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.message-compose textarea:focus {
+    outline: none;
+    border-color: rgba(201, 162, 39, 0.5);
+}
+
+.message-compose textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.message-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-actions .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.message-actions .btn-primary svg {
+    flex-shrink: 0;
+}

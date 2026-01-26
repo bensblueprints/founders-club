@@ -734,5 +734,144 @@ const Applications = {
     }
 };
 
+// ========================================
+// MESSAGING SYSTEM
+// ========================================
+
+const Messages = {
+    STORAGE_KEY: 'founders_vietnam_messages',
+
+    // Get all messages
+    getAll() {
+        return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    },
+
+    // Send a message
+    send(senderId, recipientId, content) {
+        if (!senderId || !recipientId || !content) {
+            return { error: 'Missing required fields' };
+        }
+
+        const messages = this.getAll();
+        const message = {
+            id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            senderId: senderId,
+            recipientId: recipientId,
+            content: content,
+            createdAt: new Date().toISOString(),
+            read: false
+        };
+
+        messages.push(message);
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
+
+        return { success: true, message };
+    },
+
+    // Get inbox for a user
+    getInbox(userId) {
+        const messages = this.getAll();
+        return messages
+            .filter(m => m.recipientId == userId)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+
+    // Get sent messages for a user
+    getSent(userId) {
+        const messages = this.getAll();
+        return messages
+            .filter(m => m.senderId == userId)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+
+    // Get conversation between two users
+    getConversation(userId1, userId2) {
+        const messages = this.getAll();
+        return messages
+            .filter(m =>
+                (m.senderId == userId1 && m.recipientId == userId2) ||
+                (m.senderId == userId2 && m.recipientId == userId1)
+            )
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    },
+
+    // Get unique conversations for a user
+    getConversations(userId) {
+        const messages = this.getAll();
+        const conversationMap = new Map();
+
+        messages.forEach(m => {
+            if (m.senderId == userId || m.recipientId == userId) {
+                const otherUserId = m.senderId == userId ? m.recipientId : m.senderId;
+                const existing = conversationMap.get(otherUserId);
+
+                if (!existing || new Date(m.createdAt) > new Date(existing.lastMessage.createdAt)) {
+                    const unreadCount = messages.filter(msg =>
+                        msg.senderId == otherUserId &&
+                        msg.recipientId == userId &&
+                        !msg.read
+                    ).length;
+
+                    conversationMap.set(otherUserId, {
+                        otherUserId,
+                        lastMessage: m,
+                        unreadCount
+                    });
+                }
+            }
+        });
+
+        return Array.from(conversationMap.values())
+            .sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt));
+    },
+
+    // Mark message as read
+    markAsRead(messageId) {
+        const messages = this.getAll();
+        const index = messages.findIndex(m => m.id === messageId);
+
+        if (index !== -1) {
+            messages[index].read = true;
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
+        }
+    },
+
+    // Mark all messages from a user as read
+    markConversationAsRead(userId, fromUserId) {
+        const messages = this.getAll();
+        let updated = false;
+
+        messages.forEach(m => {
+            if (m.recipientId == userId && m.senderId == fromUserId && !m.read) {
+                m.read = true;
+                updated = true;
+            }
+        });
+
+        if (updated) {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
+        }
+    },
+
+    // Get unread count for a user
+    getUnreadCount(userId) {
+        const messages = this.getAll();
+        return messages.filter(m => m.recipientId == userId && !m.read).length;
+    },
+
+    // Delete a message
+    delete(messageId, userId) {
+        const messages = this.getAll();
+        const index = messages.findIndex(m => m.id === messageId && (m.senderId == userId || m.recipientId == userId));
+
+        if (index !== -1) {
+            messages.splice(index, 1);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
+            return { success: true };
+        }
+        return { error: 'Message not found' };
+    }
+};
+
 // Initialize on load
 Auth.init();
