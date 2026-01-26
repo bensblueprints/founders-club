@@ -179,11 +179,10 @@ const Auth = {
 
     // Initialize
     init() {
-        if (!this.useSupabase()) {
-            // Initialize localStorage fallback
-            if (!localStorage.getItem(this.MEMBERS_KEY)) {
-                localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
-            }
+        // Always initialize localStorage with sample members as fallback
+        // This ensures sync methods work even when Supabase is configured
+        if (!localStorage.getItem(this.MEMBERS_KEY)) {
+            localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
         }
     },
 
