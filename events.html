@@ -394,9 +394,24 @@
         }
 
         function proceedToPayment() {
-            if (!selectedEvent || !selectedTicket) return;
+            console.log('proceedToPayment called');
+            console.log('selectedEvent:', selectedEvent);
+            console.log('selectedTicket:', selectedTicket);
+
+            if (!selectedEvent || !selectedTicket) {
+                console.error('No event or ticket selected');
+                alert('Please select a ticket first');
+                return;
+            }
 
             const user = Auth.getCurrentUser();
+            console.log('Current user:', user);
+
+            if (!user) {
+                alert('Please log in to book events');
+                window.location.href = 'login.html';
+                return;
+            }
 
             // Update payment modal with event and ticket info
             document.getElementById('paymentEventName').textContent = selectedEvent.name;
@@ -411,8 +426,14 @@
             document.getElementById('evtCardExpiry').value = '';
             document.getElementById('evtCardCvc').value = '';
 
+            // Close booking modal and open payment modal
             closeBookingModal();
-            document.getElementById('paymentModal').classList.add('active');
+
+            const paymentModal = document.getElementById('paymentModal');
+            console.log('Payment modal element:', paymentModal);
+            paymentModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            console.log('Payment modal classes:', paymentModal.className);
 
             // Setup card input formatting
             setupCardInputFormatting();
@@ -444,6 +465,7 @@
 
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         async function confirmPayment() {
@@ -580,6 +602,27 @@
                 spinner.style.display = 'none';
             }
         }
+
+        // Close modals when clicking outside
+        document.getElementById('bookingModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeBookingModal();
+            }
+        });
+
+        document.getElementById('paymentModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closePaymentModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeBookingModal();
+                closePaymentModal();
+            }
+        });
     </script>
 </body>
 </html>
