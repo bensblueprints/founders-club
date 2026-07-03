@@ -327,7 +327,7 @@ function initEventTabs() {
 // CALENDAR EVENT GENERATION
 // ========================================
 const events = [
-    { title: 'Founders Vietnam - February Gathering', date: '2026-02-10', time: '18:00' },
+    { title: 'Founders Vietnam - August Gathering', date: '2026-08-08', time: '18:00' },
     { title: 'Founders Vietnam - March Gathering', date: '2026-03-11', time: '18:00' },
     { title: 'Founders Vietnam - April Gathering', date: '2026-04-14', time: '18:00' },
     { title: 'Founders Vietnam - May Gathering', date: '2026-05-13', time: '18:00' },
@@ -352,7 +352,7 @@ DTSTAMP:${formatDate(new Date())}
 DTSTART:${formatDate(start)}
 DTEND:${formatDate(end)}
 SUMMARY:${event.title}
-DESCRIPTION:Exclusive monthly gathering for Vietnam's most ambitious founders. Includes dinner and optional Poseidon cruise.
+DESCRIPTION:Exclusive monthly gathering for Vietnam's most ambitious founders. Meet & greet, rapid-fire intros, dinner and Founder Bingo.
 LOCATION:Ho Chi Minh City, Vietnam
 END:VEVENT
 END:VCALENDAR`;

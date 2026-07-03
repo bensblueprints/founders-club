@@ -24,14 +24,13 @@ const Products = {
         'platinum-founding': {
             id: 'platinum-founding',
             name: 'Platinum Founding Member',
-            description: 'The highest tier membership with VIP access to exclusive events including private yacht cruises.',
+            description: 'The highest tier membership with VIP access to exclusive events.',
             price: 500,
             currency: 'USD',
             type: 'membership',
             memberType: 'platinum_founding',
             features: [
                 'Everything in Founding Member',
-                'Access to Poseidon Yacht Cruises',
                 'VIP seating at all events',
                 'Direct introductions to speakers',
                 'Platinum Founding Member badge',
@@ -42,36 +41,19 @@ const Products = {
 
     // ===== EVENT TICKETS =====
     eventTickets: {
-        'platinum-cruise': {
-            id: 'platinum-cruise',
-            name: 'Poseidon Cruise',
-            description: 'Exclusive yacht cruise on the Da Nang River with premium open bar.',
-            price: 349,
-            currency: 'USD',
-            type: 'event_ticket',
-            eventType: 'cruise',
-            upgradeToMemberType: 'platinum_founding', // Purchasing this upgrades membership
-            features: [
-                'Premium open bar',
-                'Platinum Founding Member status',
-                'Priority access to future events',
-                'Extended networking on the water',
-                'Stunning Da Nang river views'
-            ]
-        },
         'founding-dinner': {
             id: 'founding-dinner',
             name: 'Founders Dinner',
-            description: 'Intimate dinner gathering at Four U Lounge, Da Nang. Network with ambitious founders.',
-            price: 149,
+            description: "Meet & greet with hors d'oeuvres, rapid-fire intros, dinner & Founder Bingo at Four U Lounge, Da Nang (6-9 PM).",
+            price: 150,
             currency: 'USD',
             type: 'event_ticket',
             eventType: 'dinner',
             features: [
+                "Meet & greet with hors d'oeuvres",
                 'Curated dinner experience',
-                'Premium drinks included',
-                'Founder introductions',
-                'Networking session',
+                'Rapid-fire founder introductions',
+                'Founder Bingo networking game',
                 'Member directory access'
             ]
         },
@@ -109,20 +91,6 @@ const Products = {
 
     // ===== UPSELLS =====
     upsells: {
-        'plus-one-cruise': {
-            id: 'plus-one-cruise',
-            name: 'Plus One - Cruise',
-            description: 'Bring a guest to the Poseidon Cruise.',
-            price: 250,
-            currency: 'USD',
-            type: 'upsell',
-            requiresProduct: 'platinum-cruise',
-            features: [
-                'Same experience as primary ticket',
-                'Guest networking access',
-                'Full dinner and bar access'
-            ]
-        },
         'plus-one-dinner': {
             id: 'plus-one-dinner',
             name: 'Plus One - Dinner',
@@ -143,7 +111,7 @@ const Products = {
             price: 100,
             currency: 'USD',
             type: 'upsell',
-            applicableEvents: ['dinner', 'cruise'],
+            applicableEvents: ['dinner'],
             features: [
                 'VIP table placement',
                 'Direct access to speakers',

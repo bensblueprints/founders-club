@@ -183,7 +183,7 @@
 
             <div class="platinum-upgrade" id="platinumMessage" style="display: none;">
                 <h4>Welcome, Platinum Founding Member!</h4>
-                <p>You now have access to exclusive yacht cruises and VIP experiences. Check your profile for your new membership badge.</p>
+                <p>You now have VIP access to our exclusive events. Check your profile for your new membership badge.</p>
             </div>
 
             <div class="success-actions">
@@ -227,8 +227,8 @@
                     if (pendingApp.membership === 'full') {
                         const platinumDiv = document.getElementById('platinumMessage');
                         platinumDiv.style.display = 'block';
-                        platinumDiv.querySelector('h4').textContent = 'Dinner + Cruise Package Selected';
-                        platinumDiv.querySelector('p').textContent = 'Once accepted, you\'ll have access to both the Founders Dinner and the exclusive Poseidon Cruise.';
+                        platinumDiv.querySelector('h4').textContent = 'Founders Dinner Selected';
+                        platinumDiv.querySelector('p').textContent = 'Once accepted, your spot at the Founders Dinner is confirmed.';
                     }
 
                     // Submit the application to database

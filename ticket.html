@@ -66,18 +66,18 @@
                 </div>
 
                 <div class="ticket-body">
-                    <h2 class="event-name" id="ticketEventName">February Gathering</h2>
-                    <p class="ticket-name" id="ticketName">Founders Dinner + Poseidon Cruise</p>
+                    <h2 class="event-name" id="ticketEventName">August Gathering</h2>
+                    <p class="ticket-name" id="ticketName">Founders Dinner</p>
 
                     <div class="ticket-details">
                         <div class="detail-row">
                             <div class="detail-item">
                                 <span class="detail-label">DATE</span>
-                                <span class="detail-value" id="ticketDate">February 10, 2026</span>
+                                <span class="detail-value" id="ticketDate">August 8, 2026</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">TIME</span>
-                                <span class="detail-value" id="ticketTime">6:00 PM - 10:00 PM</span>
+                                <span class="detail-value" id="ticketTime">6:00 PM - 9:00 PM</span>
                             </div>
                         </div>
                         <div class="detail-row">
@@ -153,7 +153,7 @@
                     </svg>
                     <div>
                         <strong>Schedule</strong>
-                        <p id="ticketSchedule">6:00 PM - Dinner at Four U Lounge<br>8:30 PM - Poseidon Cruise (if applicable)</p>
+                        <p id="ticketSchedule">6:00 PM - 9:00 PM - Founders Dinner at Four U Lounge</p>
                     </div>
                 </div>
             </div>
@@ -268,16 +268,9 @@
                 if (ticket) {
                     document.getElementById('ticketName').textContent = ticket.name;
 
-                    // Update schedule based on ticket type
-                    if (ticket.includesCruise) {
-                        document.getElementById('ticketSchedule').innerHTML =
-                            '6:00 PM - Founders Dinner at Four U Lounge<br>8:30 PM - Poseidon Cruise';
-                        document.getElementById('ticketType').textContent = 'PLATINUM MEMBER';
-                    } else {
-                        document.getElementById('ticketSchedule').innerHTML =
-                            '6:00 PM - 8:00 PM - Founders Dinner at Four U Lounge';
-                        document.getElementById('ticketType').textContent = 'FOUNDING MEMBER';
-                    }
+                    document.getElementById('ticketSchedule').innerHTML =
+                        '6:00 PM - 9:00 PM - Founders Dinner at Four U Lounge';
+                    document.getElementById('ticketType').textContent = 'FOUNDING MEMBER';
                 }
             }
 

@@ -4,281 +4,33 @@
 
 // Upcoming Events (for booking)
 const UPCOMING_EVENTS = [
-    // ===== FEBRUARY 2026 =====
+    // ===== AUGUST 2026 =====
     {
-        id: 'feb-2026',
-        slug: 'february-gathering',
-        name: 'February Gathering',
+        id: 'aug-2026',
+        slug: 'august-gathering',
+        name: 'August Gathering',
         type: 'gathering',
-        date: '2026-02-10',
-        displayDate: 'February 10, 2026',
-        day: 'Tuesday',
-        time: '6:00 PM - 10:00 PM',
+        date: '2026-08-08',
+        displayDate: 'August 8, 2026',
+        day: 'Saturday',
+        time: '6:00 PM - 9:00 PM',
         location: 'Four U Lounge, Da Nang',
         address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        dinnerCapacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 35,
-        dinnerSpotsRemaining: 35,
-        cruiseSpotsRemaining: 22,
-        isPlatinumEvent: false,
-        speakers: [
-            {
-                id: 'benjamin',
-                name: 'Benjamin',
-                topic: 'Conversion Rates & Optimization',
-                description: 'Proven strategies to improve conversion rates and maximize revenue',
-                badge: '8-Figure Earner',
-                pullProfilePhoto: true
-            },
-            {
-                id: 'prithamesh',
-                name: 'Prithamesh',
-                topic: 'Facebook Ads Mastery',
-                description: 'Scaling with Facebook advertising in 2026',
-                pullProfilePhoto: true
-            },
-            {
-                id: 'saurabh',
-                name: 'Saurabh',
-                topic: 'Email Marketing',
-                description: 'Building profitable email campaigns that convert',
-                pullProfilePhoto: true
-            }
-        ],
-        tickets: [
-            {
-                id: 'dinner-feb',
-                name: 'Founders Dinner',
-                price: 149,
-                currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                capacity: 50,
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-feb',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                capacity: 30,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
-            }
-        ],
-        image: '/images/gathering-event.jpg',
-        status: 'open'
-    },
-    // ===== MARCH 2026 =====
-    {
-        id: 'mar-2026',
-        slug: 'march-gathering',
-        name: 'March Gathering',
-        type: 'gathering',
-        date: '2026-03-11',
-        displayDate: 'March 11, 2026',
-        day: 'Wednesday',
-        time: '6:00 PM - 10:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 50,
-        cruiseSpotsRemaining: 30,
+        description: "Join us for an exclusive evening at Four U Lounge. Doors open at 6 PM with a meet & greet over hors d'oeuvres and welcome drinks, followed by a 30-minute open mingle, rapid-fire 1-minute founder intros, and an intimate dinner with Founder Bingo played across the tables.",
+        capacity: 60,
+        dinnerCapacity: 60,
+        spotsRemaining: 60,
+        dinnerSpotsRemaining: 60,
         isPlatinumEvent: false,
         tickets: [
             {
-                id: 'dinner-mar',
+                id: 'dinner-aug',
                 name: 'Founders Dinner',
-                price: 149,
+                price: 150,
                 currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-mar',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
-            }
-        ],
-        image: '/images/gathering-event.jpg',
-        status: 'open'
-    },
-    // ===== APRIL 2026 =====
-    {
-        id: 'apr-2026',
-        slug: 'april-gathering',
-        name: 'April Gathering',
-        type: 'gathering',
-        date: '2026-04-14',
-        displayDate: 'April 14, 2026',
-        day: 'Tuesday',
-        time: '6:00 PM - 10:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 50,
-        cruiseSpotsRemaining: 30,
-        isPlatinumEvent: false,
-        tickets: [
-            {
-                id: 'dinner-apr',
-                name: 'Founders Dinner',
-                price: 149,
-                currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-apr',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
-            }
-        ],
-        image: '/images/gathering-event.jpg',
-        status: 'open'
-    },
-    // ===== MAY 2026 =====
-    {
-        id: 'may-2026',
-        slug: 'may-gathering',
-        name: 'May Gathering',
-        type: 'gathering',
-        date: '2026-05-13',
-        displayDate: 'May 13, 2026',
-        day: 'Wednesday',
-        time: '6:00 PM - 10:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 50,
-        cruiseSpotsRemaining: 30,
-        isPlatinumEvent: false,
-        tickets: [
-            {
-                id: 'dinner-may',
-                name: 'Founders Dinner',
-                price: 149,
-                currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-may',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
-            }
-        ],
-        image: '/images/gathering-event.jpg',
-        status: 'open'
-    },
-    // ===== JUNE 2026 =====
-    {
-        id: 'jun-2026',
-        slug: 'june-gathering',
-        name: 'June Gathering',
-        type: 'gathering',
-        date: '2026-06-09',
-        displayDate: 'June 9, 2026',
-        day: 'Tuesday',
-        time: '6:00 PM - 10:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 50,
-        cruiseSpotsRemaining: 30,
-        isPlatinumEvent: false,
-        tickets: [
-            {
-                id: 'dinner-jun',
-                name: 'Founders Dinner',
-                price: 149,
-                currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-jun',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
-            }
-        ],
-        image: '/images/gathering-event.jpg',
-        status: 'open'
-    },
-    // ===== JULY 2026 =====
-    {
-        id: 'jul-2026',
-        slug: 'july-gathering',
-        name: 'July Gathering',
-        type: 'gathering',
-        date: '2026-07-08',
-        displayDate: 'July 8, 2026',
-        day: 'Wednesday',
-        time: '6:00 PM - 10:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: 'Join us for an exclusive evening at Four U Lounge. The Founders Dinner (6-8pm) brings together Vietnam\'s most ambitious entrepreneurs for curated networking. Continue the evening with the Poseidon Cruise (8:30-10pm) on the Da Nang River.',
-        capacity: 50,
-        cruiseCapacity: 30,
-        spotsRemaining: 50,
-        cruiseSpotsRemaining: 30,
-        isPlatinumEvent: false,
-        tickets: [
-            {
-                id: 'dinner-jul',
-                name: 'Founders Dinner',
-                price: 149,
-                currency: 'USD',
-                description: 'Dinner + networking at Four U Lounge (6:00 PM - 8:00 PM)',
-                perks: ['Curated dinner experience', 'Premium drinks included', 'Founder introductions', 'Networking session', 'Member directory access']
-            },
-            {
-                id: 'dinner-cruise-jul',
-                name: 'Founders Dinner + Poseidon Cruise',
-                price: 498,
-                currency: 'USD',
-                description: 'Full experience: Dinner (6-8pm) + Cruise (8:30-10pm). Includes Platinum Founding Member status.',
-                includesDinner: true,
-                includesCruise: true,
-                isPlatinum: true,
-                perks: ['Founders Dinner (6-8pm)', 'Poseidon Cruise (8:30-10pm)', 'Premium open bar on cruise', 'Platinum Founding Member status', 'Priority access to future events', 'Stunning Da Nang river views']
+                description: "Meet & greet with hors d'oeuvres, rapid-fire intros, dinner & Founder Bingo (6:00 PM - 9:00 PM)",
+                capacity: 60,
+                perks: ["Meet & greet with hors d'oeuvres and welcome drinks", "Curated dinner experience", "Rapid-fire founder introductions", "Founder Bingo networking game", "Member directory access"]
             }
         ],
         image: '/images/gathering-event.jpg',
@@ -297,7 +49,7 @@ const PAST_EVENTS = [
         displayDate: 'January 24, 2026',
         day: 'Saturday',
         location: 'Ho Chi Minh City',
-        description: 'Our inaugural gathering brought together Vietnam\'s most ambitious founders for an evening of connections, dinner, and the first Poseidon cruise.',
+        description: 'Our inaugural gathering brought together Vietnam\'s most ambitious founders for an evening of connections, dinner, and connection.',
         attendeeIds: [100, 101, 1, 2, 3, 4, 5, 6, 7, 8], // Admin users + members
         cruiseAttendeeIds: [100, 101, 2, 3], // Admins always attend + Platinum members
         photos: [],
@@ -314,7 +66,7 @@ const Events = {
     EVENTS_KEY: 'founders_vietnam_events',
     UPCOMING_KEY: 'founders_vietnam_upcoming',
     BOOKINGS_KEY: 'founders_vietnam_bookings',
-    DATA_VERSION: '5.0',
+    DATA_VERSION: '6.0',
 
     // Initialize events data
     init() {
