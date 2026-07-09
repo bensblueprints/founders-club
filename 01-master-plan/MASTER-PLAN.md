@@ -26,7 +26,7 @@ A paid, curated networking dinner for founders in Da Nang. We run targeted ads �
 
 **Risks to watch**
 - **Cold audience.** We have no existing founder network. Every one of the first 25 must come from ads → trust is the bottleneck at a $150 price with an unknown brand.
-- **Conversion economics.** $150 to an unknown event is a high bar. See [Budget](../06-budget-and-finance/BUDGET.md) — we need to model cost-per-acquired-attendee carefully.
+- **Filling the room on a lean budget.** Ad spend is capped at $20–30, so cost isn't the risk — *reach* is. $150 to an unknown event is a high bar, and a tiny budget must lean on targeting + organic + seeding to sell out. See [Budget](../06-budget-and-finance/BUDGET.md).
 - **Chicken-and-egg.** People pay to meet "great founders," but early on we can't guarantee who's in the room. → We may need to seed the room (see §6).
 - **Time.** Late-July target is ~3 weeks out. Aggressive but doable for a 25-cap pilot if we lock decisions tonight.
 

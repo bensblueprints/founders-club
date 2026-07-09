@@ -35,7 +35,7 @@ Track conversion at every step (see metrics below). The two hardest drops will b
 - **Platforms:** Meta (FB/IG) primary; consider LinkedIn for founder targeting; local FB groups & nomad communities organically.
 - **Geo:** Da Nang + reasonable radius; layer interests (entrepreneurship, startups, SaaS, coworking, digital nomad).
 - **Retargeting:** Anyone who hits the landing page but doesn't pay → retarget with social proof / scarcity / early-bird.
-- **Budget & CPA:** set a test budget first; see [Budget](../06-budget-and-finance/BUDGET.md). Know our max cost-per-paid-ticket before scaling spend.
+- **Budget:** ad spend is capped at **$20–30** for the pilot (see [Budget](../06-budget-and-finance/BUDGET.md)). With so little spend, the job isn't managing CPA — it's squeezing maximum reach + conversion out of targeting, organic, and seeding. Flag early if $20–30 can't surface enough interest.
 
 ## 5. Trust builders (critical — we're an unknown brand at $150)
 Because we have no network and no track record yet:
@@ -54,7 +54,7 @@ Because we have no network and no track record yet:
 | Landing page views | | |
 | Checkout starts | | |
 | Paid tickets | 25 cap | |
-| Cost per paid ticket (CPA) | < $X (from budget) | |
+| Ad spend used | ≤ $30 cap | |
 
 ## 7. Content / assets checklist
 - [ ] Event name + logo/wordmark

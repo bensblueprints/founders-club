@@ -16,31 +16,23 @@ At a realistic pilot fill of, say, 15 paid: **$2,250**.
 |---|---|---|
 | Venue + meals @ **4U Lounge, Da Nang** | **$30 × 25 = $750** | ~$30/person confirmed direction |
 | App (build/hosting) | **$20 – $30** | Benji's estimate |
-| Ad spend | **TBD (Benji owns)** | The big variable — see CPA below. Set a test budget first |
+| Ad spend | **$20 – $30 only** | Hard cap for the pilot (Benji operates). Very lean — leans on targeting + organic + seeding |
 | Payment processing | **PENDING** | Depends on gateway — could be near-zero if we use bank transfer / local rail. Confirm before finalizing |
 | Printing (optional) | **TBC · ~$10 max** | Extremely cheap; may skip entirely |
 | Photographer (optional) | $100 – $250 | Valuable content for Saigon |
 | Buffer / misc | $100 | |
-| **Total (ex-ads, ex-fees)** | **~$880 – $1,140** | Ads + payment fees added on top |
+| **Total (ex-fees)** | **~$830 – $1,070** | Payment fees added on top once gateway is picked |
 
-> Placeholder ad figure of **$500** used in the split model below — replace with Benji's actual once the test run reads a CPA.
+## The real constraint: filling 25 seats (not ad cost)
+Ad spend is capped at **$20–30** for the pilot, so ad *cost* can't hurt us — the risk moves entirely to **whether such a lean budget can attract 25 qualified, paying owners from a cold start.**
 
-## The number that decides everything: Cost Per Acquired ticket (CPA)
-We're selling a $150 ticket to a cold audience. The whole model lives or dies on ad efficiency.
-
-**Break-even on ads (rough):** After ~$1,000 fixed (venue + printing + misc), each $150 ticket contributes ~$145 (post-fees). To profit, **average ad cost per paid ticket must stay well below ~$100**, ideally under $50.
-
-| Scenario | CPA | Ad cost for 25 | Verdict |
-|---|---|---|---|
-| Great | $40 | $1,000 | Healthy profit |
-| OK | $75 | $1,875 | Thin but fine |
-| Bad | $150 | $3,750 | Ad spend eats the whole ticket → no profit |
-
-> **Action:** Benji sets a small test budget FIRST (e.g. $100–200) to read real CTR and CPA before committing to full spend. Don't scale spend until CPA is proven.
+- With overheads this low, profit is strong the moment seats sell — every $150 ticket is almost pure margin.
+- The lever is **reach + conversion, not budget.** We lean hard on Benji's targeting, organic channels, and **seeding high-quality attendees** to make the room worth $150.
+- If a $20–30 spend can't surface enough interest, the decision is whether to (a) raise the ad cap, or (b) fill more seats via seeding/warm outreach. Flag this early once the first ads run.
 
 ## Break-even summary
-- If fixed costs ≈ $1,000 and ad CPA ≈ $75 → break-even at roughly **10–12 paid tickets**.
-- Set a **minimum viable headcount** (suggest 12–15). Below it: postpone or run leaner venue.
+- Fixed costs ≈ **$800–850** (venue + app + ads + printing) → break-even at roughly **6 paid tickets**.
+- Set a **minimum viable headcount** (suggest 12–15) — not for cost reasons, but so the room feels full and worth it.
 
 ## Revenue split — PROPOSAL for the call
 See [Team Agreement](../10-team-agreement/TEAM-AGREEMENT.md) for the full rationale.
@@ -53,17 +45,17 @@ See [Team Agreement](../10-team-agreement/TEAM-AGREEMENT.md) for the full ration
 - Benji's "half to me, half to you two" = Benji 50% for 1 person, Maddy+An 25% each. A 3-way equal split (33% each) better reflects that this is **two people (Maddy, An) carrying a heavy load** vs. one, and effort into Saigon skews toward Maddy+An.
 - Cleanest, least-resentment structure for a long-term series. Revisit per-event if contribution changes.
 
-### Worked example (25 sold, ~$500 ads)
+### Worked example (25 sold, ~$30 ads)
 | Line | Amount |
 |---|---|
 | Revenue (25 × $150) | $3,750 |
 | − Venue/meals (4U) | −$750 |
 | − App | −$30 |
-| − Ads (placeholder) | −$500 |
+| − Ads | −$30 |
 | − Printing (optional) | −$10 |
 | − Payment fees | pending (gateway TBD) |
-| **Net profit (before fees)** | **≈ $2,460** |
-| **Each (÷3)** | **≈ $820** |
+| **Net profit (before fees)** | **≈ $2,930** |
+| **Each (÷3)** | **≈ $975** |
 
 > Note: ad cost is a **shared expense reimbursed off the top**, not Benji's personal gift. He *fronts/operates* it; the business repays it before profit split. Confirm this framing tonight.
 > Payment fees are excluded until we pick a gateway — if we can settle by local bank transfer, they may be negligible.
@@ -72,6 +64,6 @@ See [Team Agreement](../10-team-agreement/TEAM-AGREEMENT.md) for the full ration
 - [ ] Confirm price ($150) or add early-bird tier
 - [ ] Approve **3-way equal split, costs off the top** (or negotiate)
 - [ ] Confirm ads are a **reimbursed shared cost**, not a personal contribution
-- [ ] Set total budget ceiling + max acceptable CPA before pausing ads
+- [ ] Confirm the **$20–30 ad cap** — and our fallback if it can't fill the room (raise cap vs. seed harder)
 - [ ] Set minimum headcount to still run the event
 - [ ] Decide if alcohol is included (affects per-head cost)
