@@ -66,4 +66,5 @@ See [Team Agreement](../10-team-agreement/TEAM-AGREEMENT.md) for the full ration
 - [ ] Confirm ads are a **reimbursed shared cost**, not a personal contribution
 - [ ] Confirm the **$20–30 ad cap** — and our fallback if it can't fill the room (raise cap vs. seed harder)
 - [ ] Set minimum headcount to still run the event
+- [ ] **Whose account/entity collects payments + who's treasurer** → this drives the gateway choice (see [Team Agreement §2](../10-team-agreement/TEAM-AGREEMENT.md))
 - [ ] Decide if alcohol is included (affects per-head cost)

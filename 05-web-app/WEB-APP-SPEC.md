@@ -12,7 +12,9 @@ The page ads point to. Must:
 - [ ] Capture buyer info needed for the app profile (name, company, what you do, what you're looking for, photo, links, business card)
 - [ ] Send confirmation + onboarding into the app
 
-**Payment decision needed:** Stripe (easiest, USD, cards) vs PayPal vs local VN gateway. Consider that buyers may be international nomads → Stripe/USD likely simplest. _Decide on the call._
+**Payment decision needed (two linked questions):**
+1. **Which account/entity collects the money?** → a legal-entity company account is recommended (trust + clean split). This choice constrains the gateway. See [Team Agreement §2](../10-team-agreement/TEAM-AGREEMENT.md).
+2. **Which gateway?** Stripe (USD cards, easiest for international nomads, but limited VN support) vs PayPal vs a **local VN rail / VietQR bank transfer** (~fee-free, points at one VN account). _Decide both on the call._
 
 **Build-vs-buy shortcut:** For the pilot, a no-code stack (e.g. a simple site + Stripe Payment Link / Lemon Squeezy + a typeform-style intake) could get us live in days and let An focus energy on the app. Worth weighing against a custom build. _Decide on the call._
 

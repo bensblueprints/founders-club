@@ -25,6 +25,15 @@ _Members: Maddy, An, Benji_
 
 See the worked example in [Budget](../06-budget-and-finance/BUDGET.md).
 
+### Who holds the money (decide)
+Whoever's account collects ticket revenue effectively holds ~$3,750 of shared money and pays out the split — so decide this deliberately, not by default.
+- **Recommended:** collect into a **legal-entity company account** (ideally dedicated to this venture), not a personal account — better for attendee trust, clean bookkeeping, and a fair split.
+- **Money owner / treasurer:** ______ (suggest Maddy as lead, or whoever owns the entity). Responsible for holding funds, reimbursing costs off the top, and paying the 3-way split.
+- **Transparency:** all three can see balance, costs, and payouts at any time.
+- **Ties to the gateway:** the chosen bank account determines the gateway. A local rail / VietQR bank transfer points at one VN account and is ~fee-free; Stripe/PayPal need a business + supported-country bank (limited in VN).
+- [ ] **Account/entity that collects payments:** ______
+- [ ] **Treasurer:** ______
+
 ## 3. Decision-making
 - Day-to-day: each owner decides within their lane.
 - Big calls (price, split, going ahead / postponing, spending over threshold): **all three agree.** If stuck, ______ (Maddy as lead?) breaks the tie.
