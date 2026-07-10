@@ -4,19 +4,19 @@
 
 // Upcoming Events (for booking)
 const UPCOMING_EVENTS = [
-    // ===== AUGUST 2026 =====
+    // ===== JULY 2026 =====
     {
-        id: 'aug-2026',
-        slug: 'august-gathering',
-        name: 'August Gathering',
+        id: 'jul-2026',
+        slug: 'july-gathering',
+        name: 'July Gathering',
         type: 'gathering',
-        date: '2026-08-08',
-        displayDate: 'August 8, 2026',
+        date: '2026-07-25',
+        displayDate: 'July 25, 2026',
         day: 'Saturday',
         time: '6:00 PM - 9:00 PM',
-        location: 'Four U Lounge, Da Nang',
-        address: '118-120 Vo Nguyen Giap Street, Son Tra District, Da Nang, Vietnam',
-        description: "Join us for an exclusive evening at Four U Lounge. Doors open at 6 PM with a meet & greet over hors d'oeuvres and welcome drinks, followed by a 30-minute open mingle, rapid-fire 1-minute founder intros, and an intimate dinner with Founder Bingo played across the tables.",
+        location: '4U Lounge, Esco Beach, Da Nang',
+        address: 'Esco Beach, Da Nang, Vietnam',
+        description: "Join us for an exclusive evening at 4U Lounge on Esco Beach. Doors open at 6 PM with a meet & greet over hors d'oeuvres and welcome drinks, followed by a 30-minute open mingle, rapid-fire 1-minute founder intros, and an intimate dinner with Founder Bingo played across the tables.",
         capacity: 60,
         dinnerCapacity: 60,
         spotsRemaining: 60,
@@ -24,7 +24,7 @@ const UPCOMING_EVENTS = [
         isPlatinumEvent: false,
         tickets: [
             {
-                id: 'dinner-aug',
+                id: 'dinner-jul',
                 name: 'Founders Dinner',
                 price: 150,
                 currency: 'USD',
@@ -66,7 +66,7 @@ const Events = {
     EVENTS_KEY: 'founders_vietnam_events',
     UPCOMING_KEY: 'founders_vietnam_upcoming',
     BOOKINGS_KEY: 'founders_vietnam_bookings',
-    DATA_VERSION: '6.0',
+    DATA_VERSION: '7.0',
 
     // Initialize events data
     init() {

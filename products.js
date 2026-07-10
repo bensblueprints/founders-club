@@ -44,7 +44,7 @@ const Products = {
         'founding-dinner': {
             id: 'founding-dinner',
             name: 'Founders Dinner',
-            description: "Meet & greet with hors d'oeuvres, rapid-fire intros, dinner & Founder Bingo at Four U Lounge, Da Nang (6-9 PM).",
+            description: "Meet & greet with hors d'oeuvres, rapid-fire intros, dinner & Founder Bingo at 4U Lounge, Esco Beach, Da Nang (6-9 PM).",
             price: 150,
             currency: 'USD',
             type: 'event_ticket',

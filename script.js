@@ -327,7 +327,7 @@ function initEventTabs() {
 // CALENDAR EVENT GENERATION
 // ========================================
 const events = [
-    { title: 'Founders Vietnam - August Gathering', date: '2026-08-08', time: '18:00' },
+    { title: 'Founders Vietnam - July Gathering', date: '2026-07-25', time: '18:00' },
     { title: 'Founders Vietnam - March Gathering', date: '2026-03-11', time: '18:00' },
     { title: 'Founders Vietnam - April Gathering', date: '2026-04-14', time: '18:00' },
     { title: 'Founders Vietnam - May Gathering', date: '2026-05-13', time: '18:00' },
