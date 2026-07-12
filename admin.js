@@ -227,9 +227,105 @@ const Admin = {
     // APPLICATIONS
     // ========================================
 
-    loadApplications() {
-        this.applications = Applications.getApplications();
+    async loadApplications() {
+        // Local (legacy) applications from localStorage...
+        const local = Applications.getApplications().map(a => ({ ...a, _supabase: false }));
+        // ...merged with applications submitted through the landing form (Supabase).
+        let remote = [];
+        try {
+            if (typeof Database !== 'undefined' && Database.getApplications) {
+                const rows = await Database.getApplications();
+                remote = (rows || []).map(r => this.normalizeSupabaseApp(r));
+            }
+        } catch (e) {
+            console.error('Supabase applications load failed:', e);
+        }
+        this.applications = [...remote, ...local];
         this.renderApplications();
+    },
+
+    // Map a Supabase applications row into the camelCase shape the renderer expects.
+    normalizeSupabaseApp(r) {
+        const statusMap = { approved: 'accepted', pending: 'pending', rejected: 'rejected', expired: 'expired', disqualified: 'rejected' };
+        return {
+            _supabase: true,
+            id: r.id,
+            firstName: r.first_name || '',
+            lastName: r.last_name || '',
+            email: r.email || '',
+            company: r.company || '',
+            role: r.role || '',
+            industry: r.industry || '',
+            revenue: '',
+            teamSize: '',
+            membership: r.membership_type || '',
+            socialLink: r.company_link || r.social_link || '',
+            event: r.event || r.event_interest || '',
+            lookingFor: r.looking_for || '',
+            canOffer: r.can_offer || '',
+            whatYouDo: r.what_you_do || '',
+            status: statusMap[r.status] || r.status || 'pending',
+            rawStatus: r.status,
+            paymentStatus: r.payment_status || '',
+            paymentLink: r.payment_link || '',
+            expiresAt: r.expires_at || '',
+            amountPaid: r.payment_status === 'paid' ? 150 : 0,
+            createdAt: r.created_at || new Date().toISOString()
+        };
+    },
+
+    getAdminToken() {
+        let token = localStorage.getItem('fvn_admin_token');
+        if (!token) {
+            token = prompt('Enter the admin API token (the ADMIN_TOKEN value set in Netlify). It will be remembered on this device.');
+            if (token) localStorage.setItem('fvn_admin_token', token.trim());
+        }
+        return token ? token.trim() : null;
+    },
+
+    // Accept a Supabase application -> create $150 Airwallex link -> email applicant.
+    async acceptAndSendPayment(id) {
+        const app = this.applications.find(a => a.id === id);
+        if (!app) return;
+        if (!confirm(`Accept ${app.firstName} ${app.lastName} and email them a $150 payment link?\n\nTheir seat will be held for 7 days.`)) return;
+
+        const token = this.getAdminToken();
+        if (!token) { alert('Admin token required.'); return; }
+
+        const btn = document.querySelector(`[onclick*="acceptAndSendPayment('${id}')"]`);
+        if (btn) { btn.disabled = true; btn.textContent = 'Processing...'; }
+
+        try {
+            const res = await fetch('/.netlify/functions/accept-application', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+                body: JSON.stringify({ id })
+            });
+            const result = await res.json();
+
+            if (res.status === 401) {
+                localStorage.removeItem('fvn_admin_token');
+                alert('Unauthorized — the admin token was rejected. Please try again.');
+                return;
+            }
+            if (!res.ok || !result.success) {
+                throw new Error(result.error || `HTTP ${res.status}`);
+            }
+
+            const notes = [];
+            if (result.paymentMock) notes.push('(payment link is a MOCK — Airwallex not configured yet)');
+            if (result.emailMock) notes.push('(email logged only — Resend not configured yet)');
+            else if (!result.emailSent) notes.push('(email could not be sent — send the link manually)');
+
+            alert(`Accepted ${app.firstName} ${app.lastName}.\n\nPayment link:\n${result.paymentLink}\n\nSeat held until ${new Date(result.expiresAt).toLocaleDateString()}.\n${notes.join('\n')}`);
+            await this.loadApplications();
+            this.loadStats();
+        } catch (e) {
+            console.error('acceptAndSendPayment error:', e);
+            alert('Error accepting application: ' + e.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Accept &amp; send payment email'; }
+        }
     },
 
     setupApplicationFilters() {
@@ -246,7 +342,13 @@ const Admin = {
 
     renderApplications() {
         const container = document.getElementById('applicationsList');
-        const counts = Applications.getCounts();
+        const all = this.applications || [];
+        const counts = {
+            total: all.length,
+            pending: all.filter(a => a.status === 'pending').length,
+            accepted: all.filter(a => a.status === 'accepted').length,
+            rejected: all.filter(a => a.status === 'rejected').length
+        };
 
         // Update filter counts
         document.querySelectorAll('.app-filter-btn').forEach(btn => {
@@ -316,10 +418,13 @@ const Admin = {
                 </div>
                 <div class="app-actions">
                     <button class="btn-view" onclick="Admin.viewApplication('${app.id}')">View Details</button>
-                    ${app.status === 'pending' ? `
+                    ${app.status === 'pending' ? (app._supabase ? `
+                        <button class="btn-accept" onclick="Admin.acceptAndSendPayment('${app.id}')">Accept &amp; send payment email</button>
+                    ` : `
                         <button class="btn-accept" onclick="Admin.acceptApplication('${app.id}')">Accept</button>
                         <button class="btn-reject" onclick="Admin.rejectApplication('${app.id}')">Reject</button>
-                    ` : ''}
+                    `) : ''}
+                    ${app._supabase && app.status === 'accepted' && app.paymentStatus ? `<span class="detail-value ${app.paymentStatus === 'paid' ? 'payment-paid' : 'payment-pending'}" style="align-self:center;">Payment: ${app.paymentStatus}</span>` : ''}
                 </div>
             </div>
         `).join('');
