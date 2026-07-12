@@ -207,29 +207,90 @@ const Admin = {
     // ========================================
 
     async loadMembers() {
-        this.members = Auth.getMembers();
+        // Neon-backed: db-api members.list returns approved members. The admin
+        // JWT (attached by database.js) authorizes the call automatically.
+        try {
+            const rows = (typeof Database !== 'undefined' && Database.getMembers)
+                ? await Database.getMembers() : [];
+            this.members = (rows || []).map(r => this.normalizeMember(r));
+        } catch (e) {
+            console.error('loadMembers error:', e);
+            this.members = [];
+        }
         this.renderMembers(this.members);
     },
 
+    // Map a Neon members row (snake_case) into the camelCase shape the admin
+    // members table / filters / actions expect.
+    normalizeMember(m) {
+        if (!m) return m;
+        // Already-normalized objects (from localStorage fallbacks) pass through.
+        if (m.firstName !== undefined && m.first_name === undefined) return m;
+        return {
+            id: m.id,
+            firstName: m.first_name || '',
+            lastName: m.last_name || '',
+            email: m.email || '',
+            company: m.company || '',
+            role: m.role || '',
+            industry: m.industry || '',
+            bio: m.bio || '',
+            memberType: m.member_type || (m.is_admin ? 'admin' : 'member'),
+            isAdmin: m.is_admin === true,
+            isApproved: m.is_approved === true,
+            // Members table has no free-form status column; derive one from
+            // is_approved so the status filter/badge keeps working.
+            status: m.status || (m.is_approved === false ? 'pending' : 'active'),
+            joinedAt: m.created_at || m.joinedAt || null,
+            profilePhoto: m.profile_photo || m.profilePhoto || null,
+            requirePasswordReset: m.must_reset_password || false
+        };
+    },
+
     async loadStats() {
-        const total = this.members.length;
-        const platinum = this.members.filter(m => m.memberType === 'platinum_founding').length;
-        const pendingApps = Applications.getCounts().pending;
+        // Each stat is fetched + guarded independently so one failed request
+        // does not blank the whole row. Everything comes from Neon now.
+        let total = 0, platinum = 0, totalEvents = 0, pendingApps = 0, totalRevenue = 0;
 
-        document.getElementById('totalMembers').textContent = total;
-        document.getElementById('platinumMembers').textContent = platinum;
-        document.getElementById('totalEvents').textContent = '6';
+        // Members (all approved rows from Neon).
+        try {
+            const rows = await Database.getMembers();
+            const members = (rows || []).map(r => this.normalizeMember(r));
+            total = members.length;
+            platinum = members.filter(m => m.memberType === 'platinum_founding').length;
+        } catch (error) {
+            console.error('loadStats: members failed', error);
+        }
 
-        // Calculate revenue from completed transactions
-        let totalRevenue = 0;
+        // Events — real count from Neon (removed the hardcoded '6').
+        try {
+            const events = await Database.getEvents();
+            totalEvents = (events || []).length;
+        } catch (error) {
+            console.error('loadStats: events failed', error);
+        }
+
+        // Pending applications — Neon applications where status = 'pending'.
+        try {
+            const apps = await Database.getApplications('pending');
+            pendingApps = (apps || []).length;
+        } catch (error) {
+            console.error('loadStats: applications failed', error);
+        }
+
+        // Revenue from completed transactions.
         try {
             const transactions = await Database.getAllTransactions(500);
-            totalRevenue = transactions
+            totalRevenue = (transactions || [])
                 .filter(t => t.status === 'completed')
                 .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
         } catch (error) {
-            console.error('Error calculating revenue:', error);
+            console.error('loadStats: revenue failed', error);
         }
+
+        document.getElementById('totalMembers').textContent = total;
+        document.getElementById('platinumMembers').textContent = platinum;
+        document.getElementById('totalEvents').textContent = totalEvents;
         document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
 
         // Update applications tab badge
@@ -479,7 +540,9 @@ const Admin = {
     },
 
     viewApplication(id) {
-        const app = Applications.getApplicationById(id);
+        // Prefer the loaded list (Neon + local merged); fall back to localStorage.
+        const app = (this.applications || []).find(a => a.id == id)
+            || Applications.getApplicationById(id);
         if (!app) return;
 
         this.currentApplicationId = id;
@@ -1029,10 +1092,10 @@ const Admin = {
             <tr>
                 <td>
                     <div class="member-cell">
-                        <div class="member-avatar-small">${member.firstName[0]}${member.lastName[0]}</div>
+                        <div class="member-avatar-small">${(member.firstName || ' ')[0]}${(member.lastName || ' ')[0]}</div>
                         <div class="member-name-cell">
                             <span class="member-name-text">${member.firstName} ${member.lastName}</span>
-                            <span class="member-role-text">${member.role}</span>
+                            <span class="member-role-text">${member.role || ''}</span>
                         </div>
                     </div>
                 </td>
@@ -1239,12 +1302,50 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
 
         let events = [];
         try {
-            events = (typeof Events !== 'undefined') ? Events.getUpcomingEvents() : [];
+            // Neon-backed: db-api events.list returns all events.
+            const rows = (typeof Database !== 'undefined' && Database.getEvents)
+                ? await Database.getEvents() : [];
+            events = (rows || []).map(r => this.normalizeEvent(r));
         } catch (e) {
             console.error('loadEvents error:', e);
             events = [];
         }
+        // Fallback to any bundled/local events only if Neon returned nothing.
+        if ((!events || events.length === 0) && typeof Events !== 'undefined') {
+            try { events = Events.getUpcomingEvents() || []; } catch (_e) { /* ignore */ }
+        }
         this.renderEvents(events);
+    },
+
+    // Map a Neon events row (snake_case) into the shape renderEvents expects.
+    normalizeEvent(e) {
+        if (!e) return e;
+        if (e.name !== undefined && e.event_date === undefined && e.date !== undefined) {
+            return e; // already in local/camel shape
+        }
+        let displayDate = e.event_date || '';
+        try {
+            if (e.event_date) {
+                displayDate = new Date(e.event_date).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
+        } catch (_e) { /* keep raw */ }
+        return {
+            id: e.id,
+            slug: e.slug,
+            name: e.name || '',
+            date: e.event_date || '',
+            displayDate,
+            time: e.event_time || '',
+            location: e.location || '',
+            city: e.city || '',
+            description: e.description || '',
+            capacity: e.max_attendees || 0,
+            spotsRemaining: e.spots_remaining != null ? e.spots_remaining : null,
+            price: e.dinner_price != null ? e.dinner_price : 0,
+            status: e.status || 'open'
+        };
     },
 
     renderEvents(events) {
