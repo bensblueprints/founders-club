@@ -314,6 +314,79 @@ const Database = {
         return data || [];
     },
 
+    async createEvent(eventData) {
+        // Try Supabase first, fallback to localStorage (founders_vietnam_upcoming)
+        const client = this.getClient();
+
+        const slug = eventData.slug || (eventData.name || 'event')
+            .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'event-' + Date.now();
+
+        if (client) {
+            try {
+                const { data, error } = await client
+                    .from('events')
+                    .insert({
+                        slug: slug,
+                        name: eventData.name,
+                        event_date: eventData.date,
+                        event_time: eventData.time || '18:00',
+                        location: eventData.location,
+                        description: eventData.description,
+                        dinner_price: eventData.price,
+                        max_attendees: eventData.capacity,
+                        status: eventData.status || 'open'
+                    })
+                    .select()
+                    .single();
+
+                if (!error) {
+                    return { data, error: null };
+                }
+                console.log('Supabase createEvent failed, using localStorage fallback:', error.message);
+            } catch (e) {
+                console.log('Supabase createEvent error, using localStorage fallback:', e.message);
+            }
+        }
+
+        // localStorage fallback — write to the same store the admin/booking UI reads
+        const event = {
+            id: eventData.id || 'evt-' + Date.now(),
+            slug: slug,
+            name: eventData.name,
+            type: 'gathering',
+            date: eventData.date,
+            displayDate: eventData.displayDate || eventData.date,
+            time: eventData.time || '',
+            location: eventData.location || '',
+            city: eventData.city || '',
+            image: eventData.image || '/images/gathering-event.jpg',
+            description: eventData.description || '',
+            capacity: eventData.capacity || 0,
+            dinnerCapacity: eventData.capacity || 0,
+            spotsRemaining: eventData.capacity || 0,
+            dinnerSpotsRemaining: eventData.capacity || 0,
+            isPlatinumEvent: false,
+            tickets: [
+                {
+                    id: 'dinner-' + slug,
+                    name: 'Founders Dinner',
+                    price: Number(eventData.price) || 0,
+                    currency: 'USD',
+                    description: eventData.description || '',
+                    capacity: eventData.capacity || 0,
+                    perks: []
+                }
+            ],
+            status: eventData.status || 'open'
+        };
+
+        const events = JSON.parse(localStorage.getItem('founders_vietnam_upcoming') || '[]');
+        events.push(event);
+        localStorage.setItem('founders_vietnam_upcoming', JSON.stringify(events));
+
+        return { data: event, error: null };
+    },
+
     async getEventBySlug(slug) {
         const client = this.getClient();
         if (!client) return null;

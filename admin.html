@@ -365,6 +365,70 @@
         </div>
     </div>
 
+    <!-- Add/Edit Event Modal -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="eventModalTitle">Add Event</h2>
+                <button class="close-modal" onclick="Admin.closeModal('eventModal')">&times;</button>
+            </div>
+            <form id="eventForm" onsubmit="Admin.saveEvent(event)">
+                <input type="hidden" id="eventId">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Event Title *</label>
+                        <input type="text" id="eventTitle" required placeholder="e.g., August Founders Gathering">
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="text" id="eventTime" placeholder="6:00 PM - 9:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label>Venue</label>
+                        <input type="text" id="eventVenue" placeholder="e.g., 4U Lounge, Esco Beach">
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="eventCity" placeholder="e.g., Da Nang">
+                    </div>
+                    <div class="form-group">
+                        <label>Seats / Capacity</label>
+                        <input type="number" id="eventSeats" min="1" value="60">
+                    </div>
+                    <div class="form-group">
+                        <label>Ticket Price (USD)</label>
+                        <input type="number" id="eventPrice" min="0" step="0.01" value="150">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Cover Image URL</label>
+                        <input type="text" id="eventImage" placeholder="/images/gathering-event.jpg">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Description</label>
+                        <textarea id="eventDescription" rows="4" placeholder="What can founders expect at this event?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="eventStatus">
+                            <option value="open">Open</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="closed">Closed</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="Admin.closeModal('eventModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Member Actions Modal -->
     <div class="modal" id="actionsModal">
         <div class="modal-content">

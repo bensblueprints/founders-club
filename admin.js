@@ -46,6 +46,7 @@ const Admin = {
         this.loadSponsors();
         this.loadStats();
         this.loadTransactions();
+        this.loadEvents();
 
         // Setup tabs
         this.setupTabs();
@@ -1211,6 +1212,134 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         document.getElementById('memberPhotoInput').value = '';
 
         this.showModal('memberModal');
+    },
+
+    // ========================================
+    // EVENTS
+    // ========================================
+
+    async loadEvents() {
+        const list = document.getElementById('eventsList');
+        if (!list) return;
+
+        let events = [];
+        try {
+            events = (typeof Events !== 'undefined') ? Events.getUpcomingEvents() : [];
+        } catch (e) {
+            console.error('loadEvents error:', e);
+            events = [];
+        }
+        this.renderEvents(events);
+    },
+
+    renderEvents(events) {
+        const list = document.getElementById('eventsList');
+        if (!list) return;
+
+        if (!events || events.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <p>No events yet. Click "Add Event" to create one.</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = events.map(e => {
+            const price = (e.tickets && e.tickets[0] && e.tickets[0].price != null) ? e.tickets[0].price : (e.price || 0);
+            const when = [e.displayDate || e.date, e.time].filter(Boolean).join(' · ');
+            const where = [e.location, e.city].filter(Boolean).join(', ');
+            const seats = e.spotsRemaining != null ? `${e.spotsRemaining}/${e.capacity || 0} spots` : `${e.capacity || 0} seats`;
+            return `
+            <div class="application-card">
+                <div class="application-header">
+                    <div class="application-info">
+                        <h3>${this.escapeHtml(e.name || 'Untitled Event')}</h3>
+                        <p>${this.escapeHtml(when)}${where ? ' — ' + this.escapeHtml(where) : ''}</p>
+                    </div>
+                    <span class="status-badge">${this.escapeHtml(e.status || 'open')}</span>
+                </div>
+                <p style="font-size:0.9rem;color:rgba(255,255,255,0.6);margin-bottom:12px;">${this.escapeHtml((e.description || '').slice(0, 160))}${(e.description || '').length > 160 ? '…' : ''}</p>
+                <div style="display:flex;gap:20px;font-size:0.85rem;color:rgba(255,255,255,0.5);">
+                    <span>$${price} USD</span>
+                    <span>${seats}</span>
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    },
+
+    showAddEventModal() {
+        const form = document.getElementById('eventForm');
+        if (form) form.reset();
+        document.getElementById('eventModalTitle').textContent = 'Add Event';
+        document.getElementById('eventId').value = '';
+        document.getElementById('eventSeats').value = 60;
+        document.getElementById('eventPrice').value = 150;
+        document.getElementById('eventStatus').value = 'open';
+        this.showModal('eventModal');
+    },
+
+    async saveEvent(event) {
+        event.preventDefault();
+
+        const dateVal = document.getElementById('eventDate').value;
+        let displayDate = dateVal;
+        try {
+            if (dateVal) {
+                displayDate = new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+        } catch (e) { /* keep raw */ }
+
+        const eventData = {
+            name: document.getElementById('eventTitle').value.trim(),
+            date: dateVal,
+            displayDate: displayDate,
+            time: document.getElementById('eventTime').value.trim(),
+            location: document.getElementById('eventVenue').value.trim(),
+            city: document.getElementById('eventCity').value.trim(),
+            capacity: parseInt(document.getElementById('eventSeats').value, 10) || 0,
+            price: parseFloat(document.getElementById('eventPrice').value) || 0,
+            image: document.getElementById('eventImage').value.trim(),
+            description: document.getElementById('eventDescription').value.trim(),
+            status: document.getElementById('eventStatus').value
+        };
+
+        if (!eventData.name || !eventData.date) {
+            alert('Please provide at least a title and date.');
+            return;
+        }
+
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalLabel = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
+
+        try {
+            const { data, error } = await Database.createEvent(eventData);
+            if (error) {
+                alert('Could not save event: ' + error);
+            } else {
+                this.closeModal('eventModal');
+                await this.loadEvents();
+                alert('Event saved successfully!');
+            }
+        } catch (e) {
+            console.error('saveEvent error:', e);
+            alert('Something went wrong saving the event. Please try again.');
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
+        }
     },
 
     showActionsModal(memberId) {
