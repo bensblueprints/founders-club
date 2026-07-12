@@ -7,7 +7,7 @@
 // sent in the `x-signature` header with `x-timestamp`. Verification is enforced when the secret is set.
 
 const crypto = require('crypto');
-const { getServiceClient, isConfigured: supaConfigured } = require('./lib/supabase');
+const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 
 const PAID_EVENTS = new Set([
     'payment_intent.succeeded',
@@ -74,21 +74,28 @@ exports.handler = async (event) => {
         return { statusCode: 200, body: 'no application match' };
     }
 
-    if (!supaConfigured()) {
-        console.error('[airwallex-webhook] SUPABASE_SERVICE_ROLE_KEY not set.');
+    if (!dbConfigured()) {
+        console.error('[airwallex-webhook] DATABASE_URL not set.');
         return { statusCode: 200, body: 'not configured' };
     }
-    const supabase = getServiceClient();
 
-    let query = supabase.from('applications').update({
-        payment_status: 'paid',
-        paid_at: new Date().toISOString(),
-        status: 'approved'
-    });
-    query = appId ? query.eq('id', appId) : query.eq('email', String(email).toLowerCase());
-
-    const { data, error } = await query.select();
-    if (error) {
+    const paidAt = new Date().toISOString();
+    let data;
+    try {
+        if (appId) {
+            data = await sql`
+                UPDATE applications
+                SET payment_status = 'paid', paid_at = ${paidAt}, status = 'approved'
+                WHERE id = ${appId}
+                RETURNING id`;
+        } else {
+            data = await sql`
+                UPDATE applications
+                SET payment_status = 'paid', paid_at = ${paidAt}, status = 'approved'
+                WHERE email = ${String(email).toLowerCase()}
+                RETURNING id`;
+        }
+    } catch (error) {
         console.error('[airwallex-webhook] update error:', error);
         return { statusCode: 500, body: 'update error' };
     }

@@ -193,8 +193,8 @@ function initFormHandling() {
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             
-            // Submit to database if configured
-            if (window.SupabaseConfig?.isConfigured() && window.Database) {
+            // Submit via the data API (Database handles its own localStorage fallback).
+            if (window.Database) {
                 const result = await Database.submitApplication(data);
                 if (result.error) {
                     alert('Error submitting application: ' + result.error);

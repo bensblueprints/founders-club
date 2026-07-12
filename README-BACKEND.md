@@ -7,26 +7,34 @@ Airwallex payment link → day 2/5 reminders → day 7 expire (seat released) �
 
 | Piece | File |
 |---|---|
+| Consolidated data API (all browser DB access) | `netlify/functions/db-api.js` |
 | Apply-form endpoint | `netlify/functions/submit-application.js` |
 | Admin accept + payment link | `netlify/functions/accept-application.js` |
 | Daily reminder / expiry scheduler | `netlify/functions/payment-reminders.js` |
 | Payment webhook (mark paid) | `netlify/functions/airwallex-webhook.js` |
 | Shared Airwallex helper | `netlify/functions/lib/airwallex.js` |
-| Shared Supabase (service-role) client | `netlify/functions/lib/supabase.js` |
+| Shared Neon Postgres client | `netlify/functions/lib/neon.js` |
 | Shared Resend email helper + templates | `netlify/functions/lib/emailer.js` |
 | Pure reminder day-math (unit-tested) | `netlify/functions/lib/reminders.js` |
-| DB migration | `migrations/2026-07-application-payment-flow.sql` |
+| Neon schema (run once) | `db/neon-schema.sql` |
+| Neon setup / go-live guide | `db/README-NEON.md` |
 
-The apply form in **`index.html`** and **`landing.html`** now POSTs to
+**Data layer: Neon Postgres, server-side only.** The browser never touches the
+database. `database.js` calls the consolidated `/.netlify/functions/db-api`
+function, which runs parameterized SQL against Neon (`DATABASE_URL`). Supabase has
+been fully removed (no `@supabase/supabase-js`, no anon key in the browser).
+
+The apply form in **`index.html`** and **`landing.html`** POSTs to
 `/.netlify/functions/submit-application` (via `CONFIG.FORM_ENDPOINT`).
 
-The admin panel (`admin.js`) now also loads applications from Supabase and shows an
-**"Accept & send payment email"** button on pending ones.
+The admin panel (`admin.js`) loads applications via `db-api` (`applications.list`,
+admin-token gated) and shows an **"Accept & send payment email"** button on pending ones.
 
-## 1. Run the SQL migration (once)
+## 1. Create the Neon DB + run the schema (once)
 
-Open Supabase → SQL editor → paste and run
-`migrations/2026-07-application-payment-flow.sql`. It's idempotent (`IF NOT EXISTS`).
+See **`db/README-NEON.md`** for the full walkthrough: create a Neon project, copy the
+pooled connection string into `DATABASE_URL`, then paste and run `db/neon-schema.sql`
+in the Neon SQL editor. It's idempotent (`IF NOT EXISTS`).
 
 ## 2. Set these environment variables in Netlify
 
@@ -34,8 +42,7 @@ Site → Settings → Environment variables:
 
 | Variable | Required for | Notes |
 |---|---|---|
-| `SUPABASE_SERVICE_ROLE_KEY` | **all DB writes** | Supabase → Settings → API → `service_role` secret. Anon key is blocked by RLS for inserts/updates. |
-| `SUPABASE_URL` | optional | Defaults to `https://afnikqescveajfempelv.supabase.co`. |
+| `DATABASE_URL` | **all DB access** | Neon → your project → Connection string (use the **pooled** `-pooler` string). This is the only DB credential now. |
 | `RESEND_API_KEY` | sending email | From resend.com. Without it, emails are logged, not sent (flow still works). |
 | `FROM_EMAIL` | sending email | e.g. `Founders Vietnam <noreply@foundersvn.com>` (verified domain). |
 | `NOTIFY_EMAILS` | new-application alerts | Comma-separated. Defaults to `ben@advancedmarketing.co`. |
@@ -80,4 +87,5 @@ rows are skipped entirely.
 ## Local logic tests
 
 The pure day-math, dedup, field-mapping, and email templating were verified with a node
-script (30 assertions passing). Airwallex/Resend/Supabase are never called locally.
+script. The `db-api` action router + SQL parameter binding are covered by
+`tests/db-api.test.js`. Airwallex/Resend/Neon are never called with real credentials locally.

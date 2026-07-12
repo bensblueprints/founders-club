@@ -3,7 +3,7 @@
 // (admin.js authenticates purely client-side via localStorage roles — there is no server-verifiable
 //  session — so this endpoint gates on a shared ADMIN_TOKEN the admin UI sends in the header.)
 
-const { getServiceClient, isConfigured: supaConfigured } = require('./lib/supabase');
+const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 const { createPaymentLink } = require('./lib/airwallex');
 const { sendEmail, acceptedEmail, EVENT_DETAILS } = require('./lib/emailer');
 
@@ -43,15 +43,20 @@ exports.handler = async (event) => {
     const id = body.id;
     if (!id) return json(400, { error: 'Missing application id' });
 
-    if (!supaConfigured()) {
-        return json(500, { error: 'Server not configured (missing SUPABASE_SERVICE_ROLE_KEY).' });
+    if (!dbConfigured()) {
+        return json(500, { error: 'Server not configured (missing DATABASE_URL).' });
     }
-    const supabase = getServiceClient();
 
     // Load the application.
-    const { data: app, error: loadErr } = await supabase
-        .from('applications').select('*').eq('id', id).single();
-    if (loadErr || !app) {
+    let app;
+    try {
+        const rows = await sql`SELECT * FROM applications WHERE id = ${id} LIMIT 1`;
+        app = rows[0];
+    } catch (e) {
+        console.error('[accept-application] load error:', e);
+        return json(500, { error: 'Could not load application', details: e.message });
+    }
+    if (!app) {
         return json(404, { error: 'Application not found' });
     }
     if (app.status === 'approved' && app.payment_link) {
@@ -80,21 +85,17 @@ exports.handler = async (event) => {
     }
 
     // Persist approval + payment state.
-    const { data: updated, error: updErr } = await supabase
-        .from('applications')
-        .update({
-            status: 'approved',
-            accepted_at: now.toISOString(),
-            expires_at: expiresAt.toISOString(),
-            payment_status: 'awaiting',
-            payment_link: link.url,
-            reviewed_at: now.toISOString()
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (updErr) {
+    try {
+        await sql`
+            UPDATE applications SET
+                status = 'approved',
+                accepted_at = ${now.toISOString()},
+                expires_at = ${expiresAt.toISOString()},
+                payment_status = 'awaiting',
+                payment_link = ${link.url},
+                reviewed_at = ${now.toISOString()}
+            WHERE id = ${id}`;
+    } catch (updErr) {
         console.error('[accept-application] update error:', updErr);
         return json(500, { error: 'Could not update application', details: updErr.message });
     }

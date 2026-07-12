@@ -1,8 +1,8 @@
 // POST endpoint the landing "Apply" form submits to.
-// Validates, inserts into Supabase `applications` (status=pending), then emails organisers.
+// Validates, inserts into Neon `applications` (status=pending), then emails organisers.
 // CORS-open (mirrors send-welcome-email.js).
 
-const { getServiceClient, isConfigured: supaConfigured } = require('./lib/supabase');
+const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 const { sendEmail, notificationEmail } = require('./lib/emailer');
 
 const CORS = {
@@ -52,42 +52,45 @@ exports.handler = async (event) => {
     const { first, last } = splitName(body.name);
 
     // Map the landing form's fields onto the applications table.
-    const record = {
-        first_name: first,
-        last_name: last,
-        email: String(body.email).trim().toLowerCase(),
-        company: body.company || null,
-        role: body.role || null,
-        company_link: body.company_link || null,
-        industry: body.industry || null,           // comma-joined chip labels
-        looking_for: body.looking_for || null,      // comma-joined chip labels
-        can_offer: body.can_offer || null,          // comma-joined chip labels
-        what_you_do: body.what_you_do || null,
-        social_link: body.links || null,            // "Your links" -> existing social_link col
-        page_language: body.page_language || null,
-        event: body.event || null,
-        event_interest: body.event || null,         // keep legacy col populated too
-        status: 'pending',
-        payment_status: null,
-        reminders_sent: []
-    };
+    const email = String(body.email).trim().toLowerCase();
 
-    if (!supaConfigured()) {
-        // Without the service role key we cannot write. Report clearly but don't 500 the user.
-        console.error('[submit-application] SUPABASE_SERVICE_ROLE_KEY not set — cannot persist application.');
-        return json(500, { error: 'Server not configured (missing SUPABASE_SERVICE_ROLE_KEY).' });
+    if (!dbConfigured()) {
+        // Without DATABASE_URL we cannot write. Report clearly but don't 500 vaguely.
+        console.error('[submit-application] DATABASE_URL not set — cannot persist application.');
+        return json(500, { error: 'Server not configured (missing DATABASE_URL).' });
     }
 
-    const supabase = getServiceClient();
-
     // Upsert on email so a re-submission updates the existing pending row instead of 409-ing.
-    const { data, error } = await supabase
-        .from('applications')
-        .upsert(record, { onConflict: 'email' })
-        .select()
-        .single();
-
-    if (error) {
+    let data;
+    try {
+        const rows = await sql`
+            INSERT INTO applications
+                (first_name, last_name, email, company, role, company_link, industry,
+                 looking_for, can_offer, what_you_do, social_link, page_language,
+                 event, event_interest, status, payment_status, reminders_sent)
+            VALUES
+                (${first}, ${last}, ${email}, ${body.company || null}, ${body.role || null},
+                 ${body.company_link || null}, ${body.industry || null}, ${body.looking_for || null},
+                 ${body.can_offer || null}, ${body.what_you_do || null}, ${body.links || null},
+                 ${body.page_language || null}, ${body.event || null}, ${body.event || null},
+                 'pending', NULL, '{}')
+            ON CONFLICT (email) DO UPDATE SET
+                first_name    = EXCLUDED.first_name,
+                last_name     = EXCLUDED.last_name,
+                company       = EXCLUDED.company,
+                role          = EXCLUDED.role,
+                company_link  = EXCLUDED.company_link,
+                industry      = EXCLUDED.industry,
+                looking_for   = EXCLUDED.looking_for,
+                can_offer     = EXCLUDED.can_offer,
+                what_you_do   = EXCLUDED.what_you_do,
+                social_link   = EXCLUDED.social_link,
+                page_language = EXCLUDED.page_language,
+                event         = EXCLUDED.event,
+                event_interest = EXCLUDED.event_interest
+            RETURNING *`;
+        data = rows[0];
+    } catch (error) {
         console.error('[submit-application] insert error:', error);
         return json(500, { error: 'Could not save application', details: error.message });
     }

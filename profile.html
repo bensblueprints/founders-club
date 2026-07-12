@@ -425,8 +425,6 @@
     </main>
 
     <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
     <script src="database.js"></script>
     <script src="auth.js"></script>
     <script>
@@ -605,74 +603,48 @@
                 const localSuccess = Auth.updateProfile(data);
                 console.log('Local save result:', localSuccess);
 
-                // Step 2: Save to Supabase database
+                // Step 2: Sync to the Neon database via the db-api function.
                 btn.innerHTML = '<span>Syncing to database...</span>';
 
-                const client = window.SupabaseConfig?.client;
-                if (client) {
-                    // Get current user ID
-                    const { data: { user: authUser } } = await client.auth.getUser();
+                // The current member id comes from client-side auth (localStorage).
+                const currentUser = (typeof Auth !== 'undefined' && Auth.getCurrentUserSync)
+                    ? Auth.getCurrentUserSync() : null;
+                const memberId = currentUser && currentUser.id;
 
-                    if (authUser) {
-                        const { data: dbResult, error: dbError } = await client
-                            .from('members')
-                            .update({
-                                first_name: data.firstName,
-                                last_name: data.lastName,
-                                bio: data.bio,
-                                company: data.company,
-                                role: data.role,
-                                industry: data.industry,
-                                website: data.website,
-                                websites: data.websites,
-                                whatsapp: data.whatsapp,
-                                zalo: data.zalo,
-                                telegram: data.telegram,
-                                linkedin: data.linkedin,
-                                twitter: data.twitter,
-                                wechat: data.wechat,
-                                facebook: data.facebook,
-                                instagram: data.instagram,
-                                profile_photo: user.profilePhoto || null,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', authUser.id)
-                            .select();
+                if (memberId && typeof Database !== 'undefined' && Database.updateMemberProfile) {
+                    const { data: dbResult, error: dbError } = await Database.updateMemberProfile(memberId, {
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        bio: data.bio,
+                        company: data.company,
+                        role: data.role,
+                        industry: data.industry,
+                        website: data.website,
+                        websites: data.websites,
+                        profilePhoto: user.profilePhoto || null,
+                        whatsapp: data.whatsapp,
+                        zalo: data.zalo,
+                        telegram: data.telegram,
+                        linkedin: data.linkedin,
+                        twitter: data.twitter,
+                        wechat: data.wechat,
+                        facebook: data.facebook,
+                        instagram: data.instagram
+                    });
 
-                        if (dbError) {
-                            console.error('Database save error:', dbError);
-                            // Still show success since localStorage saved
-                            btn.innerHTML = '<span>Saved locally (database sync pending)</span>';
-                            btn.style.background = '#f59e0b'; // Warning orange
-                        } else {
-                            console.log('Database save successful:', dbResult);
-
-                            // Step 3: Verify the save by re-reading
-                            btn.innerHTML = '<span>Verifying...</span>';
-
-                            const { data: verifyData, error: verifyError } = await client
-                                .from('members')
-                                .select('*')
-                                .eq('id', authUser.id)
-                                .single();
-
-                            if (verifyError) {
-                                console.error('Verification error:', verifyError);
-                            } else {
-                                console.log('Verified data:', verifyData);
-                            }
-
-                            btn.innerHTML = '<span>Saved to database!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                            btn.style.background = '#4ade80';
-                        }
+                    if (dbError || !dbResult) {
+                        // DB unreachable / not configured — localStorage already saved.
+                        console.warn('Database sync pending:', dbError);
+                        btn.innerHTML = '<span>Saved locally (database sync pending)</span>';
+                        btn.style.background = '#f59e0b'; // Warning orange
                     } else {
-                        // No auth user, just local save
-                        btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                        console.log('Database save successful:', dbResult);
+                        btn.innerHTML = '<span>Saved to database!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                         btn.style.background = '#4ade80';
                     }
                 } else {
-                    // No Supabase client, just local save
-                    console.log('Supabase not configured, saved locally only');
+                    // No member id (guest/local) — local save only.
+                    console.log('No remote member id, saved locally only');
                     btn.innerHTML = '<span>Saved!</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                     btn.style.background = '#4ade80';
                 }

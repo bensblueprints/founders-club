@@ -5,26 +5,25 @@
 //
 // Netlify in-source schedule config (CommonJS): exports.config.schedule.
 
-const { getServiceClient, isConfigured: supaConfigured } = require('./lib/supabase');
+const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 const { sendEmail, reminderEmail, expiredEmail } = require('./lib/emailer');
 const { decide } = require('./lib/reminders');
 
 exports.handler = async () => {
-    if (!supaConfigured()) {
-        console.error('[payment-reminders] SUPABASE_SERVICE_ROLE_KEY not set — skipping run.');
+    if (!dbConfigured()) {
+        console.error('[payment-reminders] DATABASE_URL not set — skipping run.');
         return { statusCode: 200, body: 'skipped: not configured' };
     }
-    const supabase = getServiceClient();
     const now = new Date();
 
     // Pull approved seats that aren't paid yet.
-    const { data: apps, error } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('status', 'approved')
-        .neq('payment_status', 'paid');
-
-    if (error) {
+    let apps;
+    try {
+        apps = await sql`
+            SELECT * FROM applications
+            WHERE status = 'approved'
+              AND (payment_status IS DISTINCT FROM 'paid')`;
+    } catch (error) {
         console.error('[payment-reminders] query error:', error);
         return { statusCode: 500, body: 'query error' };
     }
@@ -47,27 +46,28 @@ exports.handler = async () => {
             });
             await sendEmail({ to: app.email, subject: tmpl.subject, html: tmpl.html });
 
-            const { error: updErr } = await supabase
-                .from('applications')
-                .update({ reminders_sent: newSent })
-                .eq('id', app.id);
-            if (updErr) console.error('[payment-reminders] update (remind) failed:', app.id, updErr);
-            else reminded++;
+            try {
+                await sql`UPDATE applications SET reminders_sent = ${newSent}::int[] WHERE id = ${app.id}`;
+                reminded++;
+            } catch (updErr) {
+                console.error('[payment-reminders] update (remind) failed:', app.id, updErr);
+            }
 
         } else if (d.action === 'expire') {
             const tmpl = expiredEmail({ firstName: app.first_name });
             await sendEmail({ to: app.email, subject: tmpl.subject, html: tmpl.html });
 
-            const { error: updErr } = await supabase
-                .from('applications')
-                .update({
-                    status: 'expired',
-                    payment_status: 'expired',
-                    reminders_sent: newSent
-                })
-                .eq('id', app.id);
-            if (updErr) console.error('[payment-reminders] update (expire) failed:', app.id, updErr);
-            else expired++;
+            try {
+                await sql`
+                    UPDATE applications SET
+                        status = 'expired',
+                        payment_status = 'expired',
+                        reminders_sent = ${newSent}::int[]
+                    WHERE id = ${app.id}`;
+                expired++;
+            } catch (updErr) {
+                console.error('[payment-reminders] update (expire) failed:', app.id, updErr);
+            }
         }
     }
 

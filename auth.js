@@ -297,9 +297,11 @@ const Auth = {
     MEMBERS_KEY: 'founders_vietnam_members',
     DATA_VERSION: '3.0', // Increment to force refresh localStorage data
 
-    // Check if Supabase is available
+    // Remote auth is disabled — login is fully client-side (localStorage) now that
+    // the data layer runs on Neon via server-side functions. Kept as a single
+    // switch so every branch below cleanly uses the localStorage path.
     useSupabase() {
-        return window.SupabaseConfig?.isConfigured() && window.Database;
+        return Boolean(window.Database && window.Database.usesRemoteAuth && window.Database.usesRemoteAuth());
     },
 
     // Initialize
