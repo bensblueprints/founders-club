@@ -7,12 +7,12 @@ _The single source of truth for what the event actually is on the night._
 |---|---|
 | Event name | _TBD_ |
 | City | Da Nang, Vietnam |
-| Date | **24–25 July 2026** (target — confirm with venue) |
+| Date | **Friday, 31 July 2026** (locked) |
 | Time | _TBD (suggest 6:00–9:30pm dinner slot)_ |
 | Venue | _TBD (private dining room, ~25 pax)_ |
 | Cap | 25 attendees |
 | Price | $150 USD |
-| Format | Curated founder networking dinner + digital profile layer |
+| Format | Curated founder networking dinner across multiple hosted tables + digital profile layer |
 
 ## What the ticket includes (decide & confirm)
 - [ ] Seated meal (dinner) + non-alcoholic drinks
@@ -28,7 +28,7 @@ _The single source of truth for what the event actually is on the night._
 ## Format (the arc of the night)
 1. **App access** — everyone's profile is live; people already know who's in the room.
 2. **Host-led bonding + introduction activities** — structured icebreakers so nobody's stranded; each person gives a short self-intro/presentation.
-3. **Free time** — dinner, find a table, catch up organically. This is where the real connecting happens.
+3. **Free time** — dinner, move between tables, catch up organically. This is where the real connecting happens.
 
 ## Run-of-show (draft — ~3.5 hrs)
 | Time | Segment | Notes |
@@ -36,7 +36,7 @@ _The single source of truth for what the event actually is on the night._
 | 6:00 | Arrival + check-in | QR check-in, name tag, profile confirmed live in app |
 | 6:15 | Welcome (bilingual host) | Set tone, how to use the app, "1 ask / 1 offer" framing |
 | 6:30 | Bonding + intro activities | Icebreakers + short self-intros; app suggests who to meet |
-| 7:15 | **Free time — dinner & open networking** | Mixed seating; people choose tables and talk |
+| 7:15 | **Free time — dinner & open networking** | Multiple mixed tables; people can choose seats, rotate, and talk |
 | 8:45 | Card exchange + app follow-ups | Save contacts digitally |
 | 9:30 | Wrap | Survey link, Saigon teaser + early-bird for attendees |
 

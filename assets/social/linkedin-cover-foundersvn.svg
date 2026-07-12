@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1584" height="396" viewBox="0 0 1584 396">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop offset="0" stop-color="#071A14"/>
+      <stop offset=".72" stop-color="#10231B"/>
+      <stop offset="1" stop-color="#E7644A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1584" height="396" fill="url(#bg)"/>
+  <rect x="72" y="58" width="232" height="232" rx="58" fill="#071A14" stroke="rgba(242,240,232,.16)" stroke-width="2"/>
+  <image href="../founders-vn-logo-kit/founders-vn-wavy-icon.svg" x="102" y="88" width="172" height="172" preserveAspectRatio="xMidYMid meet"/>
+  <image href="../brand/founders-vn-logo.svg" x="360" y="78" width="285" height="68" preserveAspectRatio="xMinYMid meet"/>
+  <text x="360" y="220" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="800" letter-spacing="-1.6" fill="#F2F0E8">An intimate founder dinner in Da Nang.</text>
+  <text x="362" y="276" font-family="Inter, Arial, sans-serif" font-size="24" fill="#F2F0E8" opacity=".82">Phone-free · curated room · hosted tables · $150</text>
+</svg>

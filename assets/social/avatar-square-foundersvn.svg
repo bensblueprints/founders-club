@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <radialGradient id="g" cx="70%" cy="25%" r="85%">
+      <stop offset="0" stop-color="#264238"/>
+      <stop offset=".55" stop-color="#071A14"/>
+      <stop offset="1" stop-color="#030A08"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="32" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <rect width="1080" height="1080" rx="240" fill="url(#g)"/>
+  <circle cx="840" cy="220" r="260" fill="#E7644A" opacity=".18"/>
+  <circle cx="220" cy="880" r="310" fill="#8A9A5B" opacity=".16"/>
+  <rect x="180" y="180" width="720" height="720" rx="176" fill="#071A14" stroke="rgba(242,240,232,.16)" stroke-width="3" filter="url(#shadow)"/>
+  <image href="../founders-vn-logo-kit/founders-vn-wavy-icon.svg" x="230" y="230" width="620" height="620" preserveAspectRatio="xMidYMid meet"/>
+</svg>

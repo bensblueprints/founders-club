@@ -10,7 +10,7 @@ _Owners: Maddy (message, theme, copy) + Benji (targeting, campaign ops)_
 - "Business owner" is a shared identity with universally relevant needs → content and value that always land: **expanding network, marketing & promotion, growth, hiring, partnerships.**
 - Keeps the pool wide enough to fill 25 seats in one city without over-narrowing.
 
-**Core promise (draft):** _A curated dinner of business owners across every industry — where you already know who everyone is, and the person who solves your next problem is at the table._
+**Core promise (draft):** _A curated dinner of business owners across every industry — where you already know who's in the room, and the person who solves your next problem is already there._
 
 **Why now / why pay:** Owners value time and signal. $150 filters for people serious enough to be worth meeting. That's a feature, not a barrier — say it out loud.
 
@@ -23,7 +23,7 @@ Targeted Ad  →  Event landing page  →  "Apply / Buy ticket"  →  Pay $150  
 Track conversion at every step (see metrics below). The two hardest drops will be **ad→click** and **landing→pay**.
 
 ## 3. Messaging angles to test (ad copy)
-1. **Exclusivity** — "25 founders. One table. Da Nang, [date]."
+1. **Exclusivity** — "25 founders. One curated room. Da Nang, [date]."
 2. **Anti-awkward** — "Know everyone in the room before you walk in."
 3. **ROI of connection** — "The 3 intros that change your year."
 4. **Curation/quality** — "Vetted founders only. $150 keeps out tourists."

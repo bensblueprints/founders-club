@@ -1,0 +1,7 @@
+# Thứ tự ghép hero video (mỗi dòng 1 clip trong clips/<name>.mp4).
+# Đổi thứ tự / thêm / bớt: sửa file này rồi chạy ./stitch.sh (không cần render lại).
+networking-2
+venue-wide
+dinner-2
+networking-1
+venue-detail

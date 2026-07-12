@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Video — Founders Meetups</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0d0b09; color: #efe7dd;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 28px clamp(16px, 4vw, 48px);
+  }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: #a99; font-size: 13px; margin: 0 0 22px; }
+  .hero-wrap {
+    position: relative; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,.55); border: 1px solid #2a2320;
+    background: #000; max-width: 1100px;
+  }
+  video { display: block; width: 100%; height: auto; background: #000; }
+  .tag {
+    position: absolute; top: 12px; left: 12px; z-index: 2;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+    padding: 5px 11px; border-radius: 999px; font-size: 12px; letter-spacing: .3px;
+  }
+  h2 { font-size: 14px; font-weight: 600; color: #c9bdb0; margin: 30px 0 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; max-width: 1100px; }
+  .card { border-radius: 10px; overflow: hidden; border: 1px solid #2a2320; background: #14100e; }
+  .card video { border-bottom: 1px solid #2a2320; }
+  .card .lbl { padding: 8px 11px; font-size: 12.5px; color: #d8ccbe; display: flex; justify-content: space-between; }
+  .card .lbl b { font-weight: 600; }
+  .card .lbl span { color: #8a7d70; }
+  .meta { max-width: 1100px; margin-top: 24px; font-size: 12.5px; color: #8a7d70; }
+  .meta code { background: #1c1714; padding: 1px 6px; border-radius: 4px; color: #cbb; }
+</style>
+</head>
+<body>
+  <h1>🎬 Hero Video — Founders Meetups</h1>
+  <p class="sub">5 scene × 3s · ~13s · không audio · <b>networking = Gemini Omni</b> (image-to-video) · venue = Veo · dinner = bản bạn fix</p>
+
+  <div class="hero-wrap">
+    <span class="tag">HERO (đã ghép)</span>
+    <video controls autoplay muted loop playsinline poster="out/poster.jpg">
+      <source src="out/hero.webm" type="video/webm">
+      <source src="out/hero.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <h2>5 scene gốc (theo thứ tự ghép)</h2>
+  <div class="grid">
+    <div class="card"><video src="clips/networking-2.mp4" controls muted loop playsinline></video>
+      <div class="lbl"><b>1</b><span>networking-2 · giao lưu</span></div></div>
+    <div class="card"><video src="clips/venue-wide.mp4" controls muted loop playsinline></video>
+      <div class="lbl"><b>2</b><span>venue-wide · không gian quán</span></div></div>
+    <div class="card"><video src="clips/dinner-2.mp4" controls muted loop playsinline></video>
+      <div class="lbl"><b>3</b><span>dinner-2 · bữa tối</span></div></div>
+    <div class="card"><video src="clips/networking-1.mp4" controls muted loop playsinline></video>
+      <div class="lbl"><b>4</b><span>networking-1 · giao lưu (rộng)</span></div></div>
+    <div class="card"><video src="clips/venue-detail.mp4" controls muted loop playsinline></video>
+      <div class="lbl"><b>5</b><span>venue-detail · hầm rượu</span></div></div>
+  </div>
+
+  <p class="meta">
+    File: <code>tools/hero-video/out/hero.mp4</code> · <code>hero.webm</code> · <code>poster.jpg</code>.
+    Nhúng web: thẻ <code>&lt;video autoplay muted loop playsinline&gt;</code> với 2 source webm + mp4.
+  </p>
+</body>
+</html>

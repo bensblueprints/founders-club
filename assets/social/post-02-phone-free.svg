@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+  <rect width="1080" height="1350" fill="#F2F0E8"/>
+  <rect x="48" y="48" width="984" height="1254" rx="64" fill="#071A14"/>
+  <image href="../founders-vn-logo-kit/founders-vn-wavy-icon.svg" x="690" y="90" width="250" height="250"/>
+  <text x="92" y="210" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#8A9A5B">FOUNDERSVN · DA NANG</text>
+  <text x="92" y="492" font-family="Inter, Arial, sans-serif" font-size="108" font-weight="800" letter-spacing="-4" fill="#F2F0E8">No phones.</text>
+  <text x="92" y="612" font-family="Inter, Arial, sans-serif" font-size="108" font-weight="800" letter-spacing="-4" fill="#F2F0E8">More presence.</text>
+  <path d="M92 740 H816" stroke="#A9BBB6" stroke-opacity=".28" stroke-width="2"/>
+  <text x="92" y="830" font-family="Inter, Arial, sans-serif" font-size="38" fill="#A9BBB6">A curated founder dinner supported quietly by technology.</text>
+  <text x="92" y="1128" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#E7644A">July 31 · 4U Lounge · $150</text>
+</svg>

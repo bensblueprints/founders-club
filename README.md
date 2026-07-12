@@ -2,7 +2,7 @@
 
 A curated, paid, in-person networking event for founders — powered by a digital layer that lets every attendee see who's in the room and what they do, without the awkward "so, what do you do?" round.
 
-**Event #1 (pilot, focus now):** Da Nang — **24–25 July 2026** · **cap 25** · $150
+**Event #1 (pilot, focus now):** Da Nang — **Friday, 31 July 2026** · **cap 25** · $150
 **Event #2:** Saigon (HCMC) — 2nd week of August 2026 · **cap 50, bigger venue** · details deferred
 **Audience:** business owners across all industries (targeted by level, not niche)
 

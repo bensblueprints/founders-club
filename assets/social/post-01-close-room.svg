@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+  <rect width="1080" height="1350" fill="#071A14"/>
+  <circle cx="910" cy="160" r="300" fill="#E7644A" opacity=".16"/>
+  <circle cx="160" cy="1180" r="380" fill="#8A9A5B" opacity=".14"/>
+  <image href="../brand/founders-vn-logo.svg" x="80" y="86" width="270" height="64"/>
+  <text x="80" y="340" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-3.2" fill="#F2F0E8">A closer room</text>
+  <text x="80" y="438" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-3.2" fill="#F2F0E8">for better</text>
+  <text x="80" y="536" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-3.2" fill="#F2F0E8">conversations.</text>
+  <rect x="80" y="700" width="420" height="72" rx="36" fill="#E7644A"/>
+  <text x="116" y="747" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#F2F0E8">Apply for a seat</text>
+  <text x="80" y="1118" font-family="Inter, Arial, sans-serif" font-size="32" fill="#A9BBB6">Da Nang · Friday, July 31 · 4U Lounge</text>
+  <text x="80" y="1170" font-family="Inter, Arial, sans-serif" font-size="32" fill="#A9BBB6">25 seats · $150 · phone-free</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+  <rect width="1080" height="1350" fill="#10231B"/>
+  <rect x="84" y="84" width="912" height="1182" rx="44" fill="#F2F0E8"/>
+  <image href="../founders-vn-logo-kit/founders-vn-wavy-icon.svg" x="720" y="150" width="190" height="190"/>
+  <text x="144" y="210" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#8A9A5B">YOUR SEAT INCLUDES</text>
+  <text x="144" y="392" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-3" fill="#071A14">A curated</text>
+  <text x="144" y="488" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-3" fill="#071A14">meal.</text>
+  <text x="144" y="584" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-3" fill="#071A14">A curated</text>
+  <text x="144" y="680" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-3" fill="#071A14">room.</text>
+  <path d="M144 790 H820" stroke="#071A14" stroke-opacity=".18" stroke-width="2"/>
+  <text x="144" y="890" font-family="Inter, Arial, sans-serif" font-size="40" fill="#202522">4U Lounge · 25 founders/operators · $150</text>
+  <text x="144" y="1112" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="#E7644A">Apply for a seat →</text>
+</svg>

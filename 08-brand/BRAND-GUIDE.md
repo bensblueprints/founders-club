@@ -11,18 +11,18 @@ This is a recurring series (Da Nang → Saigon → beyond) with a paid, premium 
 - **Not generic.** "Founder Meetup" says nothing and defines no niche. Avoid.
 - **Not city-locked.** We're multi-city (Da Nang, Saigon, +). Don't bake a city into the master brand.
 - **Bilingual-friendly.** Audience is ~50% Vietnamese / 50% international — it should read well and be pronounceable for both.
-- **Evoke the format:** a shared table, a dinner, meaningful connection between owners.
+- **Evoke the format:** a curated room, a dinner, multiple hosted tables, meaningful connection between owners.
 - **Ownable:** domain + social handles available; not "Founder Vietnam" (taken by Benji's old team).
 
 ### Name directions to react to (not final — Maddy decides)
 | Name | Why it works | Watch-outs |
 |---|---|---|
-| **The Long Table** | Communal dinner where everyone's an equal at one table; scales as "chapters" per city; warm, anti-corporate | Check domain/handles |
 | **Lantern** (e.g. _Lantern Rooms_) | Rooted near Da Nang (Hội An lanterns), warmth + connection + light, design-forward | Slightly poetic — needs a clear tagline |
 | **Harbour** / **Harbor** | Da Nang & Saigon are port cities; "where founders dock & connect"; strong, ownable | Common word — needs a distinct qualifier |
-| **The Owners' Room** | Directly names the audience (business owners), premium/private-club feel | Less warm than "table" ideas |
+| **The Owners' Room** | Directly names the audience (business owners), premium/private-club feel | Needs warmth so it does not feel too private-club/corporate |
+| **FoundersVN** | Direct, bilingual-friendly master brand for founders in Vietnam; can stretch across cities and editions | Needs distinctive visual system so it does not feel generic |
 
-> **Framing note:** master brand = the series; each event = a "chapter/edition" (e.g. _The Long Table — Da Nang, Edition 01_). This lets the brand stay constant while cities rotate.
+> **Framing note:** master brand = the series; each event = a "chapter/edition" (e.g. _FoundersVN — Da Nang, Edition 01_). This lets the brand stay constant while cities rotate. Do **not** frame the event as one communal table; the venue can have multiple tables, with curation happening at the room, seating, and intro level.
 
 ### Name shortlist (fill in as we test)
 - [ ] Candidate 1: ______ — domain? ___ IG? ___ FB? ___

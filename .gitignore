@@ -7,3 +7,6 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+tools/hero-video/.env
+tools/hero-video/refs/
+tools/agent-platform/.env

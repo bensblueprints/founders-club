@@ -6,7 +6,7 @@ _Last updated: 2026-07-09_
 A paid, curated networking dinner for founders in Da Nang. We run targeted ads → founders land on an event page → they pay $150 → they attend a capped (25-person) dinner. The differentiator is a **digital layer**: an app/web app where every attendee can browse everyone else's profile (what they do, what they're building, what they're looking for) so connections happen intentionally instead of through random small talk.
 
 ## 1a. What's LOCKED
-- **Event #1:** Da Nang — **24–25 July 2026** (target; confirm with venue).
+- **Event #1:** Da Nang — **Friday, 31 July 2026** (locked).
 - **Event #2:** Saigon (HCMC) — second week of August 2026.
 - **Positioning:** target by **level/title = business owners**, NOT by industry (diverse-expertise room). See [Marketing §1](../04-marketing/MARKETING-PLAN.md).
 - **Maddy owns brand + social long-term** — this is a recurring series, not a one-off. See [Brand Guide](../08-brand/BRAND-GUIDE.md).
