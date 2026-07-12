@@ -293,7 +293,7 @@
             if (await Auth.register(data)) {
                 window.location.href = 'profile.html?setup=true';
             } else {
-                alert('Email already registered');
+                alert('Membership is by application only. Please apply to join — approved members receive login details by email.');
                 btn.disabled = false;
                 btn.innerHTML = '<span>Create Account</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
             }
@@ -310,48 +310,20 @@
 
             await new Promise(r => setTimeout(r, 1500));
 
-            // Check if email exists in our system
-            const members = Auth.getMembers();
-            const user = members.find(m => m.email.toLowerCase() === email.toLowerCase());
-
-            if (user) {
-                // Store email for reset form
-                document.getElementById('resetEmail').value = email;
-
-                // Show success message and reset form
-                const forgotCard = document.getElementById('forgotCard');
-                forgotCard.innerHTML = `
-                    <div class="auth-header">
-                        <h1>Check Your Email</h1>
-                    </div>
-                    <div class="success-message">
-                        <p>If an account exists for <strong>${email}</strong>, you will receive password reset instructions.</p>
-                    </div>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; text-align: center; margin-bottom: 20px;">
-                        For demo purposes, click below to reset your password directly:
-                    </p>
-                    <button type="button" class="submit-btn" onclick="showCard('resetCard'); document.getElementById('resetEmail').value='${email}';">
-                        <span>Reset Password Now</span>
-                    </button>
-                    <div class="auth-footer" style="margin-top: 20px;">
-                        <p><a href="#" onclick="location.reload()">Back to Login</a></p>
-                    </div>
-                `;
-            } else {
-                // Show same message for security (don't reveal if email exists)
-                const forgotCard = document.getElementById('forgotCard');
-                forgotCard.innerHTML = `
-                    <div class="auth-header">
-                        <h1>Check Your Email</h1>
-                    </div>
-                    <div class="success-message">
-                        <p>If an account exists for <strong>${email}</strong>, you will receive password reset instructions.</p>
-                    </div>
-                    <div class="auth-footer" style="margin-top: 20px;">
-                        <p><a href="#" onclick="location.reload()">Back to Login</a></p>
-                    </div>
-                `;
-            }
+            // Always show the same generic message — never reveal whether an
+            // account exists (no client-side member list to enumerate anymore).
+            const forgotCard = document.getElementById('forgotCard');
+            forgotCard.innerHTML = `
+                <div class="auth-header">
+                    <h1>Check Your Email</h1>
+                </div>
+                <div class="success-message">
+                    <p>If an account exists for <strong>${email}</strong>, our team will help you reset your password. Please contact an organiser.</p>
+                </div>
+                <div class="auth-footer" style="margin-top: 20px;">
+                    <p><a href="#" onclick="location.reload()">Back to Login</a></p>
+                </div>
+            `;
         });
 
         // Reset password form
@@ -378,8 +350,10 @@
 
             await new Promise(r => setTimeout(r, 1500));
 
-            // Update password in localStorage
-            const success = Auth.resetPassword(email, newPassword);
+            // Self-serve password reset is not available client-side anymore
+            // (passwords are bcrypt-hashed server-side). Kept for UI completeness.
+            const success = (typeof Auth.resetPassword === 'function')
+                ? Auth.resetPassword(email, newPassword) : false;
 
             if (success) {
                 const resetCard = document.getElementById('resetCard');

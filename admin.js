@@ -25,15 +25,30 @@ const Admin = {
     // ========================================
 
     async init() {
-        // Check if user is admin
-        const user = Auth.getCurrentUser();
-        if (!user || !this.ADMIN_ROLES.includes(user.memberType)) {
+        // Guard: require a valid session AND admin privileges (server-issued JWT).
+        if (!Auth.isLoggedIn()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        if (!Auth.isAdmin()) {
             window.location.href = 'index.html';
             return;
         }
+        const user = Auth.getCurrentUser();
+
+        // Optional: re-validate against the server in the background; if the
+        // session is stale/revoked, bounce to login.
+        if (Auth.validateSession) {
+            Auth.validateSession().then(u => {
+                if (!u || u.is_admin !== true) {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
 
         // Update nav
-        document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+        document.getElementById('navAvatar').textContent =
+            ((user.firstName || '?')[0] + (user.lastName || '')[0]);
         document.getElementById('navProfile').href = 'profile.html';
 
         // Check for masquerade

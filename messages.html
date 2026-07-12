@@ -398,6 +398,16 @@
     <script>
         let currentConversationUserId = null;
 
+        // Basic HTML escaping for user-generated content rendered into the DOM.
+        function esc(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function initials(first, last) {
+            return ((first || '?')[0] + (last || '')[0] || '?').toUpperCase();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Check authentication
             if (!Auth.isLoggedIn()) {
@@ -410,27 +420,26 @@
             if (user) {
                 document.getElementById('navLogin').style.display = 'none';
                 document.getElementById('navProfile').style.display = 'flex';
-                document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+                document.getElementById('navAvatar').textContent = initials(user.firstName, user.lastName);
                 document.getElementById('navProfile').href = 'profile.html';
             }
 
             // Load conversations
             loadConversations();
 
-            // Check for direct message from URL
+            // Check for direct message from URL (?to=<memberId>)
             const params = new URLSearchParams(window.location.search);
             const toUserId = params.get('to');
             if (toUserId) {
-                openConversation(parseInt(toUserId));
+                openConversation(toUserId);
             }
         });
 
-        function loadConversations() {
-            const user = Auth.getCurrentUser();
-            const conversations = Messages.getConversations(user.id);
+        async function loadConversations() {
+            const conversations = await Messages.inbox();
             const container = document.getElementById('conversationsList');
 
-            if (conversations.length === 0) {
+            if (!conversations || conversations.length === 0) {
                 container.innerHTML = `
                     <div class="empty-conversations">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -444,24 +453,21 @@
             }
 
             container.innerHTML = conversations.map(conv => {
-                const otherUser = Auth.getMemberById(conv.otherUserId);
-                if (!otherUser) return '';
-
                 const isUnread = conv.unreadCount > 0;
-                const preview = conv.lastMessage.senderId == user.id
-                    ? `You: ${conv.lastMessage.content}`
-                    : conv.lastMessage.content;
+                const preview = conv.lastFromMe ? `You: ${conv.lastBody}` : conv.lastBody;
+                const name = `${conv.otherFirstName || ''} ${conv.otherLastName || ''}`.trim() || 'Member';
+                const active = currentConversationUserId === conv.otherId ? 'active' : '';
 
                 return `
-                    <div class="conversation-item ${isUnread ? 'unread' : ''} ${currentConversationUserId == conv.otherUserId ? 'active' : ''}"
-                         onclick="openConversation(${conv.otherUserId})">
-                        <div class="conversation-avatar">${otherUser.firstName[0]}${otherUser.lastName[0]}</div>
+                    <div class="conversation-item ${isUnread ? 'unread' : ''} ${active}"
+                         onclick="openConversation('${esc(conv.otherId)}')">
+                        <div class="conversation-avatar">${esc(initials(conv.otherFirstName, conv.otherLastName))}</div>
                         <div class="conversation-info">
                             <div class="conversation-name">
-                                <span>${otherUser.firstName} ${otherUser.lastName}</span>
-                                <span class="conversation-time">${formatTime(conv.lastMessage.createdAt)}</span>
+                                <span>${esc(name)}</span>
+                                <span class="conversation-time">${formatTime(conv.lastCreatedAt)}</span>
                             </div>
-                            <div class="conversation-preview">${truncateText(preview, 40)}</div>
+                            <div class="conversation-preview">${esc(truncateText(preview || '', 40))}</div>
                         </div>
                         ${isUnread ? '<div class="unread-dot"></div>' : ''}
                     </div>
@@ -469,73 +475,64 @@
             }).join('');
         }
 
-        function openConversation(otherUserId) {
+        async function openConversation(otherUserId) {
             currentConversationUserId = otherUserId;
-            const user = Auth.getCurrentUser();
-            const otherUser = Auth.getMemberById(otherUserId);
 
-            if (!otherUser) {
+            // Fetch the thread (server marks inbound messages read) + counterpart info.
+            const thread = await Messages.thread(otherUserId);
+            const other = thread.other;
+
+            if (!other) {
                 alert('User not found');
                 return;
             }
 
-            // Mark messages as read
-            Messages.markConversationAsRead(user.id, otherUserId);
-
             // Update panel header
-            document.getElementById('panelAvatar').textContent = otherUser.firstName[0] + otherUser.lastName[0];
-            document.getElementById('panelName').textContent = `${otherUser.firstName} ${otherUser.lastName}`;
-            document.getElementById('panelCompany').textContent = otherUser.company;
+            document.getElementById('panelAvatar').textContent = initials(other.firstName, other.lastName);
+            document.getElementById('panelName').textContent = `${other.firstName || ''} ${other.lastName || ''}`.trim();
+            document.getElementById('panelCompany').textContent = other.company || '';
 
-            // Load messages
-            loadMessages(otherUserId);
+            // Render messages
+            renderMessages(thread.messages || []);
 
             // Show active conversation
             document.getElementById('emptyConversation').style.display = 'none';
             document.getElementById('activeConversation').style.display = 'flex';
 
-            // Update list to show active state
+            // Refresh list (unread badges cleared)
             loadConversations();
 
             // Mobile: show panel
             document.getElementById('conversationPanel').classList.add('active');
         }
 
-        function loadMessages(otherUserId) {
-            const user = Auth.getCurrentUser();
-            const messages = Messages.getConversation(user.id, otherUserId);
+        function renderMessages(messages) {
             const container = document.getElementById('messagesThread');
-
-            container.innerHTML = messages.map(msg => {
-                const isSent = msg.senderId == user.id;
-                return `
-                    <div class="message-bubble ${isSent ? 'sent' : 'received'}">
-                        ${msg.content}
-                        <div class="message-time">${formatDateTime(msg.createdAt)}</div>
+            container.innerHTML = messages.map(msg => `
+                    <div class="message-bubble ${msg.from_me ? 'sent' : 'received'}">
+                        ${esc(msg.body)}
+                        <div class="message-time">${formatDateTime(msg.created_at)}</div>
                     </div>
-                `;
-            }).join('');
-
-            // Scroll to bottom
+                `).join('');
             container.scrollTop = container.scrollHeight;
         }
 
-        function sendReply() {
+        async function sendReply() {
             if (!currentConversationUserId) return;
 
             const content = document.getElementById('replyContent').value.trim();
             if (!content) return;
 
-            const user = Auth.getCurrentUser();
-            const result = Messages.send(user.id, currentConversationUserId, content);
+            const result = await Messages.send(currentConversationUserId, content);
 
-            if (result.error) {
+            if (result && result.error) {
                 alert('Error sending message: ' + result.error);
                 return;
             }
 
             document.getElementById('replyContent').value = '';
-            loadMessages(currentConversationUserId);
+            const thread = await Messages.thread(currentConversationUserId);
+            renderMessages(thread.messages || []);
             loadConversations();
         }
 

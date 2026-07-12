@@ -17,10 +17,11 @@
 // ============================================================
 
 const { sql, isConfigured } = require('./lib/neon');
+const { isAdminRequest, getBearerToken, verifyToken } = require('./lib/auth');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-admin-token',
+    'Access-Control-Allow-Headers': 'Content-Type, x-admin-token, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
@@ -36,6 +37,16 @@ const ADMIN_ACTIONS = new Set([
     'applications.get',
     'events.create',
     'event_photos.add'
+]);
+
+// Actions that require ANY logged-in member (a valid member JWT). The current
+// member id is taken from the verified token — NEVER from client-supplied input.
+const MEMBER_ACTIONS = new Set([
+    'messages.send',
+    'messages.thread',
+    'messages.inbox',
+    'messages.unreadCount',
+    'messages.markRead'
 ]);
 
 // ---- action handlers -------------------------------------------------------
@@ -325,6 +336,121 @@ const handlers = {
         const dinner = rows.filter(b => b.ticket_type === 'dinner').length;
         const cruise = rows.filter(b => b.ticket_type === 'cruise' || b.ticket_type === 'full').length;
         return { dinner, cruise, total: rows.length };
+    },
+
+    // ---------- MESSAGES (member-gated; sender = ctx.memberId from the JWT) ----------
+    async 'messages.send'({ toId, body }, ctx) {
+        const from = ctx && ctx.memberId;
+        if (!from) throw new Error('Not authenticated');
+        const to = toId;
+        const text = String(body || '').trim();
+        if (!to) throw new Error('Missing recipient');
+        if (!text) throw new Error('Message body is empty');
+        if (to === from) throw new Error('Cannot message yourself');
+        const rows = await sql`
+            INSERT INTO messages (from_member, to_member, body)
+            VALUES (${from}, ${to}, ${text})
+            RETURNING *`;
+        return rows[0] || null;
+    },
+
+    // Full conversation between the current member and `otherId`, oldest first.
+    // Side effect: marks the current member's inbound messages from otherId read.
+    async 'messages.thread'({ otherId }, ctx) {
+        const me = ctx && ctx.memberId;
+        if (!me) throw new Error('Not authenticated');
+        if (!otherId) return { messages: [], other: null };
+
+        await sql`
+            UPDATE messages SET read = true
+            WHERE to_member = ${me} AND from_member = ${otherId} AND read = false`;
+
+        const rows = await sql`
+            SELECT * FROM messages
+            WHERE (from_member = ${me} AND to_member = ${otherId})
+               OR (from_member = ${otherId} AND to_member = ${me})
+            ORDER BY created_at ASC`;
+
+        const messages = rows.map(r => ({
+            id: r.id,
+            body: r.body,
+            created_at: r.created_at,
+            from_me: r.from_member === me
+        }));
+
+        const others = await sql`
+            SELECT id, first_name, last_name, company FROM members WHERE id = ${otherId} LIMIT 1`;
+        const o = others[0] || null;
+
+        return {
+            messages,
+            other: o ? { id: o.id, firstName: o.first_name, lastName: o.last_name, company: o.company } : null
+        };
+    },
+
+    // Conversation list for the current member: one entry per counterpart, with
+    // the last message + unread count + the counterpart's display info.
+    async 'messages.inbox'(_p, ctx) {
+        const me = ctx && ctx.memberId;
+        if (!me) throw new Error('Not authenticated');
+
+        const rows = await sql`
+            SELECT * FROM messages
+            WHERE from_member = ${me} OR to_member = ${me}
+            ORDER BY created_at DESC`;
+
+        const byOther = new Map();
+        for (const r of rows) {
+            const otherId = r.from_member === me ? r.to_member : r.from_member;
+            if (!byOther.has(otherId)) {
+                byOther.set(otherId, {
+                    otherId,
+                    lastBody: r.body,
+                    lastCreatedAt: r.created_at,
+                    lastFromMe: r.from_member === me,
+                    unreadCount: 0
+                });
+            }
+            // Count unread inbound (to me, from this other, not yet read).
+            if (r.to_member === me && r.from_member === otherId && r.read === false) {
+                byOther.get(otherId).unreadCount++;
+            }
+        }
+
+        const otherIds = Array.from(byOther.keys());
+        if (otherIds.length) {
+            const members = await sql`
+                SELECT id, first_name, last_name, company FROM members WHERE id = ANY(${otherIds})`;
+            const info = new Map(members.map(m => [m.id, m]));
+            for (const conv of byOther.values()) {
+                const m = info.get(conv.otherId);
+                conv.otherFirstName = m ? m.first_name : '';
+                conv.otherLastName = m ? m.last_name : '';
+                conv.otherCompany = m ? m.company : '';
+            }
+        }
+
+        // Most-recent conversation first (map preserves insertion order = DESC).
+        return Array.from(byOther.values());
+    },
+
+    async 'messages.unreadCount'(_p, ctx) {
+        const me = ctx && ctx.memberId;
+        if (!me) throw new Error('Not authenticated');
+        const rows = await sql`
+            SELECT COUNT(*)::int AS n FROM messages
+            WHERE to_member = ${me} AND read = false`;
+        return { count: rows[0] ? rows[0].n : 0 };
+    },
+
+    async 'messages.markRead'({ otherId }, ctx) {
+        const me = ctx && ctx.memberId;
+        if (!me) throw new Error('Not authenticated');
+        if (!otherId) return { ok: true };
+        await sql`
+            UPDATE messages SET read = true
+            WHERE to_member = ${me} AND from_member = ${otherId} AND read = false`;
+        return { ok: true };
     }
 };
 
@@ -352,16 +478,30 @@ exports.handler = async (event) => {
         return json(400, { error: `Unknown action: ${action}` });
     }
 
-    // Auth gate for privileged actions.
+    // Resolve the current member from a JWT (if present). Used both for
+    // member-gated actions and to authorize admin actions via an admin JWT.
+    const token = getBearerToken(event);
+    const claims = token ? verifyToken(token) : null;
+    const ctx = {
+        memberId: claims ? claims.sub : null,
+        isAdmin: claims ? claims.is_admin === true : false,
+        claims
+    };
+
+    // Auth gate for admin-privileged actions: a valid admin JWT OR the shared
+    // ADMIN_TOKEN header (backward-compatible / server-to-server).
     if (ADMIN_ACTIONS.has(action)) {
-        const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
-        if (!ADMIN_TOKEN) return json(500, { error: 'Server not configured (missing ADMIN_TOKEN).' });
-        const provided = event.headers['x-admin-token'] || event.headers['X-Admin-Token'];
-        if (provided !== ADMIN_TOKEN) return json(401, { error: 'Unauthorized' });
+        if (!isAdminRequest(event)) return json(401, { error: 'Unauthorized' });
+    }
+
+    // Auth gate for member actions: any valid member JWT. The sender/member id
+    // is taken from the token (ctx.memberId), never from the request body.
+    if (MEMBER_ACTIONS.has(action)) {
+        if (!ctx.memberId) return json(401, { error: 'Unauthorized' });
     }
 
     try {
-        const data = await handler(payload);
+        const data = await handler(payload, ctx);
         return json(200, { data });
     } catch (e) {
         console.error(`[db-api] action ${action} failed:`, e);
@@ -372,3 +512,4 @@ exports.handler = async (event) => {
 // Exported for unit testing the router without a live DB.
 exports._handlers = handlers;
 exports._ADMIN_ACTIONS = ADMIN_ACTIONS;
+exports._MEMBER_ACTIONS = MEMBER_ACTIONS;

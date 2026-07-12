@@ -28,7 +28,12 @@ const Database = {
     async _call(action, payload = {}) {
         try {
             const headers = { 'Content-Type': 'application/json' };
-            // Attach the admin token for privileged actions if the admin set it.
+            // Attach the logged-in member's JWT so member-gated and admin-gated
+            // (is_admin) actions authorize without any manual token entry.
+            const jwt = (typeof localStorage !== 'undefined')
+                ? localStorage.getItem('fvn_session') : null;
+            if (jwt) headers['Authorization'] = 'Bearer ' + jwt;
+            // Backward-compat fallback: a manually-entered shared admin token.
             const adminToken = (typeof localStorage !== 'undefined')
                 ? localStorage.getItem('fvn_admin_token') : null;
             if (adminToken) headers['x-admin-token'] = adminToken;
@@ -391,6 +396,35 @@ const Database = {
     async getBookingStats(eventId) {
         const { data } = await this._call('bookings.stats', { eventId });
         return data || { dinner: 0, cruise: 0, total: 0 };
+    },
+
+    // ========================================
+    // MESSAGES (server-backed; sender id comes from the JWT, never the client)
+    // ========================================
+
+    async sendMessage(toId, body) {
+        const { data, error } = await this._call('messages.send', { toId, body });
+        if (error) return { error };
+        return { data, error: null };
+    },
+
+    async getInbox() {
+        const { data } = await this._call('messages.inbox', {});
+        return data || [];
+    },
+
+    async getThread(otherId) {
+        const { data } = await this._call('messages.thread', { otherId });
+        return data || { messages: [], other: null };
+    },
+
+    async markMessagesRead(otherId) {
+        return await this._call('messages.markRead', { otherId });
+    },
+
+    async getUnreadCount() {
+        const { data } = await this._call('messages.unreadCount', {});
+        return (data && typeof data.count === 'number') ? data.count : 0;
     }
 };
 

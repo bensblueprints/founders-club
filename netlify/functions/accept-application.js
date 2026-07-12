@@ -6,10 +6,11 @@
 const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 const { createPaymentLink } = require('./lib/airwallex');
 const { sendEmail, acceptedEmail, EVENT_DETAILS } = require('./lib/emailer');
+const { isAdminRequest } = require('./lib/auth');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-admin-token',
+    'Access-Control-Allow-Headers': 'Content-Type, x-admin-token, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
@@ -23,13 +24,8 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
     if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
 
-    // --- Auth ---
-    const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
-    if (!ADMIN_TOKEN) {
-        return json(500, { error: 'Server not configured (missing ADMIN_TOKEN).' });
-    }
-    const provided = event.headers['x-admin-token'] || event.headers['X-Admin-Token'];
-    if (provided !== ADMIN_TOKEN) {
+    // --- Auth: a valid admin JWT OR the shared ADMIN_TOKEN header (backward compat). ---
+    if (!isAdminRequest(event)) {
         return json(401, { error: 'Unauthorized' });
     }
 

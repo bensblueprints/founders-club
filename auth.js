@@ -1,730 +1,243 @@
 // ========================================
-// FOUNDERS VIETNAM - Authentication System
-// Supports both Supabase and localStorage fallback
+// FOUNDERS VIETNAM - Authentication (client)
 // ========================================
+//
+// SECURITY: There are NO hardcoded users or plaintext passwords in this file
+// anymore. Login is SERVER-VERIFIED: Auth.signIn()/login() POST the credentials
+// to /.netlify/functions/auth-login, which checks a bcrypt hash in Neon and
+// returns a signed JWT. The browser only ever holds the opaque JWT + a
+// hash-free public user object.
+//
+// Storage keys:
+//   fvn_session  -> the JWT (Authorization: Bearer <token> for db-api calls)
+//   fvn_user     -> cached public user object (no hash) for synchronous reads
+//
+// The SAME method names the pages already call are preserved:
+//   Auth.login(email,password)  (login.html)         -> boolean
+//   Auth.signIn(email,password)                       -> { error }
+//   Auth.getCurrentUser()  / getCurrentUserSync()     -> user | null   (sync)
+//   Auth.isLoggedIn() / isLoggedInSync()              -> boolean       (sync)
+//   Auth.isAdmin()                                     -> boolean
+//   Auth.logout() / signOut()
+//   Auth.updateProfile(data)                          -> Promise
+//   Auth.getMembers() / getMemberById(id)             -> Neon-backed
 
-// Sample members data for localStorage fallback
-// Member Types: owner, admin, organiser, platinum_founding, founding, member
-const SAMPLE_MEMBERS = [
-    // ===== ADMIN USERS =====
-    {
-        id: 100,
-        email: 'admin@advancedmarketing.co',
-        password: 'PAssword123$$!!',
-        firstName: 'Benjamin',
-        lastName: 'Boyce',
-        company: 'Advanced Marketing',
-        role: 'Founder',
-        industry: 'agency',
-        memberType: 'owner',
-        status: 'active',
-        joinedAt: '2026-01-01T00:00:00.000Z',
-        requirePasswordReset: true,
-        bio: 'Founder of Advanced Marketing and Founders Vietnam.',
-        website: 'https://advancedmarketing.co',
-        whatsapp: '',
-        zalo: '',
-        telegram: '',
-        linkedin: '',
-        twitter: '',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 101,
-        email: 'David@advancedmarketing.co',
-        password: 'PAssword123$$!!',
-        firstName: 'David',
-        lastName: 'Nass',
-        company: 'Advanced Marketing',
-        role: 'Co-Founder',
-        industry: 'agency',
-        memberType: 'admin',
-        status: 'active',
-        joinedAt: '2026-01-01T00:00:00.000Z',
-        requirePasswordReset: true,
-        bio: 'Co-Founder of Advanced Marketing.',
-        website: 'https://advancedmarketing.co',
-        whatsapp: '',
-        zalo: '',
-        telegram: '',
-        linkedin: '',
-        twitter: '',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 102,
-        email: 'saurebh@advancedmarketing.co',
-        password: 'PAssword123$$!!',
-        firstName: 'Saurebh',
-        lastName: '',
-        company: 'Advanced Marketing',
-        role: 'Admin',
-        industry: 'agency',
-        memberType: 'admin',
-        status: 'active',
-        joinedAt: '2026-01-26T00:00:00.000Z',
-        requirePasswordReset: true,
-        bio: '',
-        website: 'https://advancedmarketing.co',
-        whatsapp: '',
-        zalo: '',
-        telegram: '',
-        linkedin: '',
-        twitter: '',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 103,
-        email: 'pratham@advancedmarketing.co',
-        password: 'PAssword123$$!!',
-        firstName: 'Pratham',
-        lastName: '',
-        company: 'Advanced Marketing',
-        role: 'Admin',
-        industry: 'agency',
-        memberType: 'admin',
-        status: 'active',
-        joinedAt: '2026-01-26T00:00:00.000Z',
-        requirePasswordReset: true,
-        bio: '',
-        website: 'https://advancedmarketing.co',
-        whatsapp: '',
-        zalo: '',
-        telegram: '',
-        linkedin: '',
-        twitter: '',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    // ===== DEMO USER =====
-    {
-        id: 1,
-        email: 'demo@foundersvietnam.com',
-        password: 'demo123',
-        firstName: 'Minh',
-        lastName: 'Nguyen',
-        company: 'VietTech Solutions',
-        role: 'Founder & CEO',
-        industry: 'saas',
-        memberType: 'founding',
-        status: 'active',
-        joinedAt: '2026-01-15T00:00:00.000Z',
-        bio: 'Building enterprise SaaS for Southeast Asian businesses. Previously exited a logistics startup.',
-        website: 'https://viettech.vn',
-        whatsapp: '+84 909 123 456',
-        zalo: '+84 909 123 456',
-        telegram: '@minhtech',
-        linkedin: 'https://linkedin.com/in/minhnguyen',
-        twitter: '@minhbuilds',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    // ===== REGULAR MEMBERS =====
-    {
-        id: 2,
-        email: 'sarah@example.com',
-        password: 'password',
-        firstName: 'Sarah',
-        lastName: 'Chen',
-        company: 'GreenLeaf Commerce',
-        role: 'Co-Founder',
-        industry: 'ecommerce',
-        memberType: 'platinum_founding',
-        status: 'active',
-        joinedAt: '2026-01-10T00:00:00.000Z',
-        bio: 'Sustainable e-commerce platform connecting local artisans with global markets. $2M ARR.',
-        website: 'https://greenleafcommerce.com',
-        whatsapp: '+84 912 345 678',
-        zalo: '',
-        telegram: '@sarahchen',
-        linkedin: 'https://linkedin.com/in/sarahchen',
-        twitter: '',
-        wechat: 'sarahchen88',
-        facebook: '',
-        instagram: '@sarahbuilds'
-    },
-    {
-        id: 3,
-        email: 'davidpark@example.com',
-        password: 'password',
-        firstName: 'David',
-        lastName: 'Park',
-        company: 'FinanceFlow',
-        role: 'CEO',
-        industry: 'fintech',
-        memberType: 'platinum_founding',
-        status: 'active',
-        joinedAt: '2026-01-08T00:00:00.000Z',
-        bio: 'Revolutionizing cross-border payments in ASEAN. Ex-Goldman Sachs. Series A funded.',
-        website: 'https://financeflow.io',
-        whatsapp: '+84 903 456 789',
-        zalo: '+84 903 456 789',
-        telegram: '@davidpark',
-        linkedin: 'https://linkedin.com/in/davidpark',
-        twitter: '@davidfintech',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 4,
-        email: 'linh@example.com',
-        password: 'password',
-        firstName: 'Linh',
-        lastName: 'Tran',
-        company: 'MediViet',
-        role: 'Founder',
-        industry: 'healthtech',
-        memberType: 'founding',
-        status: 'active',
-        joinedAt: '2026-01-12T00:00:00.000Z',
-        bio: 'Telemedicine platform serving 500K+ patients across Vietnam. Doctor by training, entrepreneur by passion.',
-        website: 'https://mediviet.vn',
-        whatsapp: '',
-        zalo: '+84 908 765 432',
-        telegram: '',
-        linkedin: 'https://linkedin.com/in/linhtran',
-        twitter: '',
-        wechat: '',
-        facebook: 'https://facebook.com/linhtranmd',
-        instagram: '@drlinh'
-    },
-    {
-        id: 5,
-        email: 'alex@example.com',
-        password: 'password',
-        firstName: 'Alex',
-        lastName: 'Morrison',
-        company: 'BrandForge Agency',
-        role: 'Founder & Creative Director',
-        industry: 'agency',
-        memberType: 'founding',
-        status: 'active',
-        joinedAt: '2026-01-14T00:00:00.000Z',
-        bio: 'Full-service branding agency for tech startups. Worked with 50+ funded companies. Based in HCMC.',
-        website: 'https://brandforge.co',
-        whatsapp: '+84 901 234 567',
-        zalo: '',
-        telegram: '@alexbrandforge',
-        linkedin: 'https://linkedin.com/in/alexmorrison',
-        twitter: '@alexcreates',
-        wechat: '',
-        facebook: '',
-        instagram: '@brandforge'
-    },
-    {
-        id: 6,
-        email: 'anna@example.com',
-        password: 'password',
-        firstName: 'Anna',
-        lastName: 'Volkov',
-        company: 'AIStudio',
-        role: 'CTO & Co-Founder',
-        industry: 'ai',
-        memberType: 'member',
-        status: 'active',
-        joinedAt: '2026-01-18T00:00:00.000Z',
-        bio: 'AI/ML consulting and product development. PhD in Computer Science. Building AI tools for SMBs.',
-        website: 'https://aistudio.tech',
-        whatsapp: '+84 907 654 321',
-        zalo: '',
-        telegram: '@annaai',
-        linkedin: 'https://linkedin.com/in/annavolkov',
-        twitter: '@annavolkovai',
-        wechat: '',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 7,
-        email: 'james@example.com',
-        password: 'password',
-        firstName: 'James',
-        lastName: 'Wilson',
-        company: 'PropTech Vietnam',
-        role: 'Founder',
-        industry: 'real-estate',
-        memberType: 'member',
-        status: 'active',
-        joinedAt: '2026-01-20T00:00:00.000Z',
-        bio: 'Digital platform for real estate investment in Vietnam. Helping foreigners invest safely.',
-        website: 'https://proptechvn.com',
-        whatsapp: '+84 905 111 222',
-        zalo: '+84 905 111 222',
-        telegram: '@jameswilson',
-        linkedin: 'https://linkedin.com/in/jameswilson',
-        twitter: '',
-        wechat: 'jamesvn',
-        facebook: '',
-        instagram: ''
-    },
-    {
-        id: 8,
-        email: 'thu@example.com',
-        password: 'password',
-        firstName: 'Thu',
-        lastName: 'Le',
-        company: 'EduSmart',
-        role: 'CEO',
-        industry: 'edtech',
-        memberType: 'member',
-        status: 'active',
-        joinedAt: '2026-01-22T00:00:00.000Z',
-        bio: 'Online learning platform for K-12 students. 100K+ active users. Expanding to Thailand.',
-        website: 'https://edusmart.vn',
-        whatsapp: '',
-        zalo: '+84 906 333 444',
-        telegram: '@thule',
-        linkedin: 'https://linkedin.com/in/thule',
-        twitter: '',
-        wechat: '',
-        facebook: 'https://facebook.com/thuedusmart',
-        instagram: '@thu.builds'
-    }
-];
-
-// Auth namespace - works with Supabase or localStorage
 const Auth = {
-    STORAGE_KEY: 'founders_vietnam_auth',
-    MEMBERS_KEY: 'founders_vietnam_members',
-    DATA_VERSION: '3.0', // Increment to force refresh localStorage data
+    SESSION_KEY: 'fvn_session',
+    USER_KEY: 'fvn_user',
 
-    // Remote auth is disabled — login is fully client-side (localStorage) now that
-    // the data layer runs on Neon via server-side functions. Kept as a single
-    // switch so every branch below cleanly uses the localStorage path.
-    useSupabase() {
-        return Boolean(window.Database && window.Database.usesRemoteAuth && window.Database.usesRemoteAuth());
-    },
+    LOGIN_ENDPOINT: '/.netlify/functions/auth-login',
+    ME_ENDPOINT: '/.netlify/functions/auth-me',
+    LOGOUT_ENDPOINT: '/.netlify/functions/auth-logout',
 
-    // Initialize
+    ADMIN_ROLES: ['owner', 'admin', 'organiser'],
+
     init() {
-        // Check data version - refresh if outdated
-        const storedVersion = localStorage.getItem('founders_vietnam_version');
-        if (storedVersion !== this.DATA_VERSION) {
-            // Clear old data and refresh with new sample members
-            localStorage.removeItem(this.MEMBERS_KEY);
-            localStorage.setItem('founders_vietnam_version', this.DATA_VERSION);
+        // Nothing to seed anymore — no sample members, no localStorage passwords.
+    },
+
+    // ---- token helpers ------------------------------------------------------
+
+    getToken() {
+        try { return localStorage.getItem(this.SESSION_KEY); } catch (_e) { return null; }
+    },
+
+    // Decode a JWT payload WITHOUT verifying the signature (verification is the
+    // server's job). Used only to read `exp` for a cheap client-side guard.
+    _decodePayload(token) {
+        if (!token || token.split('.').length !== 3) return null;
+        try {
+            let p = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            while (p.length % 4) p += '=';
+            return JSON.parse(atob(p));
+        } catch (_e) {
+            return null;
         }
-
-        // Initialize localStorage with sample members as fallback
-        if (!localStorage.getItem(this.MEMBERS_KEY)) {
-            localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(SAMPLE_MEMBERS));
-        }
     },
 
-    // Get all members
-    async getMembers() {
-        if (this.useSupabase()) {
-            return await Database.getMembers();
-        }
-        this.init();
-        return JSON.parse(localStorage.getItem(this.MEMBERS_KEY) || '[]');
+    _tokenValid(token) {
+        const payload = this._decodePayload(token);
+        if (!payload) return false;
+        if (payload.exp && Math.floor(Date.now() / 1000) >= payload.exp) return false;
+        return true;
     },
 
-    // Sync version for compatibility
-    getMembersSync() {
-        this.init();
-        return JSON.parse(localStorage.getItem(this.MEMBERS_KEY) || '[]');
-    },
+    // ---- session state (synchronous) ---------------------------------------
 
-    // Get member by ID
-    async getMemberById(id) {
-        if (this.useSupabase()) {
-            return await Database.getMemberById(id);
-        }
-        const members = this.getMembersSync();
-        return members.find(m => m.id === id || m.id === parseInt(id));
-    },
-
-    // Sync version
-    getMemberByIdSync(id) {
-        const members = this.getMembersSync();
-        return members.find(m => m.id === id || m.id === parseInt(id));
-    },
-
-    // Check if logged in
-    async isLoggedIn() {
-        if (this.useSupabase()) {
-            return await Database.isLoggedIn();
-        }
-        return localStorage.getItem(this.STORAGE_KEY) !== null;
-    },
-
-    // Sync version
     isLoggedInSync() {
-        if (this.useSupabase()) {
-            // For sync check, use session storage cache
-            return localStorage.getItem(this.STORAGE_KEY) !== null;
-        }
-        return localStorage.getItem(this.STORAGE_KEY) !== null;
-    },
-
-    // Get current user
-    async getCurrentUser() {
-        if (this.useSupabase()) {
-            return await Database.getCurrentUser();
-        }
-        if (!this.isLoggedInSync()) return null;
-        const auth = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
-        const members = this.getMembersSync();
-        return members.find(m => m.id === auth.userId);
-    },
-
-    // Sync version
-    getCurrentUserSync() {
-        if (!this.isLoggedInSync()) return null;
-        const auth = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
-        const members = this.getMembersSync();
-        return members.find(m => m.id === auth.userId);
-    },
-
-    // Login
-    async login(email, password) {
-        // Try Supabase first if configured
-        if (this.useSupabase()) {
-            const result = await Database.signIn(email, password);
-            if (!result.error) {
-                // Cache for sync access
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-                    userId: result.data.user.id,
-                    loggedInAt: new Date().toISOString()
-                }));
-                return true;
-            }
-            // If Supabase fails, fall through to localStorage
-        }
-
-        // localStorage fallback (also used for demo accounts)
-        const members = this.getMembersSync();
-        const user = members.find(m => m.email === email && m.password === password);
-
-        if (user) {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-                userId: user.id,
-                loggedInAt: new Date().toISOString()
-            }));
-            return true;
-        }
-        return false;
-    },
-
-    // Register
-    async register(data) {
-        if (this.useSupabase()) {
-            const result = await Database.signUp(data.email, data.password, data);
-            if (!result.error) {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-                    userId: result.data.user.id,
-                    loggedInAt: new Date().toISOString()
-                }));
-            }
-            return !result.error;
-        }
-
-        // localStorage fallback
-        const members = this.getMembersSync();
-        
-        if (members.find(m => m.email === data.email)) {
+        const token = this.getToken();
+        if (!token || !this._tokenValid(token)) {
+            // Expired/garbage token — clear it.
+            if (token) this._clearSession();
             return false;
         }
-
-        const newUser = {
-            id: Date.now(),
-            email: data.email,
-            password: data.password,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            company: data.company,
-            role: data.role,
-            industry: data.industry,
-            bio: '',
-            website: '',
-            whatsapp: '',
-            zalo: '',
-            telegram: '',
-            linkedin: '',
-            twitter: '',
-            wechat: '',
-            facebook: '',
-            instagram: ''
-        };
-
-        members.push(newUser);
-        localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
-
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-            userId: newUser.id,
-            loggedInAt: new Date().toISOString()
-        }));
-
         return true;
-    },
-
-    // Update profile
-    async updateProfile(data) {
-        if (this.useSupabase()) {
-            const user = await this.getCurrentUser();
-            if (!user) return false;
-            const result = await Database.updateMemberProfile(user.id, data);
-            return !result.error;
-        }
-
-        // localStorage fallback
-        const user = this.getCurrentUserSync();
-        if (!user) return false;
-
-        const members = this.getMembersSync();
-        const index = members.findIndex(m => m.id === user.id);
-        
-        if (index === -1) return false;
-
-        // Handle profilePhoto (can be set to null to remove)
-        if (data.hasOwnProperty('profilePhoto')) {
-            members[index].profilePhoto = data.profilePhoto;
-        }
-
-        members[index] = {
-            ...members[index],
-            firstName: data.firstName || members[index].firstName,
-            lastName: data.lastName || members[index].lastName,
-            bio: data.bio !== undefined ? data.bio : members[index].bio || '',
-            company: data.company || members[index].company,
-            role: data.role || members[index].role,
-            industry: data.industry || members[index].industry,
-            website: data.website !== undefined ? data.website : members[index].website || '',
-            websites: data.websites !== undefined ? data.websites : members[index].websites || [],
-            whatsapp: data.whatsapp !== undefined ? data.whatsapp : members[index].whatsapp || '',
-            zalo: data.zalo !== undefined ? data.zalo : members[index].zalo || '',
-            telegram: data.telegram !== undefined ? data.telegram : members[index].telegram || '',
-            linkedin: data.linkedin !== undefined ? data.linkedin : members[index].linkedin || '',
-            twitter: data.twitter !== undefined ? data.twitter : members[index].twitter || '',
-            wechat: data.wechat !== undefined ? data.wechat : members[index].wechat || '',
-            facebook: data.facebook !== undefined ? data.facebook : members[index].facebook || '',
-            instagram: data.instagram !== undefined ? data.instagram : members[index].instagram || '',
-            profilePhoto: members[index].profilePhoto
-        };
-
-        localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
-        return true;
-    },
-
-    // Reset password
-    resetPassword(email, newPassword) {
-        // For Supabase, this would use supabase.auth.updateUser({ password: newPassword })
-        // For localStorage, we update the member's password directly
-
-        const members = this.getMembersSync();
-        const index = members.findIndex(m => m.email.toLowerCase() === email.toLowerCase());
-
-        if (index === -1) return false;
-
-        members[index].password = newPassword;
-        members[index].requirePasswordReset = false; // Clear the reset flag
-        localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
-
-        return true;
-    },
-
-    // Logout
-    async logout() {
-        if (this.useSupabase()) {
-            await Database.signOut();
-        }
-        localStorage.removeItem(this.STORAGE_KEY);
-    },
-
-    // Synchronous updateProfile for backwards compatibility
-    updateProfileSync(data) {
-        const user = this.getCurrentUserSync();
-        if (!user) return false;
-
-        const members = this.getMembersSync();
-        const index = members.findIndex(m => m.id === user.id);
-
-        if (index === -1) return false;
-
-        // Handle profilePhoto (can be set to null to remove)
-        if (data.hasOwnProperty('profilePhoto')) {
-            members[index].profilePhoto = data.profilePhoto;
-        }
-
-        members[index] = {
-            ...members[index],
-            firstName: data.firstName || members[index].firstName,
-            lastName: data.lastName || members[index].lastName,
-            bio: data.bio !== undefined ? data.bio : members[index].bio || '',
-            company: data.company || members[index].company,
-            role: data.role || members[index].role,
-            industry: data.industry || members[index].industry,
-            website: data.website !== undefined ? data.website : members[index].website || '',
-            websites: data.websites !== undefined ? data.websites : members[index].websites || [],
-            whatsapp: data.whatsapp !== undefined ? data.whatsapp : members[index].whatsapp || '',
-            zalo: data.zalo !== undefined ? data.zalo : members[index].zalo || '',
-            telegram: data.telegram !== undefined ? data.telegram : members[index].telegram || '',
-            linkedin: data.linkedin !== undefined ? data.linkedin : members[index].linkedin || '',
-            twitter: data.twitter !== undefined ? data.twitter : members[index].twitter || '',
-            wechat: data.wechat !== undefined ? data.wechat : members[index].wechat || '',
-            facebook: data.facebook !== undefined ? data.facebook : members[index].facebook || '',
-            instagram: data.instagram !== undefined ? data.instagram : members[index].instagram || '',
-            profilePhoto: members[index].profilePhoto
-        };
-
-        localStorage.setItem(this.MEMBERS_KEY, JSON.stringify(members));
-        console.log('Profile saved to localStorage:', members[index]);
-        return true;
-    },
-
-    // For backwards compatibility
-    getMembers() {
-        return this.getMembersSync();
-    },
-
-    getMemberById(id) {
-        return this.getMemberByIdSync(id);
     },
 
     isLoggedIn() {
         return this.isLoggedInSync();
     },
 
+    getCurrentUserSync() {
+        if (!this.isLoggedInSync()) return null;
+        try {
+            const raw = localStorage.getItem(this.USER_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (_e) {
+            return null;
+        }
+    },
+
     getCurrentUser() {
         return this.getCurrentUserSync();
     },
 
-    updateProfile(data) {
-        return this.updateProfileSync(data);
+    isAdmin() {
+        const user = this.getCurrentUserSync();
+        if (!user) return false;
+        return user.is_admin === true || this.ADMIN_ROLES.includes(user.memberType);
+    },
+
+    _storeSession(token, user) {
+        localStorage.setItem(this.SESSION_KEY, token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    },
+
+    _clearSession() {
+        localStorage.removeItem(this.SESSION_KEY);
+        localStorage.removeItem(this.USER_KEY);
+    },
+
+    // ---- login / logout -----------------------------------------------------
+
+    // Returns { error: null } on success, { error: message } on failure.
+    async signIn(email, password) {
+        try {
+            const res = await fetch(this.LOGIN_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok || !body.token) {
+                return { error: body.error || 'Invalid email or password' };
+            }
+            this._storeSession(body.token, body.user);
+            return { error: null, user: body.user };
+        } catch (e) {
+            return { error: 'Could not reach the login server. Please try again.' };
+        }
+    },
+
+    // Boolean-returning wrapper kept for login.html.
+    async login(email, password) {
+        const { error } = await this.signIn(email, password);
+        return !error;
+    },
+
+    async logout() {
+        this._clearSession();
+        // Best-effort: clear the HttpOnly cookie too. Fire-and-forget.
+        try { await fetch(this.LOGOUT_ENDPOINT, { method: 'POST' }); } catch (_e) { /* ignore */ }
+        // Clear legacy/masquerade keys so nothing stale lingers.
+        try {
+            localStorage.removeItem('founders_vietnam_auth');
+            localStorage.removeItem('founders_vietnam_original_admin');
+        } catch (_e) { /* ignore */ }
+    },
+
+    async signOut() {
+        return this.logout();
+    },
+
+    // Optional server re-validation (page guards may call this). Refreshes the
+    // cached user from Neon; returns the user or null.
+    async validateSession() {
+        const token = this.getToken();
+        if (!token) return null;
+        try {
+            const res = await fetch(this.ME_ENDPOINT, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) { this._clearSession(); return null; }
+            const body = await res.json();
+            if (body.user) localStorage.setItem(this.USER_KEY, JSON.stringify(body.user));
+            return body.user || null;
+        } catch (_e) {
+            // Network hiccup — keep the local session rather than logging out.
+            return this.getCurrentUserSync();
+        }
+    },
+
+    // Registration is by APPLICATION (server-side, with a hashed password), not
+    // self-serve here. Kept so login.html doesn't throw.
+    async register() {
+        return false;
+    },
+
+    // ---- members ------------------------------------------------------------
+    //
+    // These are kept SYNCHRONOUS (many callers use them without await, e.g.
+    // events.html / events-data.js / past-events.js / admin.js). There is no
+    // client-side member cache anymore, so they return empty. Pages that need
+    // the real member list load it asynchronously straight from Neon via
+    // `Database.getMembers()` / `Database.getMemberById()` (see members.js,
+    // messages.html). Provided as a safe no-op to avoid breaking sync callers.
+    getMembers() {
+        return [];
+    },
+
+    getMembersSync() {
+        return [];
+    },
+
+    getMemberById() {
+        return null;
+    },
+
+    getMemberByIdSync() {
+        return null;
+    },
+
+    // ---- profile ------------------------------------------------------------
+
+    async updateProfile(data) {
+        const user = this.getCurrentUserSync();
+        if (!user) return false;
+        if (window.Database && Database.updateMemberProfile) {
+            const { data: updated, error } = await Database.updateMemberProfile(user.id, data);
+            if (!error && updated) {
+                // Refresh the cached user with the new fields.
+                const merged = { ...user, ...data };
+                localStorage.setItem(this.USER_KEY, JSON.stringify(merged));
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 };
 
 // ========================================
-// APPLICATIONS MANAGEMENT
+// APPLICATIONS (admin review helpers — server-backed accept flow lives in
+// netlify/functions/accept-application.js; this localStorage shim is only a
+// read helper for any legacy admin view).
 // ========================================
 const Applications = {
     STORAGE_KEY: 'founders_vietnam_applications',
 
-    // Get all applications
     getApplications() {
         return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
     },
 
-    // Get application by ID
     getApplicationById(id) {
-        const apps = this.getApplications();
-        return apps.find(a => a.id == id);
+        return this.getApplications().find(a => a.id == id);
     },
 
-    // Get applications by status
     getApplicationsByStatus(status) {
-        const apps = this.getApplications();
-        return apps.filter(a => a.status === status);
+        return this.getApplications().filter(a => a.status === status);
     },
 
-    // Update application status
-    updateStatus(id, status, reviewedBy = null) {
-        const apps = this.getApplications();
-        const index = apps.findIndex(a => a.id == id);
-
-        if (index === -1) return false;
-
-        apps[index].status = status;
-        apps[index].reviewedAt = new Date().toISOString();
-        if (reviewedBy) apps[index].reviewedBy = reviewedBy;
-
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(apps));
-        return apps[index];
-    },
-
-    // Accept application and create member account
-    acceptApplication(id, reviewedBy) {
-        const app = this.getApplicationById(id);
-        if (!app) return { error: 'Application not found' };
-
-        // Check if email already exists
-        const members = Auth.getMembersSync();
-        if (members.find(m => m.email.toLowerCase() === app.email.toLowerCase())) {
-            return { error: 'A member with this email already exists' };
-        }
-
-        // Generate temporary password
-        const tempPassword = 'Welcome' + Math.random().toString(36).substring(2, 8) + '!';
-
-        // Create member account
-        const newMember = {
-            id: Date.now(),
-            email: app.email,
-            password: tempPassword,
-            firstName: app.firstName,
-            lastName: app.lastName,
-            company: app.company,
-            role: app.role,
-            industry: app.industry,
-            memberType: app.membership === 'full' ? 'platinum_founding' : 'founding',
-            status: 'active',
-            joinedAt: new Date().toISOString(),
-            requirePasswordReset: true,
-            bio: '',
-            website: '',
-            whatsapp: '',
-            zalo: '',
-            telegram: '',
-            linkedin: app.socialLink || '',
-            twitter: '',
-            wechat: '',
-            facebook: '',
-            instagram: '',
-            // Store application context
-            applicationId: app.id,
-            selectedEvent: app.event,
-            membershipInterest: app.membership
-        };
-
-        members.push(newMember);
-        localStorage.setItem(Auth.MEMBERS_KEY, JSON.stringify(members));
-
-        // Update application status
-        this.updateStatus(id, 'accepted', reviewedBy);
-
-        return {
-            success: true,
-            member: newMember,
-            tempPassword: tempPassword
-        };
-    },
-
-    // Reject application
-    rejectApplication(id, reviewedBy, reason = '', refundInfo = null) {
-        const app = this.getApplicationById(id);
-        if (!app) return { error: 'Application not found' };
-
-        const apps = this.getApplications();
-        const index = apps.findIndex(a => a.id == id);
-
-        apps[index].status = 'rejected';
-        apps[index].reviewedAt = new Date().toISOString();
-        apps[index].reviewedBy = reviewedBy;
-        apps[index].rejectionReason = reason;
-
-        // Store refund info if provided
-        if (refundInfo) {
-            apps[index].refundId = refundInfo.refundId;
-            apps[index].refundStatus = refundInfo.status;
-            apps[index].refundProcessedAt = new Date().toISOString();
-        }
-
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(apps));
-
-        return { success: true, application: apps[index] };
-    },
-
-    // Get counts by status
     getCounts() {
         const apps = this.getApplications();
         return {
@@ -737,143 +250,42 @@ const Applications = {
 };
 
 // ========================================
-// MESSAGING SYSTEM
+// MESSAGING (real, server-backed via Neon — the sender identity is taken from
+// the JWT server-side; the browser cannot spoof `from`). All methods are async.
 // ========================================
-
 const Messages = {
-    STORAGE_KEY: 'founders_vietnam_messages',
-
-    // Get all messages
-    getAll() {
-        return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    async send(toId, body) {
+        if (!(window.Database && Database.sendMessage)) return { error: 'Messaging unavailable' };
+        return await Database.sendMessage(toId, body);
     },
 
-    // Send a message
-    send(senderId, recipientId, content) {
-        if (!senderId || !recipientId || !content) {
-            return { error: 'Missing required fields' };
-        }
-
-        const messages = this.getAll();
-        const message = {
-            id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-            senderId: senderId,
-            recipientId: recipientId,
-            content: content,
-            createdAt: new Date().toISOString(),
-            read: false
-        };
-
-        messages.push(message);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
-
-        return { success: true, message };
+    async inbox() {
+        if (!(window.Database && Database.getInbox)) return [];
+        return await Database.getInbox();
     },
 
-    // Get inbox for a user
-    getInbox(userId) {
-        const messages = this.getAll();
-        return messages
-            .filter(m => m.recipientId == userId)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    async thread(otherId) {
+        if (!(window.Database && Database.getThread)) return { messages: [], other: null };
+        return await Database.getThread(otherId);
     },
 
-    // Get sent messages for a user
-    getSent(userId) {
-        const messages = this.getAll();
-        return messages
-            .filter(m => m.senderId == userId)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    async markRead(otherId) {
+        if (!(window.Database && Database.markMessagesRead)) return;
+        return await Database.markMessagesRead(otherId);
     },
 
-    // Get conversation between two users
-    getConversation(userId1, userId2) {
-        const messages = this.getAll();
-        return messages
-            .filter(m =>
-                (m.senderId == userId1 && m.recipientId == userId2) ||
-                (m.senderId == userId2 && m.recipientId == userId1)
-            )
-            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    },
-
-    // Get unique conversations for a user
-    getConversations(userId) {
-        const messages = this.getAll();
-        const conversationMap = new Map();
-
-        messages.forEach(m => {
-            if (m.senderId == userId || m.recipientId == userId) {
-                const otherUserId = m.senderId == userId ? m.recipientId : m.senderId;
-                const existing = conversationMap.get(otherUserId);
-
-                if (!existing || new Date(m.createdAt) > new Date(existing.lastMessage.createdAt)) {
-                    const unreadCount = messages.filter(msg =>
-                        msg.senderId == otherUserId &&
-                        msg.recipientId == userId &&
-                        !msg.read
-                    ).length;
-
-                    conversationMap.set(otherUserId, {
-                        otherUserId,
-                        lastMessage: m,
-                        unreadCount
-                    });
-                }
-            }
-        });
-
-        return Array.from(conversationMap.values())
-            .sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt));
-    },
-
-    // Mark message as read
-    markAsRead(messageId) {
-        const messages = this.getAll();
-        const index = messages.findIndex(m => m.id === messageId);
-
-        if (index !== -1) {
-            messages[index].read = true;
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
-        }
-    },
-
-    // Mark all messages from a user as read
-    markConversationAsRead(userId, fromUserId) {
-        const messages = this.getAll();
-        let updated = false;
-
-        messages.forEach(m => {
-            if (m.recipientId == userId && m.senderId == fromUserId && !m.read) {
-                m.read = true;
-                updated = true;
-            }
-        });
-
-        if (updated) {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
-        }
-    },
-
-    // Get unread count for a user
-    getUnreadCount(userId) {
-        const messages = this.getAll();
-        return messages.filter(m => m.recipientId == userId && !m.read).length;
-    },
-
-    // Delete a message
-    delete(messageId, userId) {
-        const messages = this.getAll();
-        const index = messages.findIndex(m => m.id === messageId && (m.senderId == userId || m.recipientId == userId));
-
-        if (index !== -1) {
-            messages.splice(index, 1);
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messages));
-            return { success: true };
-        }
-        return { error: 'Message not found' };
+    async getUnreadCount() {
+        if (!(window.Database && Database.getUnreadCount)) return 0;
+        return await Database.getUnreadCount();
     }
 };
 
 // Initialize on load
 Auth.init();
+
+// Expose globally (pages reference these as globals).
+if (typeof window !== 'undefined') {
+    window.Auth = Auth;
+    window.Applications = Applications;
+    window.Messages = Messages;
+}

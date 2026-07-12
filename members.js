@@ -67,11 +67,46 @@ function initDirectory() {
     });
 }
 
-function loadMembers() {
-    const members = Auth.getMembers();
+// Cache of members loaded from Neon (normalized to the shape the UI expects).
+let loadedMembers = [];
+
+// Normalize a Neon members row (snake_case) into the camelCase shape the
+// directory UI reads.
+function normalizeMember(m) {
+    return {
+        id: m.id,
+        firstName: m.first_name || m.firstName || '',
+        lastName: m.last_name || m.lastName || '',
+        role: m.role || '',
+        company: m.company || '',
+        industry: m.industry || '',
+        bio: m.bio || '',
+        website: m.website || '',
+        whatsapp: m.whatsapp || '',
+        zalo: m.zalo || '',
+        telegram: m.telegram || '',
+        linkedin: m.linkedin || '',
+        twitter: m.twitter || '',
+        wechat: m.wechat || '',
+        facebook: m.facebook || '',
+        instagram: m.instagram || ''
+    };
+}
+
+async function loadMembers() {
     const currentUser = Auth.getCurrentUser();
-    
-    renderMembers(members.filter(m => m.id !== currentUser?.id));
+    let members = [];
+    try {
+        // Neon-backed: db-api members.list returns only APPROVED members.
+        members = (window.Database && Database.getMembers) ? await Database.getMembers() : [];
+    } catch (e) {
+        members = [];
+    }
+    loadedMembers = (members || [])
+        .map(normalizeMember)
+        .filter(m => !currentUser || m.id !== currentUser.id);
+
+    renderMembers(loadedMembers);
 }
 
 function renderMembers(members) {
@@ -104,7 +139,7 @@ function renderMembers(members) {
                 ${member.zalo ? `<a href="#" class="quick-link zalo" title="Zalo: ${member.zalo}"><span style="font-size:10px;font-weight:bold;">Zalo</span></a>` : ''}
                 ${member.linkedin ? `<a href="${member.linkedin}" target="_blank" class="quick-link linkedin" title="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>` : ''}
             </div>
-            <button class="view-profile-btn" onclick="openMemberModal(${member.id})">View Full Profile</button>
+            <button class="view-profile-btn" onclick="openMemberModal('${member.id}')">View Full Profile</button>
         </div>
     `).join('');
 }
@@ -112,10 +147,10 @@ function renderMembers(members) {
 function filterMembers() {
     const searchTerm = document.getElementById('memberSearch').value.toLowerCase();
     const activeFilter = document.querySelector('.filter-tag.active').dataset.filter;
-    const members = Auth.getMembers();
-    const currentUser = Auth.getCurrentUser();
 
-    let filtered = members.filter(m => m.id !== currentUser?.id);
+    // Filter over the members already loaded from Neon (loadedMembers already
+    // excludes the current user).
+    let filtered = loadedMembers.slice();
 
     // Apply industry filter
     if (activeFilter !== 'all') {
@@ -137,7 +172,8 @@ function filterMembers() {
 }
 
 function openMemberModal(memberId) {
-    const member = Auth.getMemberById(memberId);
+    // Look up from the cache loaded from Neon (ids are UUID strings).
+    const member = loadedMembers.find(m => m.id === memberId);
     if (!member) return;
 
     const modal = document.getElementById('memberModal');
@@ -256,7 +292,7 @@ function openMessageModal() {
     if (!memberId) return;
 
     currentMessageRecipient = {
-        id: parseInt(memberId),
+        id: memberId, // UUID string
         name: memberName
     };
 
@@ -270,7 +306,7 @@ function closeMessageModal() {
     currentMessageRecipient = null;
 }
 
-function sendMessage() {
+async function sendMessage() {
     if (!currentMessageRecipient) return;
 
     const content = document.getElementById('messageContent').value.trim();
@@ -279,15 +315,16 @@ function sendMessage() {
         return;
     }
 
-    const currentUser = Auth.getCurrentUser();
-    if (!currentUser) {
+    if (!Auth.isLoggedIn()) {
         alert('You must be logged in to send messages.');
         return;
     }
 
-    const result = Messages.send(currentUser.id, currentMessageRecipient.id, content);
+    // Sender identity is derived server-side from the JWT; we only pass the
+    // recipient + body.
+    const result = await Messages.send(currentMessageRecipient.id, content);
 
-    if (result.error) {
+    if (result && result.error) {
         alert('Error sending message: ' + result.error);
         return;
     }
@@ -297,11 +334,10 @@ function sendMessage() {
     closeModal();
 }
 
-function updateMessageBadge() {
-    const currentUser = Auth.getCurrentUser();
-    if (!currentUser) return;
+async function updateMessageBadge() {
+    if (!Auth.isLoggedIn()) return;
 
-    const unreadCount = Messages.getUnreadCount(currentUser.id);
+    const unreadCount = await Messages.getUnreadCount();
     const badge = document.getElementById('messageBadge');
     const navMessages = document.getElementById('navMessages');
 
