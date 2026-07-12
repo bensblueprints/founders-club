@@ -27,9 +27,9 @@ const { sql, isConfigured } = require(path.join(__dirname, '..', 'netlify', 'fun
 // Accounts to seed. Password comes from `envVar` if present, else generated.
 const ADMINS = [
     { email: 'admin@advancedmarketing.co',    firstName: 'Benjamin', lastName: 'Boyce', company: 'Advanced Marketing', role: 'Founder',    memberType: 'owner', envVar: 'SEED_PW_BEN' },
-    { email: 'david@advancedmarketing.co',    firstName: 'David',    lastName: 'Nass',  company: 'Advanced Marketing', role: 'Co-Founder', memberType: 'admin', envVar: 'SEED_PW_DAVID' },
-    { email: 'saurebh@advancedmarketing.co',  firstName: 'Saurebh',  lastName: '',      company: 'Advanced Marketing', role: 'Admin',      memberType: 'admin', envVar: 'SEED_PW_SAUREBH' },
-    { email: 'pratham@advancedmarketing.co',  firstName: 'Pratham',  lastName: '',      company: 'Advanced Marketing', role: 'Admin',      memberType: 'admin', envVar: 'SEED_PW_PRATHAM' }
+    
+    
+    
 ];
 
 // Sample APPROVED members (clearly fake) so the member directory has content.
