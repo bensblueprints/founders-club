@@ -45,21 +45,21 @@
 }
 
 .event-card:hover {
-    border-color: rgba(201, 162, 39, 0.3);
+    border-color: rgba(138, 154, 91, 0.3);
     transform: translateY(-4px);
 }
 
 .event-card.platinum-event {
-    border-color: rgba(201, 162, 39, 0.4);
-    background: linear-gradient(135deg, rgba(201, 162, 39, 0.05), transparent);
+    border-color: rgba(138, 154, 91, 0.4);
+    background: linear-gradient(135deg, rgba(138, 154, 91, 0.05), transparent);
 }
 
 .platinum-badge {
     position: absolute;
     top: -1px;
     right: 20px;
-    background: linear-gradient(135deg, #c9a227, #e5c464);
-    color: #1a1a1a;
+    background: linear-gradient(135deg, var(--moss), var(--moss));
+    color: #0C231B;
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -80,7 +80,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-accent);
-    background: rgba(201, 162, 39, 0.15);
+    background: rgba(138, 154, 91, 0.15);
     padding: 4px 10px;
     border-radius: 4px;
 }
@@ -143,8 +143,8 @@
 }
 
 .book-btn {
-    background: linear-gradient(135deg, #c9a227, #e5c464);
-    color: #1a1a1a;
+    background: linear-gradient(135deg, var(--moss), var(--moss));
+    color: #0C231B;
     border: none;
     padding: 10px 24px;
     border-radius: 6px;
@@ -156,7 +156,7 @@
 
 .book-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+    box-shadow: 0 4px 12px rgba(138, 154, 91, 0.3);
 }
 
 .book-btn:disabled {
@@ -216,12 +216,12 @@
 }
 
 .ticket-option:hover {
-    border-color: rgba(201, 162, 39, 0.3);
+    border-color: rgba(138, 154, 91, 0.3);
 }
 
 .ticket-option.selected {
     border-color: var(--color-accent);
-    background: rgba(201, 162, 39, 0.1);
+    background: rgba(138, 154, 91, 0.1);
 }
 
 .ticket-header {
@@ -266,7 +266,7 @@
 }
 
 .ticket-option.selected .ticket-perks li {
-    background: rgba(201, 162, 39, 0.2);
+    background: rgba(138, 154, 91, 0.2);
     color: var(--color-accent);
 }
 
@@ -387,7 +387,7 @@
 
 .past-events-header {
     padding: 4rem;
-    background: linear-gradient(135deg, var(--color-bg-elevated), rgba(201, 169, 98, 0.05));
+    background: linear-gradient(135deg, var(--color-bg-elevated), rgba(138, 154, 91, 0.05));
     border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -425,7 +425,7 @@
 }
 
 .event-hero {
-    background: linear-gradient(135deg, var(--color-bg-card), rgba(201, 169, 98, 0.08));
+    background: linear-gradient(135deg, var(--color-bg-card), rgba(138, 154, 91, 0.08));
     border: 1px solid var(--color-accent-dark);
     padding: 3rem;
     margin-bottom: 3rem;
@@ -750,7 +750,7 @@
 }
 
 .past-event-card.active {
-    background: linear-gradient(135deg, var(--color-bg-card), rgba(201, 169, 98, 0.08));
+    background: linear-gradient(135deg, var(--color-bg-card), rgba(138, 154, 91, 0.08));
 }
 
 .past-event-date {
@@ -795,7 +795,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-accent);
-    background: rgba(201, 169, 98, 0.15);
+    background: rgba(138, 154, 91, 0.15);
     padding: 0.35rem 0.75rem;
 }
 

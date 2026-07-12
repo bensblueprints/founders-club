@@ -3,33 +3,48 @@
    ======================================== */
 
 :root {
-    /* Color Palette - Dark Luxury */
-    --color-bg: #0a0a0a;
-    --color-bg-elevated: #0f0f0f;
-    --color-bg-card: #141414;
-    --color-surface: #1a1a1a;
-    --color-border: #2a2a2a;
-    --color-border-subtle: #1c1c1c;
-    
-    /* Gold Accent Spectrum */
-    --color-accent: #c9a962;
-    --color-accent-light: #e4d4a5;
-    --color-accent-dark: #8b7435;
-    --color-accent-glow: rgba(201, 169, 98, 0.15);
-    
+    /* ===== FoundersVN Brand Palette (source of truth: landing.html) ===== */
+    --pine: #071A14;          /* main bg */
+    --pine-deep: #04120D;     /* darker band */
+    --pine-raise: #0C231B;    /* raised surface / cards */
+    --bone: #F2F0E8;          /* text on dark */
+    --moss: #8A9A5B;          /* labels / accent */
+    --mist: #A9BBB6;          /* secondary text + borders */
+    --coral: #E7644A;         /* CTA / primary buttons only */
+    --coral-press: #D5573F;   /* button active */
+    --graphite: #202522;
+    --border: rgba(169, 187, 182, .16);
+    --radius: 8px;
+    --display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* ===== Legacy tokens remapped onto the brand palette (reskin) ===== */
+    --color-bg: var(--pine);
+    --color-bg-elevated: var(--pine-deep);
+    --color-bg-card: var(--pine-raise);
+    --color-surface: var(--pine-raise);
+    --color-border: rgba(169, 187, 182, .16);
+    --color-border-subtle: rgba(169, 187, 182, .10);
+
+    /* Accent spectrum -> Moss (general accent/labels); coral reserved for CTAs */
+    --color-accent: var(--moss);
+    --color-accent-light: #9DAE6B;
+    --color-accent-dark: #6E7D45;
+    --color-accent-glow: rgba(231, 100, 74, 0.22);
+
     /* Text Colors */
-    --color-text: #f5f5f5;
-    --color-text-muted: #888888;
-    --color-text-subtle: #555555;
-    
+    --color-text: var(--bone);
+    --color-text-muted: var(--mist);
+    --color-text-subtle: rgba(169, 187, 182, .55);
+
     /* Status Colors */
-    --color-success: #4ade80;
+    --color-success: #8A9A5B;
     --color-warning: #fbbf24;
-    
+
     /* Typography */
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-serif: 'Cormorant Garamond', serif;
-    --font-body: 'Outfit', sans-serif;
+    --font-display: var(--display);
+    --font-serif: var(--display);
+    --font-body: var(--body);
     
     /* Spacing */
     --space-xs: 0.5rem;
@@ -86,8 +101,19 @@ body {
 
 /* Typography */
 h1, h2, h3, h4 {
-    font-weight: 400;
+    font-family: var(--display);
+    font-weight: 600;
     line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--bone);
+}
+
+/* Brand logo in portal headers (matches landing.html) */
+.brand-logo {
+    height: 23px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    opacity: .96;
 }
 
 a {
@@ -108,8 +134,9 @@ a {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 4rem;
-    background: linear-gradient(to bottom, rgba(10, 10, 10, 0.98), rgba(10, 10, 10, 0.9));
-    backdrop-filter: blur(20px);
+    background: rgba(6, 18, 13, 0.82);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(14px);
     transition: var(--transition-base);
 }
 
@@ -178,16 +205,20 @@ a {
 }
 
 .nav-cta {
-    background: transparent;
-    border: 1px solid var(--color-accent);
-    color: var(--color-accent) !important;
+    background: var(--coral);
+    border: 1px solid var(--coral);
+    color: var(--bone) !important;
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-weight: 600;
     padding: 0.75rem 1.5rem;
     transition: var(--transition-base);
 }
 
 .nav-cta:hover {
-    background: var(--color-accent);
-    color: var(--color-bg) !important;
+    background: var(--coral-press);
+    border-color: var(--coral-press);
+    color: var(--bone) !important;
 }
 
 .nav-profile {
@@ -1942,8 +1973,8 @@ section {
 }
 
 .modal .modal-content {
-    background: #1a1a1a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--pine-raise);
+    border: 1px solid var(--border);
     border-radius: 16px;
     width: 100%;
     max-width: 700px;
@@ -1956,18 +1987,18 @@ section {
     justify-content: space-between;
     align-items: center;
     padding: 20px 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
-    background: #1a1a1a;
+    background: var(--pine-raise);
     z-index: 10;
 }
 
 .modal .modal-header h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.8rem;
-    font-weight: 500;
-    color: #c9a227;
+    font-family: var(--display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--bone);
     margin: 0;
 }
 
@@ -2532,4 +2563,42 @@ section {
     .gallery-cta {
         padding: 3rem 1.5rem 5rem;
     }
+}
+
+/* ========================================
+   BRAND CTA OVERRIDES — coral primary buttons
+   (moss is the general accent; coral is reserved for CTAs)
+   ======================================== */
+.hero-cta,
+.submit-btn,
+.pricing-cta,
+.event-reserve-btn,
+.modal-cta,
+.gallery-btn {
+    background: var(--coral);
+    border: 1px solid var(--coral);
+    color: var(--bone);
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-weight: 600;
+}
+
+.hero-cta:hover,
+.submit-btn:hover,
+.pricing-cta:hover,
+.event-reserve-btn:hover,
+.modal-cta:hover,
+.gallery-btn:hover {
+    background: var(--coral-press);
+    border-color: var(--coral-press);
+    color: var(--bone);
+    box-shadow: 0 10px 40px var(--color-accent-glow);
+}
+
+.gallery-btn::before { display: none; }
+
+.pricing-card-featured::before {
+    background: var(--coral);
+    color: var(--bone);
+    border-radius: var(--radius) 0 var(--radius) 0;
 }

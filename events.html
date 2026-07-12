@@ -6,7 +6,7 @@
     <title>Events | Founders Vietnam</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
     <link rel="stylesheet" href="events.css">
@@ -17,8 +17,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <a href="index.html" class="nav-logo">
-            <span class="logo-text">FOUNDERS</span>
-            <span class="logo-accent">VIETNAM</span>
+            <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
             <a href="index.html">Home</a>
@@ -99,19 +98,19 @@
             </div>
             <div class="payment-content" style="padding: 24px;">
                 <!-- Order Summary -->
-                <div style="background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <div style="background: rgba(138, 154, 91, 0.08); border: 1px solid rgba(138, 154, 91, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <div>
                             <p id="paymentEventName" style="color: white; font-weight: 500; margin: 0;">Event</p>
                             <p id="paymentTicketName" style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 4px 0 0 0;">Ticket Type</p>
                         </div>
-                        <span id="paymentAmount" style="color: #c9a227; font-size: 1.5rem; font-weight: 600;">$0</span>
+                        <span id="paymentAmount" style="color: var(--moss); font-size: 1.5rem; font-weight: 600;">$0</span>
                     </div>
                 </div>
 
                 <!-- Payment Loading -->
                 <div id="evtPaymentLoading" style="text-align: center; padding: 40px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; color: #c9a227;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; color: var(--moss);">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70"/>
                     </svg>
                     <p style="color: rgba(255,255,255,0.7); margin-top: 16px;">Initializing secure payment...</p>
@@ -125,8 +124,8 @@
                 <!-- Fallback Card Payment Form (for demo mode only) -->
                 <div id="evtFallbackForm" style="display: none;">
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
-                        <h4 style="color: white; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2">
+                        <h4 style="color: white; font-family: var(--body); font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--moss)" stroke-width="2">
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
                                 <line x1="1" y1="10" x2="23" y2="10"/>
                             </svg>
@@ -156,7 +155,7 @@
                     </div>
 
                     <!-- Pay Button for fallback -->
-                    <button type="button" id="confirmPayment" onclick="confirmPayment()" style="width: 100%; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <button type="button" id="confirmPayment" onclick="confirmPayment()" style="width: 100%; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, var(--moss), var(--moss)); color: #0C231B; font-family: var(--body); font-size: 1.1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         <span id="paymentBtnText">Pay Now</span>
                         <span id="paymentSpinner" style="display: none;">
                             <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
@@ -177,7 +176,7 @@
                 </div>
 
                 <!-- Cancel Link -->
-                <button type="button" onclick="closePaymentModal()" style="width: 100%; margin-top: 12px; padding: 12px; background: transparent; color: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">
+                <button type="button" onclick="closePaymentModal()" style="width: 100%; margin-top: 12px; padding: 12px; background: transparent; color: rgba(255,255,255,0.6); font-family: var(--body); font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">
                     Cancel
                 </button>
             </div>
@@ -263,21 +262,21 @@
                 };
 
                 const speakersHtml = event.speakers && event.speakers.length > 0 ? `
-                    <div class="event-speakers" style="margin: 15px 0; padding: 15px; background: rgba(201, 162, 39, 0.08); border-radius: 8px; border: 1px solid rgba(201, 162, 39, 0.2);">
-                        <h4 style="color: #c9a227; font-size: 0.85rem; font-family: 'Outfit', sans-serif; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Featured Speakers</h4>
+                    <div class="event-speakers" style="margin: 15px 0; padding: 15px; background: rgba(138, 154, 91, 0.08); border-radius: 8px; border: 1px solid rgba(138, 154, 91, 0.2);">
+                        <h4 style="color: var(--moss); font-size: 0.85rem; font-family: var(--body); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Featured Speakers</h4>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             ${event.speakers.map(speaker => {
                                 const photo = speaker.pullProfilePhoto ? getSpeakerPhoto(speaker.name) : null;
                                 return `
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     ${photo ?
-                                        `<img src="${photo}" alt="${speaker.name}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 162, 39, 0.5);">` :
-                                        `<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #c9a227, #b8922a); display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-weight: 600; font-size: 0.85rem;">${getSpeakerInitials(speaker.name)}</div>`
+                                        `<img src="${photo}" alt="${speaker.name}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(138, 154, 91, 0.5);">` :
+                                        `<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--moss), #b8922a); display: flex; align-items: center; justify-content: center; color: #0C231B; font-weight: 600; font-size: 0.85rem;">${getSpeakerInitials(speaker.name)}</div>`
                                     }
                                     <div style="flex: 1;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <span style="color: white; font-weight: 500;">${speaker.name}</span>
-                                            ${speaker.badge ? `<span style="background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${speaker.badge}</span>` : ''}
+                                            ${speaker.badge ? `<span style="background: linear-gradient(135deg, var(--moss), var(--moss)); color: #0C231B; font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${speaker.badge}</span>` : ''}
                                         </div>
                                         <span style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">${speaker.topic}</span>
                                     </div>
@@ -290,7 +289,7 @@
                 const capacityHtml = `
                     <div class="event-capacity" style="display: flex; gap: 15px; margin: 10px 0; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1);">
                         <div style="text-align: center; flex: 1;">
-                            <div style="color: #c9a227; font-size: 1.3rem; font-weight: 600;">${event.dinnerSpotsRemaining || event.spotsRemaining}/${event.dinnerCapacity || event.capacity}</div>
+                            <div style="color: var(--moss); font-size: 1.3rem; font-weight: 600;">${event.dinnerSpotsRemaining || event.spotsRemaining}/${event.dinnerCapacity || event.capacity}</div>
                             <div style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Dinner Tickets</div>
                         </div>
                     </div>

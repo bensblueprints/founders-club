@@ -56,12 +56,15 @@
 }
 
 .btn-primary {
-    background: var(--color-accent);
-    color: var(--color-bg);
+    background: var(--coral);
+    color: var(--bone);
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: var(--color-accent-light);
+    background: var(--coral-press);
 }
 
 .btn-secondary {
@@ -143,8 +146,8 @@
 .demo-credentials {
     margin-top: 1.5rem;
     padding: 1rem;
-    background: rgba(201, 169, 98, 0.1);
-    border: 1px solid rgba(201, 169, 98, 0.2);
+    background: rgba(138, 154, 91, 0.12);
+    border: 1px solid rgba(138, 154, 91, 0.28);
     text-align: center;
     font-size: 0.85rem;
 }
@@ -351,7 +354,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-accent);
-    background: rgba(201, 169, 98, 0.1);
+    background: rgba(138, 154, 91, 0.12);
     padding: 0.35rem 0.75rem;
     margin-bottom: 1rem;
 }
@@ -525,7 +528,7 @@
     display: flex;
     gap: 1.5rem;
     padding: 2rem;
-    background: linear-gradient(135deg, var(--color-bg-card), rgba(201, 169, 98, 0.08));
+    background: linear-gradient(135deg, var(--color-bg-card), rgba(138, 154, 91, 0.10));
     border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -973,20 +976,21 @@
     justify-content: center;
     gap: 8px;
     padding: 14px 24px;
-    background: linear-gradient(135deg, #c9a227, #b8922a);
-    color: #1a1a1a;
+    background: var(--coral);
+    color: var(--bone);
     border: none;
-    border-radius: 8px;
-    font-family: 'Outfit', sans-serif;
+    border-radius: var(--radius);
+    font-family: var(--display);
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .send-message-btn:hover {
+    background: var(--coral-press);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+    box-shadow: 0 4px 12px var(--color-accent-glow);
 }
 
 .send-message-btn svg {
@@ -1015,8 +1019,8 @@
 }
 
 .message-modal {
-    background: #1a1a1a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--pine-raise);
+    border: 1px solid var(--border);
     border-radius: 16px;
     width: 100%;
     max-width: 500px;
@@ -1039,7 +1043,7 @@
 }
 
 .message-modal-header h3 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 1.2rem;
     font-weight: 500;
 }
@@ -1058,8 +1062,8 @@
 }
 
 .recipient-name {
-    font-weight: 500;
-    color: #c9a227;
+    font-weight: 600;
+    color: var(--moss);
 }
 
 .message-compose {
@@ -1073,7 +1077,7 @@
     border-radius: 8px;
     padding: 16px;
     color: #fff;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 1rem;
     resize: vertical;
     min-height: 120px;
@@ -1081,7 +1085,7 @@
 
 .message-compose textarea:focus {
     outline: none;
-    border-color: rgba(201, 162, 39, 0.5);
+    border-color: var(--moss);
 }
 
 .message-compose textarea::placeholder {

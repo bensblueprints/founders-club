@@ -6,7 +6,7 @@
     <title>Login | Founders Vietnam</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
     <style>
@@ -15,9 +15,9 @@
             text-align: right;
             margin-top: 8px;
             font-size: 0.85rem;
-            color: #c9a227;
+            color: var(--moss);
             text-decoration: none;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
         }
         .forgot-password-link:hover {
             text-decoration: underline;
@@ -29,7 +29,7 @@
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
             font-size: 0.95rem;
             text-align: center;
         }
@@ -40,7 +40,7 @@
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
             font-size: 0.95rem;
             text-align: center;
         }
@@ -52,8 +52,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <a href="index.html" class="nav-logo">
-            <span class="logo-text">FOUNDERS</span>
-            <span class="logo-accent">VIETNAM</span>
+            <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
             <a href="index.html#about">About</a>
@@ -69,8 +68,7 @@
             <div class="auth-card" id="loginCard">
                 <div class="auth-header">
                     <div class="auth-logo" style="margin-bottom: 20px;">
-                        <span class="logo-text" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px;">FOUNDERS</span>
-                        <span class="logo-accent" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; color: #c9a227;">VIETNAM</span>
+                        <img src="assets/brand/founders-vn-logo.svg" alt="FoundersVN" style="height: 34px; width: auto; filter: brightness(0) invert(1); opacity: .96;">
                     </div>
                     <h1>Welcome Back</h1>
                     <p>Login to access the member directory</p>

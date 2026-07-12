@@ -6,7 +6,7 @@
     <title>My Profile | Founders Vietnam</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
     <style>
@@ -37,7 +37,7 @@
         }
         .avatar-overlay span {
             font-size: 0.8rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
         }
         .remove-photo-btn {
             background: transparent;
@@ -47,7 +47,7 @@
             border-radius: 4px;
             font-size: 0.85rem;
             cursor: pointer;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
             margin-top: 10px;
             transition: all 0.2s;
         }
@@ -88,12 +88,12 @@
         }
         .add-website-btn {
             background: transparent;
-            border: 1px dashed rgba(201, 162, 39, 0.4);
-            color: #c9a227;
+            border: 1px dashed rgba(138, 154, 91, 0.4);
+            color: var(--moss);
             padding: 10px 16px;
             border-radius: 6px;
             cursor: pointer;
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--body);
             font-size: 0.9rem;
             display: flex;
             align-items: center;
@@ -102,8 +102,8 @@
             transition: all 0.2s;
         }
         .add-website-btn:hover {
-            background: rgba(201, 162, 39, 0.1);
-            border-color: #c9a227;
+            background: rgba(138, 154, 91, 0.1);
+            border-color: var(--moss);
         }
         .save-website-btn {
             background: transparent;
@@ -136,8 +136,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <a href="index.html" class="nav-logo">
-            <span class="logo-text">FOUNDERS</span>
-            <span class="logo-accent">VIETNAM</span>
+            <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
             <a href="index.html#about">About</a>
@@ -827,7 +826,7 @@
             if (isPlatinum) {
                 badgeHtml = `
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                        <span style="background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; padding: 8px 20px; border-radius: 20px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 500;">
+                        <span style="background: linear-gradient(135deg, var(--moss), var(--moss)); color: #0C231B; padding: 8px 20px; border-radius: 20px; font-family: var(--body); font-size: 0.9rem; font-weight: 500;">
                             ⭐ Platinum Founding Member
                         </span>
                     </div>
@@ -836,17 +835,17 @@
             } else {
                 badgeHtml = `
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                        <span style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 20px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.2);">
+                        <span style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 20px; font-family: var(--body); font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.2);">
                             Founding Member
                         </span>
                     </div>
                     <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem;">Upgrade to Platinum for VIP access and perks.</p>
                 `;
                 upgradeHtml = `
-                    <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 8px;">
-                        <p style="color: #c9a227; font-weight: 500; margin-bottom: 8px;">Upgrade to Platinum</p>
+                    <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(138, 154, 91, 0.1), transparent); border: 1px solid rgba(138, 154, 91, 0.3); border-radius: 8px;">
+                        <p style="color: var(--moss); font-weight: 500; margin-bottom: 8px;">Upgrade to Platinum</p>
                         <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 12px;">Get VIP access and exclusive experiences at every event.</p>
-                        <a href="events.html" style="color: #c9a227; text-decoration: none; font-size: 0.9rem;">Book a Platinum event to upgrade →</a>
+                        <a href="events.html" style="color: var(--moss); text-decoration: none; font-size: 0.9rem;">Book a Platinum event to upgrade →</a>
                     </div>
                 `;
             }

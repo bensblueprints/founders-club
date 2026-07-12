@@ -8,15 +8,15 @@
     top: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(90deg, #c9a227, #e5c464);
-    color: #1a1a1a;
+    background: var(--coral);
+    color: var(--bone);
     padding: 10px 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
     z-index: 1001;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
 }
 
 .masquerade-banner + .nav {
@@ -30,19 +30,19 @@
 }
 
 .end-masquerade-btn {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--pine-deep);
+    color: var(--bone);
     border: none;
     padding: 6px 16px;
-    border-radius: 4px;
+    border-radius: var(--radius);
     cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 500;
+    font-family: var(--body);
+    font-weight: 600;
     transition: all 0.2s;
 }
 
 .end-masquerade-btn:hover {
-    background: #333;
+    background: var(--graphite);
 }
 
 /* Admin Main */
@@ -57,14 +57,14 @@
 }
 
 .admin-header h1 {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: var(--display);
     font-size: 3rem;
-    color: #c9a227;
+    color: var(--moss);
     margin-bottom: 8px;
 }
 
 .admin-subtitle {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     color: rgba(255, 255, 255, 0.6);
     font-size: 1.1rem;
 }
@@ -107,8 +107,8 @@
 }
 
 .stat-icon.platinum-icon {
-    background: rgba(201, 162, 39, 0.15);
-    color: #c9a227;
+    background: rgba(138, 154, 91, 0.15);
+    color: var(--moss);
 }
 
 .stat-icon.revenue-icon {
@@ -122,13 +122,13 @@
 }
 
 .stat-value {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: var(--display);
     font-size: 2rem;
     color: #fff;
 }
 
 .stat-label {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.5);
 }
@@ -148,7 +148,7 @@
     background: none;
     border: none;
     padding: 12px 24px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
@@ -161,8 +161,8 @@
 }
 
 .admin-tab.active {
-    background: rgba(201, 162, 39, 0.2);
-    color: #c9a227;
+    background: rgba(138, 154, 91, 0.2);
+    color: var(--moss);
 }
 
 /* Admin Panel */
@@ -181,7 +181,7 @@
 }
 
 .panel-header h2 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 1.3rem;
     font-weight: 500;
     color: #fff;
@@ -191,20 +191,21 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #c9a227, #e5c464);
-    color: #1a1a1a;
+    background: var(--coral);
+    color: var(--bone);
     border: none;
     padding: 10px 20px;
-    border-radius: 6px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 500;
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .add-btn:hover {
+    background: var(--coral-press);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+    box-shadow: 0 4px 12px var(--color-accent-glow);
 }
 
 /* Search & Filter Bar */
@@ -220,7 +221,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     padding: 10px 16px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: #fff;
 }
@@ -234,7 +235,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     padding: 10px 16px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: #fff;
     cursor: pointer;
@@ -242,7 +243,7 @@
 }
 
 .admin-select option {
-    background: #1a1a1a;
+    background: #0C231B;
     color: #fff;
 }
 
@@ -261,7 +262,7 @@
 .admin-table td {
     padding: 14px 16px;
     text-align: left;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -293,14 +294,14 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #c9a227, #8b6914);
+    background: linear-gradient(135deg, var(--moss), var(--color-accent-dark));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 600;
     font-size: 0.8rem;
-    color: #fff;
+    color: var(--bone);
 }
 
 .member-name-cell {
@@ -344,8 +345,8 @@
 }
 
 .role-badge.platinum_founding {
-    background: rgba(201, 162, 39, 0.2);
-    color: #c9a227;
+    background: rgba(138, 154, 91, 0.2);
+    color: var(--moss);
 }
 
 .role-badge.founding {
@@ -437,7 +438,7 @@
 }
 
 .modal-content {
-    background: #1a1a1a;
+    background: #0C231B;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     width: 100%;
@@ -459,7 +460,7 @@
 }
 
 .modal-header h2 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 1.3rem;
     font-weight: 500;
     color: #fff;
@@ -499,7 +500,7 @@
 }
 
 .form-group label {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
 }
@@ -511,7 +512,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     padding: 10px 14px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: #fff;
 }
@@ -520,7 +521,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #c9a227;
+    border-color: var(--moss);
 }
 
 .checkbox-label {
@@ -545,18 +546,19 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #c9a227, #e5c464);
-    color: #1a1a1a;
+    background: var(--coral);
+    color: var(--bone);
     border: none;
     padding: 10px 24px;
-    border-radius: 6px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 500;
+    border-radius: var(--radius);
+    font-family: var(--display);
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .btn-primary:hover {
+    background: var(--coral-press);
     transform: translateY(-2px);
 }
 
@@ -566,7 +568,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 10px 24px;
     border-radius: 6px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -582,7 +584,7 @@
     border: none;
     padding: 10px 24px;
     border-radius: 6px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -610,7 +612,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.02);
     color: #fff;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -672,14 +674,14 @@
 }
 
 .application-info h3 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 500;
     color: #fff;
     margin-bottom: 4px;
 }
 
 .application-info p {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.5);
 }
@@ -694,7 +696,7 @@
     padding: 8px 16px;
     border-radius: 6px;
     border: none;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -733,7 +735,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.02);
     color: rgba(255, 255, 255, 0.6);
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -745,9 +747,9 @@
 }
 
 .app-filter-btn.active {
-    background: rgba(201, 162, 39, 0.2);
-    border-color: rgba(201, 162, 39, 0.3);
-    color: #c9a227;
+    background: rgba(138, 154, 91, 0.2);
+    border-color: rgba(138, 154, 91, 0.3);
+    color: var(--moss);
 }
 
 .app-filter-btn .count {
@@ -801,7 +803,7 @@
 }
 
 .app-info h3 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-weight: 600;
     font-size: 1.1rem;
     color: #fff;
@@ -809,14 +811,14 @@
 }
 
 .app-company {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
     margin: 0 0 4px;
 }
 
 .app-email {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.5);
     margin: 0;
@@ -854,7 +856,7 @@
 }
 
 .app-date {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.4);
 }
@@ -876,7 +878,7 @@
 }
 
 .detail-label {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
@@ -884,13 +886,13 @@
 }
 
 .detail-value {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     color: #fff;
 }
 
 .detail-value.membership-full {
-    color: #c9a227;
+    color: var(--moss);
     font-weight: 500;
 }
 
@@ -905,7 +907,7 @@
     padding: 8px 16px;
     border-radius: 6px;
     border: none;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
@@ -959,7 +961,7 @@
 }
 
 .empty-state p {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 1rem;
 }
 
@@ -977,15 +979,15 @@
 }
 
 .app-detail-section h3 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.85rem;
     font-weight: 600;
-    color: #c9a227;
+    color: var(--moss);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 1px solid rgba(201, 162, 39, 0.2);
+    border-bottom: 1px solid rgba(138, 154, 91, 0.2);
 }
 
 .detail-grid {
@@ -1005,7 +1007,7 @@
 }
 
 .detail-item label {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
@@ -1013,13 +1015,13 @@
 }
 
 .detail-item span {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: #fff;
 }
 
 .detail-item a {
-    color: #c9a227;
+    color: var(--moss);
     text-decoration: none;
 }
 
@@ -1042,7 +1044,7 @@
 
 .answer-item label {
     display: block;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
@@ -1051,7 +1053,7 @@
 }
 
 .answer-item p {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--body);
     font-size: 0.95rem;
     color: #fff;
     line-height: 1.6;
