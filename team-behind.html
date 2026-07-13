@@ -21,10 +21,13 @@
       background:radial-gradient(circle,rgba(231,100,74,.18),rgba(138,154,91,.12) 46%,transparent 70%);filter:blur(8px)}
     .cube-img{position:relative;width:100%;max-width:440px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
     @keyframes cubeFloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-14px) rotate(1.2deg)}}
-    section{margin-top:82px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    section{margin-top:82px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
     .card{border:1px solid var(--border);background:var(--raise);border-radius:18px;padding:24px}
-    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--moss),rgba(242,240,232,.28));margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.4rem;color:var(--pine)}.card h3{margin:0 0 6px}.card p{color:var(--mist);font-size:.96rem}
+    .avatar{position:relative;overflow:hidden;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--moss),rgba(242,240,232,.28));margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.4rem;color:var(--pine)}
+    .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .card h3{margin:0 0 6px}.card p{color:var(--mist);font-size:.96rem}
     .card .role{color:var(--bone);font-weight:600;font-size:.88rem;margin-bottom:10px}
+    .team-lead{color:var(--mist);font-size:1.05rem;max-width:70ch;margin:14px 0 30px}
     .soc-row{display:flex;gap:10px;margin-top:18px}
     .soc{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--border);border-radius:10px;color:var(--mist);transition:color .2s,border-color .2s,background .2s}
     .soc:hover{color:var(--bone);border-color:var(--mist);background:rgba(242,240,232,.05)}.soc svg{width:17px;height:17px;display:block}
@@ -61,23 +64,34 @@
 
     <section>
       <p class="eyebrow reveal">Team</p>
+      <p class="team-lead reveal">Four co-founders who've sat on different sides of Vietnam's business landscape: multinational corporates, fast-moving startups, and a hands-on manufacturing floor.</p>
       <div class="grid">
-        <article class="card reveal"><div class="avatar">M</div><h3>Maddy</h3><p class="role">Project Lead, Marketing</p><p>Maddy leads FoundersVN end to end: coordination, marketing and messaging, and hosting the room on the night.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D4D03AQFPHS7iTkU34Q/profile-displayphoto-scale_400_400/B4DZwhsd3pKEAg-/0/1770091832772?e=1785369600&amp;v=beta&amp;t=BoyMddJ_42nsqL7TZsMNOSeoZR9bzVNlWH6vWTLu3q4" alt="" loading="lazy" onerror="this.remove()">M</div><h3>Maddy</h3><p class="role">Co-Founder, Marketing &amp; Community</p><p>Maddy is a community builder and ecosystem fosterer, connecting founders and operators across Southeast Asia. Her path runs through SmartDev, Consen.ai, and Techies Lab, where she helped grow a startup community of over 5,000 people. Now she leads FoundersVN end to end.</p>
           <div class="soc-row">
             <a class="soc" href="mailto:maddy.lee@buddytrading.com" aria-label="Email Maddy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3.5 6 8.5 7 8.5-7"/></svg></a>
+            <a class="soc" href="https://www.linkedin.com/in/maddyl/" target="_blank" rel="noopener" aria-label="Maddy's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+            <a class="soc" href="https://www.instagram.com/maddy_da.techie/" target="_blank" rel="noopener" aria-label="Maddy's Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg></a>
           </div>
         </article>
-        <article class="card reveal"><div class="avatar">A</div><h3>An</h3><p class="role">Lead Engineer</p><p>An leads engineering across the web app, landing page, payments, and attendee data, the technical backbone behind every FoundersVN edition.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D5635AQEpUh5WnQ08AQ/profile-framedphoto-shrink_800_800/B56Z4diUmHH4Ag-/0/1778611997371?e=1784552400&amp;v=beta&amp;t=k5kS9DAY8TpovMQENYfFt4NnjR8SYoLZSSz7_h0DOjU" alt="" loading="lazy" onerror="this.remove()" style="transform:scale(1.85);transform-origin:50% 14%">A</div><h3>An</h3><p class="role">Co-Founder &amp; Lead Engineer</p><p>An is a product and AI builder. He has worked across P&amp;G's supply chain systems and ANZ's cloud platforms, with a Microsoft APAC hackathon win along the way. He leads engineering across the web app, landing page, payments, and attendee data, the technical backbone behind every FoundersVN edition.</p>
+          <div class="soc-row">
+            <a class="soc" href="https://www.linkedin.com/in/an-nguyen-quoc/" target="_blank" rel="noopener" aria-label="An's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+          </div>
         </article>
-        <article class="card reveal"><div class="avatar">B</div><h3>Benji</h3><p class="role">Ads and Growth</p><p>Benji runs paid acquisition end to end: targeting, creative testing, and funnel tracking, plus secondary technical support for the app.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D4E03AQG-YaFZDRv6UQ/profile-displayphoto-crop_800_800/B4EZkprN.xHoAM-/0/1757340820522?e=1785369600&amp;v=beta&amp;t=JrHsUQYLkSLJsV_7hJBPsHhsIrFoErlMjFxfxcpEmGY" alt="" loading="lazy" onerror="this.remove()">Mt</div><h3>Matthew</h3><p class="role">Co-Founder, Operations &amp; Events</p><p>Matthew runs a leather goods business in Da Nang and moves through one of the city's most diverse local ecosystems, hotel chains, major suppliers, and everything in between. At FoundersVN he leads operations and the night itself: venue, run of show, and every logistic that makes the room work.</p>
+          <div class="soc-row">
+            <a class="soc" href="https://www.linkedin.com/in/matthewnt/" target="_blank" rel="noopener" aria-label="Matthew's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+          </div>
+        </article>
+        <article class="card reveal"><div class="avatar"><img src="images/landing/team-benji.jpg" alt="" loading="lazy" onerror="this.remove()">B</div><h3>Benji</h3><p class="role">Co-Founder, Ads &amp; Growth</p><p>Benji runs paid acquisition end to end: targeting, creative testing, and funnel tracking, plus secondary technical support for the app.</p>
         </article>
       </div>
     </section>
 
     <section>
-      <p class="eyebrow reveal">Partners and collaborators</p>
+      <p class="eyebrow reveal">We've worked with</p>
       <div class="logos">
-        <div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div>
+        <div class="logo-card reveal">SmartDev</div><div class="logo-card reveal">HCLTech</div><div class="logo-card reveal">FPT Telecom</div><div class="logo-card reveal">Yellow Network</div><div class="logo-card reveal">Maison De Nude</div><div class="logo-card reveal">BYD Da Nang</div><div class="logo-card reveal">Techies Lab</div>
       </div>
     </section>
 
