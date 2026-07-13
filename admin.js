@@ -1282,6 +1282,8 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         document.getElementById('memberPassword').placeholder = 'Enter password';
         document.getElementById('memberPassword').required = true;
         document.getElementById('requirePasswordReset').checked = true;
+        const addAdminCb = document.getElementById('memberIsAdmin');
+        if (addAdminCb) addAdminCb.checked = false;
 
         // Reset photo
         this.currentMemberPhoto = null;
@@ -1484,6 +1486,8 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         const memberId = document.getElementById('memberId').value;
         const isNew = !memberId;
 
+        const adminCheckbox = document.getElementById('memberIsAdmin');
+        const memberType = document.getElementById('memberType').value;
         const memberData = {
             firstName: document.getElementById('memberFirstName').value,
             lastName: document.getElementById('memberLastName').value,
@@ -1491,8 +1495,11 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
             company: document.getElementById('memberCompany').value,
             role: document.getElementById('memberRole').value,
             industry: document.getElementById('memberIndustry').value,
-            memberType: document.getElementById('memberType').value,
+            memberType,
             status: document.getElementById('memberStatus').value,
+            // "Admin" via the explicit checkbox OR an admin-ish member type.
+            isAdmin: (adminCheckbox && adminCheckbox.checked) ||
+                ['admin', 'owner', 'organiser'].includes(memberType),
             requirePasswordReset: document.getElementById('requirePasswordReset').checked,
             profilePhoto: this.currentMemberPhoto
         };
@@ -1503,26 +1510,27 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         }
 
         if (isNew) {
-            // Add new member
-            memberData.id = Date.now();
-            memberData.joinedAt = new Date().toISOString();
-            memberData.bio = '';
-            memberData.website = '';
-            memberData.whatsapp = '';
-            memberData.zalo = '';
-            memberData.telegram = '';
-            memberData.linkedin = '';
-            memberData.twitter = '';
-            memberData.wechat = '';
-            memberData.facebook = '';
-            memberData.instagram = '';
+            // Persist server-side so the member can actually LOG IN: db-api
+            // members.create hashes the plaintext password with bcrypt and
+            // honors is_admin. (Requires the admin JWT/token, sent by _call.)
+            try {
+                const { data, error } = await Database.createMember(memberData);
+                if (error || !data) {
+                    alert('Could not add member: ' + (error || 'unknown error') +
+                        '\n\n(Check you are logged in as an admin.)');
+                    return;
+                }
+                alert('Member added successfully!' +
+                    (memberData.isAdmin ? '\n\nGranted admin access.' : ''));
+            } catch (e) {
+                alert('Could not add member: ' + e.message);
+                return;
+            }
 
-            // Add to localStorage
-            const members = JSON.parse(localStorage.getItem('founders_vietnam_members') || '[]');
-            members.push(memberData);
-            localStorage.setItem('founders_vietnam_members', JSON.stringify(members));
-
-            alert('Member added successfully!');
+            this.closeModal('memberModal');
+            await this.loadMembers();
+            this.loadStats();
+            return;
         } else {
             // Update existing member
             const members = JSON.parse(localStorage.getItem('founders_vietnam_members') || '[]');
@@ -1556,6 +1564,8 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         document.getElementById('memberPassword').placeholder = 'Leave blank to keep current';
         document.getElementById('memberPassword').required = false;
         document.getElementById('requirePasswordReset').checked = member.requirePasswordReset || false;
+        const editAdminCb = document.getElementById('memberIsAdmin');
+        if (editAdminCb) editAdminCb.checked = member.isAdmin === true;
 
         // Load profile photo
         this.currentMemberPhoto = member.profilePhoto || null;

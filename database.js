@@ -115,6 +115,26 @@ const Database = {
         return { data, error: null };
     },
 
+    // Admin: create (or upsert) a member. Sends a PLAINTEXT password which the
+    // server hashes with bcrypt — never a hash. Requires the admin JWT/token
+    // (attached automatically in _call).
+    async createMember(memberData) {
+        const { data, error } = await this._call('members.create', {
+            email: (memberData.email || '').trim().toLowerCase(),
+            first_name: memberData.firstName || '',
+            last_name: memberData.lastName || '',
+            company: memberData.company || null,
+            role: memberData.role || null,
+            industry: memberData.industry || null,
+            is_admin: memberData.isAdmin === true,
+            is_approved: memberData.isApproved !== false,
+            must_reset_password: memberData.requirePasswordReset === true,
+            password: memberData.password || undefined
+        });
+        if (error) return { data: null, error };
+        return { data, error: null };
+    },
+
     // ========================================
     // APPLICATIONS
     // ========================================

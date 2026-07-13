@@ -5,8 +5,10 @@
 
 const { sql, isConfigured: dbConfigured } = require('./lib/neon');
 const { createPaymentLink } = require('./lib/airwallex');
-const { sendEmail, acceptedEmail, EVENT_DETAILS } = require('./lib/emailer');
-const { isAdminRequest } = require('./lib/auth');
+const { sendEmail, approvedWithLoginEmail, EVENT_DETAILS } = require('./lib/emailer');
+const { isAdminRequest, hashPassword, generateTempPassword } = require('./lib/auth');
+
+const LOGIN_URL = `${process.env.URL || 'https://foundersvn.com'}/login.html`;
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -96,19 +98,71 @@ exports.handler = async (event) => {
         return json(500, { error: 'Could not update application', details: updErr.message });
     }
 
-    // Email the applicant their payment link + event details.
+    // Create the real LOGIN for this applicant.
+    // Approval — NOT payment — is what activates the account. Generate a strong
+    // temp password, bcrypt-hash it server-side (browser never sees the hash),
+    // upsert the member as approved (is_approved = true) with must_reset_password
+    // = true, and copy their profile fields from the application.
+    const email = String(app.email || '').trim().toLowerCase();
+    const tempPassword = generateTempPassword();
+    let member = null;
+    try {
+        const passwordHash = await hashPassword(tempPassword);
+        const rows = await sql`
+            INSERT INTO members
+                (email, first_name, last_name, company, role, industry,
+                 is_approved, password_hash, must_reset_password)
+            VALUES
+                (${email}, ${app.first_name || ''}, ${app.last_name || '-'},
+                 ${app.company || null}, ${app.role || null}, ${app.industry || null},
+                 true, ${passwordHash}, true)
+            ON CONFLICT (email) DO UPDATE SET
+                is_approved         = true,
+                password_hash       = EXCLUDED.password_hash,
+                must_reset_password = true,
+                first_name          = COALESCE(NULLIF(members.first_name, ''), EXCLUDED.first_name),
+                last_name           = COALESCE(NULLIF(members.last_name, ''), EXCLUDED.last_name),
+                company             = COALESCE(members.company, EXCLUDED.company),
+                role                = COALESCE(members.role, EXCLUDED.role),
+                industry            = COALESCE(members.industry, EXCLUDED.industry),
+                updated_at          = NOW()
+            RETURNING *`;
+        member = rows[0] || null;
+    } catch (memErr) {
+        console.error('[accept-application] member create/approve error:', memErr);
+        return json(500, { error: 'Approved payment link, but could not create login', details: memErr.message });
+    }
+
+    // Email the applicant: login credentials + $150 seat payment link (combined).
     let emailResult = { success: false };
     try {
-        const tmpl = acceptedEmail({ firstName: app.first_name, payLink: link.url });
-        emailResult = await sendEmail({ to: app.email, subject: tmpl.subject, html: tmpl.html });
+        const tmpl = approvedWithLoginEmail({
+            firstName: app.first_name,
+            email,
+            tempPassword,
+            loginUrl: LOGIN_URL,
+            payLink: link.url
+        });
+        emailResult = await sendEmail({ to: email, subject: tmpl.subject, html: tmpl.html });
     } catch (e) {
         console.error('[accept-application] applicant email failed:', e);
     }
 
+    // Return the temp password so the admin UI can show it as a fallback if the
+    // email did not send. (Safe: this endpoint is admin-gated.)
     return json(200, {
         success: true,
         paymentLink: link.url,
         expiresAt: expiresAt.toISOString(),
+        tempPassword,
+        loginUrl: LOGIN_URL,
+        member: member ? {
+            id: member.id,
+            email: member.email,
+            firstName: member.first_name,
+            lastName: member.last_name,
+            is_approved: member.is_approved
+        } : null,
         emailSent: emailResult.success,
         emailMock: Boolean(emailResult.mock),
         paymentMock: Boolean(link.mock),

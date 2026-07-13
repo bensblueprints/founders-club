@@ -95,6 +95,27 @@ exports.handler = async (event) => {
         return json(500, { error: 'Could not save application', details: error.message });
     }
 
+    // Also create a PENDING member row (is_approved = false, no password yet).
+    // The applicant "becomes a member pending approval": they show up as a member
+    // record, but stay hidden from the public directory (members.list filters
+    // is_approved = true) and cannot log in until an admin approves them and a
+    // password is generated. Idempotent on email — never clobber an existing
+    // member (e.g. an already-approved one re-applying), so we DO NOTHING on
+    // conflict rather than downgrading their approval/profile.
+    try {
+        await sql`
+            INSERT INTO members
+                (email, first_name, last_name, company, role, industry, is_approved)
+            VALUES
+                (${email}, ${first}, ${last}, ${body.company || null},
+                 ${body.role || null}, ${body.industry || null}, false)
+            ON CONFLICT (email) DO NOTHING`;
+    } catch (memErr) {
+        // Non-fatal: the application is saved; a pending member can be created on
+        // approval as a fallback. Log and continue.
+        console.error('[submit-application] pending member upsert failed:', memErr);
+    }
+
     // Notify organisers (best-effort — never fail the submission on email trouble).
     try {
         const spokenLang = body.language ? ` (spoken: ${body.language})` : '';

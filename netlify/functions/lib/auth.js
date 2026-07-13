@@ -38,6 +38,28 @@ async function checkPassword(plain, hash) {
     }
 }
 
+// Generate a strong, human-typeable temporary password (server-side only).
+// Uses crypto randomness; mixes cases, digits and a few symbols. ~14 chars.
+function generateTempPassword(length = 14) {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    const symbols = '!@#$%*?';
+    const n = Math.max(10, length);
+    const bytes = crypto.randomBytes(n + 2);
+    let out = '';
+    for (let i = 0; i < n; i++) {
+        out += alphabet[bytes[i] % alphabet.length];
+    }
+    // Guarantee at least one digit and one symbol so it satisfies common policies.
+    const digit = '23456789'[bytes[n] % 8];
+    const sym = symbols[bytes[n + 1] % symbols.length];
+    // Splice them in at deterministic-but-varied positions.
+    const p1 = bytes[0] % out.length;
+    const p2 = bytes[1] % out.length;
+    out = out.slice(0, p1) + digit + out.slice(p1);
+    out = out.slice(0, p2) + sym + out.slice(p2);
+    return out;
+}
+
 // ---- base64url helpers -----------------------------------------------------
 
 function b64url(input) {
@@ -207,6 +229,7 @@ function publicUser(row) {
 module.exports = {
     hashPassword,
     checkPassword,
+    generateTempPassword,
     signToken,
     verifyToken,
     getBearerToken,

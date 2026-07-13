@@ -90,6 +90,30 @@ function acceptedEmail({ firstName, payLink }) {
     return { subject: "You're in — confirm your FoundersVN seat (Da Nang, Jul 31)", html: shell(inner) };
 }
 
+// Sent to the applicant when approved: contains their LOGIN credentials
+// (email + temporary password + login URL) AND the $150 seat payment link.
+// Combines "you're approved — here's how to log in" with "pay for the dinner".
+function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, payLink }) {
+    const credBox = `
+      <div style="background-color:rgba(255,255,255,0.06);border:1px solid rgba(201,162,39,0.3);border-radius:8px;padding:20px;margin:24px 0;">
+        <p style="color:#c9a227;font-size:14px;margin:0 0 12px;font-weight:500;letter-spacing:1px;">YOUR LOGIN</p>
+        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Email:</strong> ${email}</p>
+        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Temporary password:</strong> <code style="color:#e5c464;font-size:15px;">${tempPassword}</code></p>
+        <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:12px 0 0;">You'll be asked to set a new password the first time you log in.</p>
+      </div>`;
+    const inner = `
+      <h2 style="color:#c9a227;font-size:24px;margin:0 0 20px;font-weight:500;">You're in${firstName ? ', ' + firstName : ''}!</h2>
+      <p style="color:#ffffff;font-size:16px;line-height:1.6;margin:0 0 8px;">Your application to FoundersVN has been approved and your member account is ready. Use the credentials below to sign in.</p>
+      ${credBox}
+      <div style="margin:0 0 28px;">${btn(loginUrl, 'Log in to your account →')}</div>
+      <p style="color:#ffffff;font-size:16px;line-height:1.6;margin:0 0 8px;">To confirm your seat at the dinner, please complete your ${EVENT_DETAILS.price} payment below.</p>
+      ${eventBox()}
+      <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.6;margin:0 0 24px;">Your seat is held for <strong style="color:#fff;">7 days</strong>. After that it may be released to the waitlist.</p>
+      ${btn(payLink, 'Pay to confirm your seat →')}
+      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin:24px 0 0;word-break:break-all;">Login: ${loginUrl}<br>Payment: ${payLink}</p>`;
+    return { subject: "You're approved — your FoundersVN login + seat (Da Nang, Jul 31)", html: shell(inner) };
+}
+
 // Reminder emails (day 2 and day 5).
 function reminderEmail({ firstName, payLink, dayNumber, daysLeft }) {
     const inner = `
@@ -138,6 +162,7 @@ module.exports = {
     EVENT_DETAILS,
     sendEmail,
     acceptedEmail,
+    approvedWithLoginEmail,
     reminderEmail,
     expiredEmail,
     notificationEmail

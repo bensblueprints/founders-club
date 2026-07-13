@@ -17,7 +17,7 @@
 // ============================================================
 
 const { sql, isConfigured } = require('./lib/neon');
-const { isAdminRequest, getBearerToken, verifyToken } = require('./lib/auth');
+const { isAdminRequest, getBearerToken, verifyToken, hashPassword } = require('./lib/auth');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -33,6 +33,7 @@ function json(statusCode, obj) {
 // (Applications are administrative to READ — under the old Supabase RLS the
 //  anon role could not select them — but anyone could INSERT one to apply.)
 const ADMIN_ACTIONS = new Set([
+    'members.create',
     'applications.list',
     'applications.get',
     'events.create',
@@ -68,20 +69,38 @@ const handlers = {
         return rows[0] || null;
     },
 
+    // Admin-gated (see ADMIN_ACTIONS). Accepts a PLAINTEXT `password` and hashes
+    // it server-side with bcrypt — the browser never sends or receives a hash.
+    // A pre-hashed `password_hash` in the payload is IGNORED (never trusted).
     async 'members.create'(p) {
+        // Hash the plaintext password server-side (if provided). Any client-sent
+        // `password_hash` is deliberately dropped so the browser can't inject one.
+        const passwordHash = (typeof p.password === 'string' && p.password.length)
+            ? await hashPassword(p.password)
+            : null;
+        const isAdmin = p.is_admin === true;
+        const isApproved = p.is_approved ?? true;
+        const mustReset = p.must_reset_password === true;
+
         const rows = await sql`
             INSERT INTO members
-                (id, email, first_name, last_name, company, role, industry, is_approved, password_hash)
+                (id, email, first_name, last_name, company, role, industry,
+                 is_approved, is_admin, password_hash, must_reset_password)
             VALUES
                 (COALESCE(${p.id || null}, gen_random_uuid()), ${p.email}, ${p.first_name || ''},
                  ${p.last_name || ''}, ${p.company || null}, ${p.role || null}, ${p.industry || null},
-                 ${p.is_approved ?? true}, ${p.password_hash || null})
+                 ${isApproved}, ${isAdmin}, ${passwordHash}, ${mustReset})
             ON CONFLICT (email) DO UPDATE SET
                 first_name = EXCLUDED.first_name,
                 last_name  = EXCLUDED.last_name,
                 company    = EXCLUDED.company,
                 role       = EXCLUDED.role,
-                industry   = EXCLUDED.industry
+                industry   = EXCLUDED.industry,
+                is_admin   = EXCLUDED.is_admin,
+                is_approved = EXCLUDED.is_approved,
+                -- Only overwrite the password when a new one was supplied.
+                password_hash = COALESCE(EXCLUDED.password_hash, members.password_hash),
+                must_reset_password = EXCLUDED.must_reset_password
             RETURNING *`;
         return rows[0] || null;
     },

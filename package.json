@@ -4,7 +4,7 @@
   "description": "",
   "main": "script.js",
   "scripts": {
-    "test": "node tests/auth.test.js && node tests/db-api.test.js"
+    "test": "node tests/auth.test.js && node tests/db-api.test.js && node tests/registration.test.js"
   },
   "keywords": [],
   "author": "",
