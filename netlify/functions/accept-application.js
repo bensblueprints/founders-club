@@ -65,44 +65,11 @@ exports.handler = async (event) => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + SEVEN_DAYS_MS);
 
-    // Create the Airwallex payment link ($150 USD).
-    let link;
-    try {
-        link = await createPaymentLink({
-            amount: 150,
-            currency: 'USD',
-            title: 'FoundersVN — Da Nang, Jul 31 2026',
-            description: `Seat confirmation for ${app.first_name || ''} ${app.last_name || ''}`.trim(),
-            reference: `app-${id}`,
-            metadata: { application_id: id, email: app.email },
-            expiresAt: expiresAt.toISOString()
-        });
-    } catch (e) {
-        console.error('[accept-application] payment link error:', e);
-        return json(502, { error: 'Failed to create payment link', details: e.message });
-    }
-
-    // Persist approval + payment state.
-    try {
-        await sql`
-            UPDATE applications SET
-                status = 'approved',
-                accepted_at = ${now.toISOString()},
-                expires_at = ${expiresAt.toISOString()},
-                payment_status = 'awaiting',
-                payment_link = ${link.url},
-                reviewed_at = ${now.toISOString()}
-            WHERE id = ${id}`;
-    } catch (updErr) {
-        console.error('[accept-application] update error:', updErr);
-        return json(500, { error: 'Could not update application', details: updErr.message });
-    }
-
-    // Create the real LOGIN for this applicant.
-    // Approval — NOT payment — is what activates the account. Generate a strong
-    // temp password, bcrypt-hash it server-side (browser never sees the hash),
-    // upsert the member as approved (is_approved = true) with must_reset_password
-    // = true, and copy their profile fields from the application.
+    // Create the real LOGIN for this applicant FIRST. Approval — NOT payment — is
+    // what grants membership, so this must never be blocked by the payment
+    // processor. Generate a strong temp password, bcrypt-hash it server-side
+    // (browser never sees the hash), upsert the member as approved
+    // (is_approved = true) with must_reset_password = true, copying profile fields.
     const email = String(app.email || '').trim().toLowerCase();
     const tempPassword = generateTempPassword();
     let member = null;
@@ -130,10 +97,44 @@ exports.handler = async (event) => {
         member = rows[0] || null;
     } catch (memErr) {
         console.error('[accept-application] member create/approve error:', memErr);
-        return json(500, { error: 'Approved payment link, but could not create login', details: memErr.message });
+        return json(500, { error: 'Could not create the member login', details: memErr.message });
     }
 
-    // Email the applicant: login credentials + $150 seat payment link (combined).
+    // Now (best-effort) create the $150 Airwallex seat-payment link. If Airwallex
+    // is misconfigured or down, the applicant is STILL an approved member with a
+    // login — we just approve without a pay link and log the failure.
+    let link = null;
+    try {
+        link = await createPaymentLink({
+            amount: 150,
+            currency: 'USD',
+            title: 'FoundersVN — Da Nang, Jul 31 2026',
+            description: `Seat confirmation for ${app.first_name || ''} ${app.last_name || ''}`.trim(),
+            reference: `app-${id}`,
+            metadata: { application_id: id, email: app.email },
+            expiresAt: expiresAt.toISOString()
+        });
+    } catch (e) {
+        console.error('[accept-application] payment link error (non-fatal):', e.message);
+    }
+
+    // Persist approval + payment state (payment_link may be null if Airwallex failed).
+    try {
+        await sql`
+            UPDATE applications SET
+                status = 'approved',
+                accepted_at = ${now.toISOString()},
+                expires_at = ${expiresAt.toISOString()},
+                payment_status = ${link ? 'awaiting' : 'no_link'},
+                payment_link = ${link ? link.url : null},
+                reviewed_at = ${now.toISOString()}
+            WHERE id = ${id}`;
+    } catch (updErr) {
+        console.error('[accept-application] update error:', updErr);
+        // Member login already created — don't fail the whole request over the app row.
+    }
+
+    // Email the applicant: login credentials + (if available) the $150 seat payment link.
     let emailResult = { success: false };
     try {
         const tmpl = approvedWithLoginEmail({
@@ -141,7 +142,7 @@ exports.handler = async (event) => {
             email,
             tempPassword,
             loginUrl: LOGIN_URL,
-            payLink: link.url
+            payLink: link ? link.url : null
         });
         emailResult = await sendEmail({ to: email, subject: tmpl.subject, html: tmpl.html });
     } catch (e) {
@@ -152,7 +153,8 @@ exports.handler = async (event) => {
     // email did not send. (Safe: this endpoint is admin-gated.)
     return json(200, {
         success: true,
-        paymentLink: link.url,
+        paymentLink: link ? link.url : null,
+        paymentLinkFailed: !link,
         expiresAt: expiresAt.toISOString(),
         tempPassword,
         loginUrl: LOGIN_URL,
@@ -165,7 +167,7 @@ exports.handler = async (event) => {
         } : null,
         emailSent: emailResult.success,
         emailMock: Boolean(emailResult.mock),
-        paymentMock: Boolean(link.mock),
+        paymentMock: Boolean(link && link.mock),
         event: EVENT_DETAILS
     });
 };
