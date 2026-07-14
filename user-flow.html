@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Flow & SOW — Founders Meetups (Đà Nẵng 31/7)</title>
+<style>
+  :root{
+    --ink:#14161D; --paper:#FBFAF7; --paper2:#F3EFE7;
+    --text:#332F29; --muted:#8B847A; --line:#E6E0D5;
+    --brass:#C4974B; --brass-d:#986C2C; --brass-soft:#F5E9D2;
+    /* people */
+    --maddy:#B8842F; --an:#4E7A93; --benji:#3E7C63; --matt:#A9542F;
+    --maddy-s:#F5E9D2; --an-s:#E4EEF3; --benji-s:#E6F0EA; --matt-s:#F6E3DE;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .page{max-width:1000px;margin:0 auto;padding:clamp(24px,4vw,52px)}
+
+  header{background:var(--ink);color:#EDEBE6;border-radius:18px;padding:clamp(24px,3.5vw,38px);
+    position:relative;overflow:hidden;margin-bottom:14px}
+  header::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(55% 60% at 84% 12%,rgba(196,151,75,.20),transparent 70%)}
+  .hz{position:relative;z-index:1}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);margin:0 0 12px}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(28px,4vw,44px);line-height:1.05;margin:0 0 10px;letter-spacing:-.02em}
+  .sub{color:#C9C4B9;font-size:15.5px;max-width:70ch}
+  .sub b{color:#fff}
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 30px}
+  .who{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:9px 14px;font-size:13.5px}
+  .who .sw{width:12px;height:12px;border-radius:50%}
+  .who b{font-weight:700}
+  .who span{color:var(--muted);font-size:12.5px}
+  .sw.m{background:var(--maddy)} .sw.a{background:var(--an)} .sw.b{background:var(--benji)} .sw.t{background:var(--matt)}
+
+  /* flow */
+  .flow{position:relative;padding-left:8px}
+  .step{position:relative;display:grid;grid-template-columns:52px 1fr;gap:18px;padding-bottom:22px}
+  .step:not(:last-child)::before{content:"";position:absolute;left:25px;top:46px;bottom:-4px;width:2px;background:var(--line)}
+  .num{width:50px;height:50px;border-radius:50%;background:var(--ink);color:var(--brass);
+    font-family:var(--serif);font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:1}
+  .step.pre .num{background:var(--benji);color:#fff}
+  .step.event .num{background:var(--brass);color:#fff;box-shadow:0 0 0 5px var(--brass-soft)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+    box-shadow:0 6px 20px rgba(30,20,5,.04)}
+  .step.event .card{background:var(--ink);color:#EDEBE6;border:none}
+  .ctitle{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}
+  .ctitle b{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .ctitle .en{font-size:13px;color:var(--muted)}
+  .step.event .ctitle .en{color:#AEA99E}
+  .desc{font-size:13.5px;color:var(--muted);margin-bottom:12px}
+  .step.event .desc{color:#C9C4B9}
+
+  .sow{display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}
+  .tag{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);
+    font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;min-width:78px;justify-content:center}
+  .tag.m{background:var(--maddy-s);color:var(--maddy)}
+  .tag.a{background:var(--an-s);color:var(--an)}
+  .tag.b{background:var(--benji-s);color:var(--benji)}
+  .tag.t{background:var(--matt-s);color:var(--matt)}
+  .step.event .row{color:#EDEBE6}
+  .warn{margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--matt);
+    background:var(--matt-s);border-radius:8px;padding:7px 11px;display:inline-block}
+
+  .cross{margin-top:14px;background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+  .cross h2{font-family:var(--serif);font-size:20px;margin:0 0 14px}
+  .cross .row{margin-bottom:9px}
+  .foot{margin-top:22px;font-size:12.5px;color:var(--muted);font-style:italic;text-align:center}
+
+  @media(max-width:640px){
+    .step{grid-template-columns:40px 1fr;gap:12px}
+    .num{width:38px;height:38px;font-size:16px}
+    .step:not(:last-child)::before{left:19px;top:40px}
+    .tag{min-width:0}
+    .row{flex-direction:column;gap:3px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="hz">
+      <p class="eyebrow">User Flow &amp; SOW · Đà Nẵng · Thứ Sáu 31/7/2026 · 4U Lounge</p>
+      <h1>Hành trình khách &amp; ai làm gì</h1>
+      <p class="sub">Luồng vận hành pilot (bản <b>manual</b> cho 25 người): từ lúc thấy ads đến khi ngồi vào bàn tối 31/7. Mỗi bước ghi rõ <b>SOW của từng người</b>.</p>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="who"><span class="sw m"></span><b>Maddy</b> <span>Lead · marketing · guest care</span></div>
+    <div class="who"><span class="sw a"></span><b>An</b> <span>Web · app · payment · data</span></div>
+    <div class="who"><span class="sw b"></span><b>Benji</b> <span>Ads · MC (TBC)</span></div>
+    <div class="who"><span class="sw t"></span><b>Matthew</b> <span>Event &amp; ops · guest care</span></div>
+  </div>
+
+  <div class="flow">
+
+    <div class="step pre">
+      <div class="num">0</div>
+      <div class="card">
+        <div class="ctitle"><b>Chạy ads → kéo traffic</b><span class="en">Ads → traffic</span></div>
+        <p class="desc">Nhắm chủ doanh nghiệp ở Đà Nẵng, đưa về landing. Ngân sách cap $20–30.</p>
+        <div class="sow">
+          <div class="row"><span class="tag b">Benji</span><span>Set up + chạy ads, targeting theo level (chủ DN), tối ưu trong ngân sách nhỏ.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Định hướng thông điệp/creative, chọn hook; phối hợp seed để tăng chuyển đổi.</span></div>
+          <div class="row"><span class="tag a">An</span><span>Đảm bảo link landing + tracking chạy đúng trước khi bật ads.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="card">
+        <div class="ctitle"><b>Landing page</b><span class="en">landing.html — song ngữ</span></div>
+        <p class="desc">Bán đúng 1 offer: bữa tối $150, 25 ghế, 31/7, 4U Lounge.</p>
+        <div class="sow">
+          <div class="row"><span class="tag a">An</span><span>Build + đảm bảo web chạy mượt, responsive, form nối đúng backend.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Copy song ngữ VI/EN, brand, social proof (ảnh 4U + seed guests).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <div class="card">
+        <div class="ctitle"><b>Khách apply vào event</b><span class="en">Apply form</span></div>
+        <p class="desc">Form ngắn, song ngữ; đủ để lọc chất lượng mà không chặn chuyển đổi.</p>
+        <div class="sow">
+          <div class="row"><span class="tag a">An</span><span>Form + bảng <em>applications</em> lưu đúng, chạy ổn định (đang cần fix).</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Bộ câu hỏi + tiêu chí vetting (ai là "chủ DN" mình muốn).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <div class="card">
+        <div class="ctitle"><b>Team review — duyệt / không duyệt</b><span class="en">Internal review</span></div>
+        <p class="desc">Xem đơn, quyết cho vào hay không (đây là bước tạo "chất lượng phòng").</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Gom đơn, khởi xướng bàn nội bộ, đề xuất duyệt/loại.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Quyết định cuối (lead); giữ chuẩn chất lượng.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">4</div>
+      <div class="card">
+        <div class="ctitle"><b>Email confirm "You're admitted" (manual)</b><span class="en">Approval outreach</span></div>
+        <p class="desc">Chủ động liên hệ người được duyệt, báo trúng tuyển, tạo cảm giác được chọn.</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Chủ động nhắn/gửi email "admitted", dẫn khách sang bước thanh toán.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Co-own guest care: giọng, nội dung, hỗ trợ khách VN chưa rành English.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">5</div>
+      <div class="card">
+        <div class="ctitle"><b>Gửi thông tin thanh toán (manual)</b><span class="en">Send payment details</span></div>
+        <p class="desc">Đưa thông tin nhận tiền, hướng dẫn khách thanh toán.</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Gửi thông tin + hướng dẫn thanh toán, theo sát từng khách.</span></div>
+          <div class="row"><span class="tag a">An</span><span>Nếu dùng cổng (Airwallex/PayPal…): đảm bảo link/QR chạy.</span></div>
+        </div>
+        <span class="warn">⚠ Chưa chốt: cổng thanh toán + tiền vào tài khoản/pháp nhân ai (bàn tối nay)</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">6</div>
+      <div class="card">
+        <div class="ctitle"><b>Khách trả → chụp màn hình → confirm</b><span class="en">Pay &amp; confirm</span></div>
+        <p class="desc">Xác nhận đã nhận tiền trước khi cho vào cộng đồng.</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Nhận screenshot, đối chiếu, confirm đã nhận tiền.</span></div>
+          <div class="row"><span class="tag a">An</span><span>(Nếu có cổng) reconcile giao dịch với danh sách khách.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">7</div>
+      <div class="card">
+        <div class="ctitle"><b>Vào community + nhập data vào app</b><span class="en">Onboard to community + app</span></div>
+        <p class="desc">Thêm khách đã trả tiền vào group WhatsApp + tạo record trên app.</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Add khách vào WhatsApp group, chào mừng.</span></div>
+          <div class="row"><span class="tag a">An</span><span>Nhập/tạo dữ liệu khách trên app, phát magic link / account.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Community &amp; nurturing, khởi động không khí group.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">8</div>
+      <div class="card">
+        <div class="ctitle"><b>Khách set up account + hồ sơ trên app</b><span class="en">Profile setup</span></div>
+        <p class="desc">Khách tự điền hồ sơ: công ty, vai trò, muốn kết nối gì, link liên hệ.</p>
+        <div class="sow">
+          <div class="row"><span class="tag a">An</span><span>Onboarding app chạy mượt; hồ sơ + digital card (Zalo/WhatsApp/LinkedIn).</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Nhắc &amp; hỗ trợ khách hoàn thiện hồ sơ (đặc biệt seed guests).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">9</div>
+      <div class="card">
+        <div class="ctitle"><b>Explore participants list trên app</b><span class="en">Explore before the night</span></div>
+        <p class="desc">Trước sự kiện khách xem được ai sẽ tới — biết trước phòng có ai.</p>
+        <div class="sow">
+          <div class="row"><span class="tag a">An</span><span>Directory/participants list hoạt động, gated cho người đã trả tiền.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Đảm bảo chất lượng hồ sơ hiển thị; nổi bật seed guests.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step event">
+      <div class="num">10</div>
+      <div class="card">
+        <div class="ctitle"><b>Event day — Thứ Sáu 31/7</b><span class="en">4U Lounge · Đà Nẵng · 25 khách</span></div>
+        <p class="desc">App → hoạt động phá băng/giới thiệu → free time ăn tối. Lean: không LED/âm thanh pro/band.</p>
+        <div class="sow">
+          <div class="row"><span class="tag t">Matthew</span><span>Chủ trì on-the-night: agenda/kịch bản, điều phối timeline, đạo cụ, venue, tiếp khách, tổng duyệt.</span></div>
+          <div class="row"><span class="tag b">Benji</span><span>MC (TBC) — dẫn dắt song ngữ VI/EN.</span></div>
+          <div class="row"><span class="tag m">Maddy</span><span>Trải nghiệm khách, facilitate bonding/giới thiệu, chụp hình nội dung.</span></div>
+          <div class="row"><span class="tag a">An</span><span>Hỗ trợ app/check-in tại chỗ, xử lý sự cố kỹ thuật.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cross">
+    <h2>Xuyên suốt (cross-cutting)</h2>
+    <div class="sow">
+      <div class="row"><span class="tag m">Maddy</span><span><b>Đầu mối inquiry:</b> khách nhắn hỏi → WhatsApp group, ai rảnh trả lời; Maddy coordinate &amp; đảm bảo giọng nhất quán, song ngữ.</span></div>
+      <div class="row"><span class="tag m">Maddy</span><span>Printing materials: gửi file để in (nếu in).</span></div>
+      <div class="row"><span class="tag t">Matthew</span><span>Take care khách xuyên suốt pre-event, đảm bảo mọi người đi đúng flow.</span></div>
+      <div class="row"><span class="tag a">An</span><span>Giữ web + app + payment chạy ổn định suốt chiến dịch.</span></div>
+      <div class="row"><span class="tag b">Benji</span><span>Theo dõi số liệu funnel ads hằng ngày, báo cáo team.</span></div>
+    </div>
+  </div>
+
+  <p class="foot">Bản manual cho pilot 25 người · Event: Thứ Sáu 31/7/2026 · 4U Lounge, Đà Nẵng · Cập nhật 13/7</p>
+
+</div>
+</body>
+</html>

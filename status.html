@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<title>Status (EN) — Founders Meetups Pilot</title>
+<style>
+  :root{
+    --ink:#14161D; --ink2:#1C1F2A;
+    --paper:#FBFAF7; --paper2:#F3EFE7;
+    --text:#332F29; --muted:#8B847A; --line:#E6E0D5;
+    --brass:#C4974B; --brass-d:#986C2C; --brass-soft:#F5E9D2;
+    --green:#3E7C63; --green-soft:#E6F0EA;
+    --amber:#B7862B; --amber-soft:#F7EBD2;
+    --red:#B0503F; --red-soft:#F6E3DE;
+    --maddy:#B8842F; --an:#4E7A93; --benji:#3E7C63; --matt:#A9542F;
+    --maddy-s:#F5E9D2; --an-s:#E4EEF3; --benji-s:#E6F0EA; --matt-s:#F6E3DE;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .page{max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,52px)}
+  header{background:var(--ink);color:#EDEBE6;border-radius:18px;padding:clamp(24px,3.5vw,40px);
+    position:relative;overflow:hidden;margin-bottom:26px}
+  header::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(55% 60% at 82% 12%,rgba(196,151,75,.20),transparent 70%)}
+  .hz{position:relative;z-index:1}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);margin:0 0 12px}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(30px,4.4vw,50px);line-height:1.03;margin:0 0 8px;letter-spacing:-.02em}
+  .sub{color:#C9C4B9;font-size:16px;max-width:66ch}
+  .sub b{color:#fff}
+  .readiness{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+  .bar{flex:1;min-width:220px;height:12px;border-radius:20px;background:rgba(255,255,255,.12);overflow:hidden}
+  .bar span{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--green),var(--brass))}
+  .rlabel{font-family:var(--mono);font-size:13px;color:#EDEBE6;white-space:nowrap}
+  .rlabel b{color:var(--brass);font-size:15px}
+  .tally{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+  .tchip{font-family:var(--mono);font-size:12.5px;padding:7px 13px;border-radius:20px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);color:#EDEBE6}
+  .tchip .dot{width:9px;height:9px;border-radius:50%}
+  .d-green{background:var(--green)} .d-brass{background:var(--brass)}
+  .d-amber{background:var(--amber)} .d-red{background:var(--red)}
+  .lanes{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .lane{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:0 8px 26px rgba(30,20,5,.05)}
+  .lane h2{font-family:var(--serif);font-size:22px;margin:0;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+  .lane .count{font-family:var(--mono);font-size:13px;color:var(--muted);margin-left:auto;font-weight:400}
+  .lane .lead{font-size:13.5px;color:var(--muted);margin:6px 0 16px}
+  ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+  li{position:relative;padding-left:24px;font-size:14.5px;line-height:1.4}
+  li::before{content:"";position:absolute;left:0;top:6px;width:10px;height:10px;border-radius:50%}
+  .lane.done li::before{background:var(--green)}
+  .lane.upd li::before{background:var(--brass)}
+  .lane.pend li::before{background:var(--amber)}
+  .lane.behind li::before{background:var(--red)}
+  li b{font-weight:700}
+  li .meta{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+  .behind{border-color:#E9C9C0;background:#FCF5F3}
+  .behind h2{color:var(--red)} .pend h2{color:var(--amber)} .done h2{color:var(--green)} .upd h2{color:var(--brass-d)}
+  .foot{margin-top:24px;font-size:13px;color:var(--muted);font-style:italic;text-align:center}
+
+  .flowsection{margin-top:44px}
+  .divider{display:flex;align-items:center;gap:14px;margin:0 0 6px}
+  .divider .eyebrow{margin:0}
+  .flowtitle{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3.4vw,38px);color:#EDEBE6;margin:8px 0 8px;letter-spacing:-.01em}
+  .flowsub{color:#C9C4B9;font-size:15px;max-width:72ch;margin:0}
+  .flowsub b{color:#fff}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 28px}
+  .who{display:flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:9px 14px;font-size:13.5px;color:var(--text)}
+  .who .sw{width:12px;height:12px;border-radius:50%}
+  .who b{font-weight:700} .who span{color:var(--muted);font-size:12.5px}
+  .sw.m{background:var(--maddy)} .sw.a{background:var(--an)} .sw.b{background:var(--benji)} .sw.t{background:var(--matt)}
+  .flow{position:relative}
+  .step{position:relative;display:grid;grid-template-columns:52px 1fr;gap:18px;padding-bottom:22px}
+  .step:not(:last-child)::before{content:"";position:absolute;left:25px;top:46px;bottom:-4px;width:2px;background:rgba(255,255,255,.14)}
+  .num{width:50px;height:50px;border-radius:50%;background:var(--paper);color:var(--brass-d);font-family:var(--serif);font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:1}
+  .step.pre .num{background:var(--benji);color:#fff}
+  .step.event .num{background:var(--brass);color:#fff;box-shadow:0 0 0 5px rgba(196,151,75,.28)}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .step.event .card{background:var(--ink2);color:#EDEBE6;border:1px solid rgba(196,151,75,.35)}
+  .ctitle{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}
+  .ctitle b{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .ctitle .en{font-size:13px;color:var(--muted)}
+  .step.event .ctitle .en{color:#AEA99E}
+  .desc{font-size:13.5px;color:var(--muted);margin-bottom:12px}
+  .step.event .desc{color:#C9C4B9}
+  .sow{display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}
+  .step.event .row{color:#EDEBE6}
+  .tag{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;min-width:80px}
+  .tag.m{background:var(--maddy-s);color:var(--maddy)}
+  .tag.a{background:var(--an-s);color:var(--an)}
+  .tag.b{background:var(--benji-s);color:var(--benji)}
+  .tag.t{background:var(--matt-s);color:var(--matt)}
+  .warn{margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--matt);background:var(--matt-s);border-radius:8px;padding:7px 11px;display:inline-block}
+  .cross{margin-top:14px;background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+  .cross h2{font-family:var(--serif);font-size:20px;margin:0 0 14px;color:var(--text)}
+  .cross .row{margin-bottom:9px}
+
+  @media(max-width:820px){ .lanes{grid-template-columns:1fr} }
+  @media(max-width:640px){
+    .step{grid-template-columns:40px 1fr;gap:12px}
+    .num{width:38px;height:38px;font-size:16px}
+    .step:not(:last-child)::before{left:19px;top:40px}
+    .row{flex-direction:column;gap:3px} .tag{min-width:0}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="hz">
+      <p class="eyebrow">Progress &amp; Audit · 13 July 2026</p>
+      <h1>Founders Meetups — where we stand</h1>
+      <p class="sub">Da Nang pilot · cap 25 · $150. <b>Content, brand and marketing are in great shape.</b> We're blocked on the technical side — the web + application flow must work before ads can run.</p>
+      <p style="margin-top:14px"><a href="#flow" style="color:var(--brass);font-family:var(--mono);font-size:13px;text-decoration:none">↓ Jump to: User Flow &amp; SOW (12 steps · who does what)</a></p>
+
+      <div class="readiness">
+        <span class="rlabel">Launch readiness &nbsp;<b>~62%</b></span>
+        <div class="bar"><span></span></div>
+        <span class="rlabel">Blocker: <b>web not functional</b></span>
+      </div>
+
+      <div class="tally">
+        <span class="tchip"><span class="dot d-green"></span> 9 done</span>
+        <span class="tchip"><span class="dot d-brass"></span> 20 updated / decided</span>
+        <span class="tchip"><span class="dot d-amber"></span> 9 pending</span>
+        <span class="tchip"><span class="dot d-red"></span> 3 behind / blocking</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="lanes">
+
+    <section class="lane done">
+      <h2>✅ Done <span class="count">9</span></h2>
+      <p class="lead">Shipped and in the repo.</p>
+      <ul>
+        <li><b>New bilingual landing page</b> (VI/EN) <span class="meta">landing.html — trimmed to the single $150 dinner</span></li>
+        <li><b>About subpages</b> <span class="meta">foundersvn-events.html · team-behind.html</span></li>
+        <li><b>FoundersVN brand system</b> + logo kit + assets <span class="meta">brand doc, 3d-logo, app-layer, profile covers</span></li>
+        <li><b>Social post package</b> <span class="meta">July content plan + calendar + copy/materials v2 + generated images</span></li>
+        <li><b>Ads creative package</b> <span class="meta">ads image plan, banner handoff, GPT-image handoff, ads spread/config</span></li>
+        <li><b>Team alignment deck</b> + public hosting <span class="meta">deck.html on GitHub Pages</span></li>
+        <li><b>Audit of Ben's platform</b> <span class="meta">structure + user flow + feedback (11-web-audit)</span></li>
+        <li><b>Operations &amp; manual user flow</b> documented <span class="meta">12-operations</span></li>
+        <li><b>Matthew (Thiệu) onboarded</b> as event/ops lead <span class="meta">ramping up now</span></li>
+      </ul>
+    </section>
+
+    <section class="lane upd">
+      <h2>🔄 Updated / Decided <span class="count">20</span></h2>
+      <p class="lead">Direction changes since the first plan.</p>
+      <ul>
+        <li><b>Team → 4 people</b> <span class="meta">Matthew added; roles re-split</span></li>
+        <li><b>Ad budget → $20–30 hard cap</b> <span class="meta">risk shifts from cost to filling seats</span></li>
+        <li><b>Payment = Airwallex + VNPay QR (automated)</b> <span class="meta">card +5% to customer; QR free; money → Ben's Airwallex</span></li>
+        <li><b>Emails automated via Resend</b> <span class="meta">accept + reminder sequence; seat held 48h; Maddy drafts</span></li>
+        <li><b>Plus-one ticket</b> <span class="meta">buy 1–2, max 2/company, same price; name + dinner choice only</span></li>
+        <li><b>Brand direction → FoundersVN</b> <span class="meta">series + per-city editions</span></li>
+        <li><b>Landing restructured to pilot</b> <span class="meta">single offer, social proof up, bilingual</span></li>
+        <li><b>Event date locked → Fri 31 July</b> <span class="meta">synced across all docs &amp; deck</span></li>
+        <li><b>MC = Maddy &amp; Matthew</b> <span class="meta">Benji optional; greeting anyone</span></li>
+        <li><b>Onboarding support = Benji + Matthew</b> <span class="meta">An keeps the technical side</span></li>
+        <li><b>Account created at admit</b> <span class="meta">team-created, not guest self-serve; profile edit-only after</span></li>
+        <li><b>Onboarding email content</b> <span class="meta">WhatsApp group link/QR + app login (email+pass) + how-to</span></li>
+        <li><b>App unlocks biz cards/contacts post-event</b> <span class="meta">the payoff step after the dinner</span></li>
+        <li><b>Discord noti on new applications</b> <span class="meta">team alerted in real time (An wires it)</span></li>
+        <li><b>Suit &amp; tie dress code</b> <span class="meta">premium positioning; helps command price</span></li>
+        <li><b>Food from 4U + pre-picked menu</b> <span class="meta">venue free if we use their food; name cards w/ color dots (red/yellow/green)</span></li>
+        <li><b>Seat-blocking + "?" icons</b> <span class="meta">unsold seats anonymous; scarcity + social proof</span></li>
+        <li><b>Basic AV only</b> <span class="meta">2× JBL + 2 mics + projector/slides; no LED wall/band</span></li>
+        <li><b>Revenue split = 4-way equal (25% each)</b> <span class="meta">Maddy / An / Benji / Matthew — agreed</span></li>
+        <li><b>Contacts visible in-app on entry</b> <span class="meta">full directory + digital cards from access, not gated to post-event</span></li>
+      </ul>
+    </section>
+
+    <section class="lane pend">
+      <h2>⏳ Pending <span class="count">9</span></h2>
+      <p class="lead">Needs a decision or an owner — mostly for tonight's call.</p>
+      <ul>
+        <li><b>Money lands in Ben's Airwallex → map to split + treasurer</b> <span class="meta">how/when it distributes to the team</span></li>
+        <li><b>Build: Airwallex + QR + Resend + seat-blocking + plus-one</b> <span class="meta">An — core dev this week; + 1-cent test product</span></li>
+        <li><b>Seed / anchor guests</b> to feature <span class="meta">"who's coming" — key for cold-ad conversion</span></li>
+        <li><b>Brand name lock</b> <span class="meta">FoundersVN is direction, not formally locked</span></li>
+        <li><b>Verify member-data security (RLS)</b> <span class="meta">from the audit — before real traffic</span></li>
+        <li><b>Lock venue ASAP + site check this week</b> <span class="meta">Matthew — 4U Lounge</span></li>
+        <li><b>Agenda + menu items</b> <span class="meta">Matthew drafts run-of-show; decide the food</span></li>
+        <li><b>Buy foundersvn inboxes + warm up domain</b> <span class="meta">Ben — deliverability before sending</span></li>
+        <li><b>Food images + Vietnamese copy for the app</b> <span class="meta">Maddy — tomorrow</span></li>
+      </ul>
+    </section>
+
+    <section class="lane behind">
+      <h2>🚨 Behind / Blocking <span class="count">3</span></h2>
+      <p class="lead">Behind schedule and blocking launch — top priority.</p>
+      <ul>
+        <li><b>Ads NOT live yet</b> <span class="meta">can't run until web + applications work</span></li>
+        <li><b>Web not functioning properly</b> <span class="meta">site + application flow need to actually work (An)</span></li>
+        <li><b>Cost estimate not finalized</b> <span class="meta">venue final price still open → can't fully lock break-even/split</span></li>
+      </ul>
+    </section>
+
+  </div>
+
+  <!-- ===== USER FLOW & SOW ===== -->
+  <div class="flowsection" id="flow">
+    <div class="divider"><p class="eyebrow">User Flow &amp; SOW · Da Nang · Fri 31 Jul · 4U Lounge</p></div>
+    <h2 class="flowtitle">The guest journey &amp; who does what</h2>
+    <p class="flowsub">Pilot operating flow (<b>manual</b>, for 25 people): from seeing an ad to sitting down for dinner on 31 July. Each step spells out <b>each person's SOW</b>.</p>
+
+    <div class="legend">
+      <div class="who"><span class="sw m"></span><b>Maddy</b> <span>Lead · marketing · community · MC</span></div>
+      <div class="who"><span class="sw a"></span><b>An</b> <span>Web · app · data (not money)</span></div>
+      <div class="who"><span class="sw b"></span><b>Benji</b> <span>Ads · community hype · onboarding</span></div>
+      <div class="who"><span class="sw t"></span><b>Matthew</b> <span>Event &amp; ops · guest care · MC</span></div>
+    </div>
+
+    <div class="flow">
+
+      <div class="step pre">
+        <div class="num">0</div>
+        <div class="card">
+          <div class="ctitle"><b>Run ads → drive traffic</b></div>
+          <p class="desc">Target business owners in Da Nang, drive them to the landing. Budget capped at $20–30.</p>
+          <div class="sow">
+            <div class="row"><span class="tag b">Benji</span><span>Set up + run ads, target by level (owners), optimize within the small budget.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Message/creative direction, pick the hook; coordinate seeding to lift conversion.</span></div>
+            <div class="row"><span class="tag a">An</span><span>Make sure the landing link + tracking work before ads go live.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="card">
+          <div class="ctitle"><b>Landing page</b><span class="en">landing.html — bilingual</span></div>
+          <p class="desc">Sell one offer: the $150 dinner, 25 seats, 31 July, 4U Lounge.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Build + keep the site running, responsive, form wired to the backend.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Bilingual VI/EN copy, brand, social proof (4U photos + seed guests).</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="card">
+          <div class="ctitle"><b>Guest applies</b><span class="en">Apply form</span></div>
+          <p class="desc">Short bilingual form; enough to filter for quality without killing conversion.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Form + <em>applications</em> table saving correctly, stable (fix in progress). Wire <b>Discord notification</b> to the team on every new application.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Questions + vetting criteria (which "owners" we want).</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="card">
+          <div class="ctitle"><b>Team review — approve / reject</b></div>
+          <p class="desc">Review applications, decide who's in (this makes the room "curated"). <b>Decision = whole team; Matthew + Maddy drive it.</b></p>
+          <div class="sow">
+            <div class="row"><span class="tag t">Matthew</span><span>Collect applications, kick off internal review, propose approve/reject.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Co-decide with Matthew + hold the quality bar.</span></div>
+            <div class="row"><span class="tag a">An</span><span>On <b>approve → the account is created</b> and the profile is admitted on the app (team-created, not guest self-serve).</span></div>
+          </div>
+          <span class="warn">✔ Admitted = account created. This happens right after review (between step 3 and 4).</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div class="card">
+          <div class="ctitle"><b>Email #1 — "Yay, you're accepted" (automated)</b><span class="en">via Resend</span></div>
+          <p class="desc">Sent automatically via <b>Resend</b> from a <b>foundersvn domain</b> (buy inbox + warm-up). Then a <b>reminder sequence until they pay</b> — seat held <b>48h</b> (nudges at 24h / 6h / 1h left, then it expires).</p>
+          <div class="sow">
+            <div class="row"><span class="tag m">Maddy</span><span>Drafts all email templates + the reminder sequence.</span></div>
+            <div class="row"><span class="tag a">An</span><span>Wires the Resend API; thank-you page tells guests to check spam &amp; mark "not spam".</span></div>
+            <div class="row"><span class="tag b">Benji</span><span>Buys the foundersvn inboxes + warms up the domain (deliverability).</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">5</div>
+        <div class="card">
+          <div class="ctitle"><b>Send payment details (manual)</b></div>
+          <p class="desc">Share the receiving details, guide the guest to pay.</p>
+          <div class="sow">
+            <div class="row"><span class="tag t">Matthew</span><span>Send details + payment instructions, follow each guest closely.</span></div>
+          </div>
+          <span class="warn">⚠ Money goes into <b>ONE member's personal account</b> — NO system, NO gateway. Fully manual. An not involved in money. To decide: which member collects.</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">6</div>
+        <div class="card">
+          <div class="ctitle"><b>Pay (automated) + plus-one</b><span class="en">Airwallex / VNPay QR</span></div>
+          <p class="desc">Two options: <b>card via Airwallex (+5% surcharge paid by the customer)</b> or <b>VNPay QR (free)</b>. At checkout, buy <b>1 or 2 tickets</b> (plus-one = name + dinner choice, max 2/company, same price). No manual confirm.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Wires Airwallex API + VNPay QR + the 1–2 ticket (plus-one) checkout.</span></div>
+            <div class="row"><span class="tag b">Benji</span><span>Provides Airwallex access; money → tracked sub-accounts → instant VN bank transfer.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">7</div>
+        <div class="card">
+          <div class="ctitle"><b>Email #2 — Payment confirmed + onboarding</b><span class="en">after payment</span></div>
+          <p class="desc">Auto-sent via Resend once payment lands. Contains: <b>join the WhatsApp group</b> (link/QR), <b>access your profile in the app</b>, <b>log in = email + password</b>, and a short how-to-use guide.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Auto-sends via Resend on payment; includes app login + WhatsApp link/QR.</span></div>
+            <div class="row"><span class="tag t">Matthew</span><span>Welcomes the guest in the WhatsApp group.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Drafts the email; runs daily community nurturing.</span></div>
+            <div class="row"><span class="tag b">Benji</span><span>Hype up the community, keep group energy up to event day.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">8</div>
+        <div class="card">
+          <div class="ctitle"><b>Guest completes their profile</b><span class="en">edit only — account already created</span></div>
+          <p class="desc">Account already exists (created at admit). Guests just <b>log in and edit/complete</b> their profile — we don't ask them to create anything. Just remind them.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Profile editing works; digital card fields (Zalo/WhatsApp/LinkedIn).</span></div>
+            <div class="row"><span class="tag b">Benji</span><span>Support guests through login/edit (Benji is a better fit here).</span></div>
+            <div class="row"><span class="tag t">Matthew</span><span>Remind guests to complete/polish profiles (especially seed guests).</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">9</div>
+        <div class="card">
+          <div class="ctitle"><b>Explore participants list</b><span class="en">Explore before the night</span></div>
+          <p class="desc">Once they have app access, guests see the <b>full directory — profiles + contacts (digital business cards) — right away</b>. Unsold seats show as a <b>"?" icon (no name)</b>; approved + paid attendees appear. Scarcity + social proof.</p>
+          <div class="sow">
+            <div class="row"><span class="tag a">An</span><span>Directory/participants list works, gated to paid guests.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Ensure profile quality on display; highlight seed guests.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step event">
+        <div class="num">10</div>
+        <div class="card">
+          <div class="ctitle"><b>Event day — Friday 31 July</b><span class="en">4U Lounge · Da Nang · 25 guests</span></div>
+          <p class="desc">App → icebreaker/intro activities → free-time dinner. Lean: no LED/pro sound/band.</p>
+          <div class="sow">
+            <div class="row"><span class="tag t">Matthew</span><span>Run the night: agenda/script, timeline control, props, venue, reception, rehearsal. Co-MC.</span></div>
+            <div class="row"><span class="tag m">Maddy</span><span>Co-MC; guest experience, facilitate bonding/intros, capture content.</span></div>
+            <div class="row"><span class="tag a">An</span><span>On-site app/check-in support, handle tech issues.</span></div>
+          </div>
+          <span class="warn">MC: Maddy &amp; Matthew. Greeting/welcoming — anyone; not necessarily Benji; if Benji wants to MC, welcome.</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">11</div>
+        <div class="card">
+          <div class="ctitle"><b>After the event — keep connecting</b><span class="en">follow-up</span></div>
+          <p class="desc">Contacts are visible in the app from day one, so after the dinner the directory stays open for follow-ups. We nurture the group and tee up Saigon.</p>
+          <div class="sow">
+            <div class="row"><span class="tag m">Maddy</span><span>Nurture follow-up in the group; tee up the Saigon edition (re-book hook).</span></div>
+            <div class="row"><span class="tag a">An</span><span>Keep directory/contacts accessible post-event; add cross-event "also going to Saigon".</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cross">
+      <h2>Cross-cutting</h2>
+      <div class="sow">
+        <div class="row"><span class="tag m">Maddy</span><span><b>Post &amp; nurture the community DAILY</b> (consistent posts up to event day).</span></div>
+        <div class="row"><span class="tag m">Maddy</span><span><b>Inquiry hub:</b> guest questions → WhatsApp group, whoever's free replies; Maddy coordinates &amp; keeps tone consistent, bilingual. + sends printing files.</span></div>
+        <div class="row"><span class="tag b">Benji</span><span><b>Continuously check ads analytics &amp; optimize</b> up to event day; also hype the community.</span></div>
+        <div class="row"><span class="tag t">Matthew</span><span>Take care of guests through pre-event, ensure everyone follows the flow.</span></div>
+        <div class="row"><span class="tag a">An</span><span>Keep web + app running smoothly through the campaign (not involved in money).</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Critical path: <b>get the web + applications working</b> → confirm which member collects payment → then ads go live. Everything else is ready to support it.</p>
+
+</div>
+</body>
+</html>

@@ -1,14 +1,15 @@
 # Team Agreement & Ways of Working
 
 _Draft for alignment. Once agreed tonight, this is the "handshake" we operate by. Revisit each event._
-_Members: Maddy, An, Benji_
+_Members: Maddy, An, Benji, Matthew (Thiệu)_
 
 ## 1. Roles & ownership
 | Person | Owns | Commits to |
 |---|---|---|
 | **Maddy** | Project lead, coordination, marketing/message, community & nurturing, host-side | Keeps the plan moving, runs meetings, owns attendee experience |
 | **An** | Lead engineering: app, landing page, payments, data | Ships landing + payment this week; app before event |
-| **Benji** | Ads (expert) + ad budget operation, tech support | Runs ad test this week, optimizes CPA, reports funnel numbers |
+| **Benji** | Ads (expert) + ad budget operation, tech support; possible MC (TBC) | Runs ad test this week, optimizes CPA, reports funnel numbers |
+| **Matthew (Thiệu)** | Event & operations: on-the-night hosting/activities/coordination, agenda & script, venue check + price deal, reception; co-owns pre-event guest care | Delivers run-of-show + activities; manages guests through the flow with Maddy |
 
 ## 2. Money
 
@@ -17,11 +18,11 @@ _Members: Maddy, An, Benji_
 - **Venue/app/other:** paid from the shared pot / whoever fronts is reimbursed off the top.
 - Any expense over **$___ (set a threshold)** needs group sign-off before spending.
 
-### Revenue split — PROPOSAL
-1. Reimburse **all shared costs first** (venue, app, ads, fees, printing).
-2. Split **net profit 3 ways, equally** (Maddy / An / Benji).
+### Revenue split — AGREED: 4-way equal (25% each)
+1. Reimburse **all shared costs first** (venue, app, ads, printing).
+2. Split **net profit 4 ways, equally** — **Maddy / An / Benji / Matthew, 25% each.** ✅ _Agreed._
 
-**Rationale:** Benji's earlier idea (Benji 50% / Maddy+An 50%) gives one person half and the two people doing the heavier lift 25% each. A 33/33/33 split is fairer for a long-term series where Maddy+An carry more, especially into Saigon. → _Discuss & lock tonight._
+Payment fees ≈ 0 to us (card +5% is paid by the customer; QR is free). Money lands in **Ben's Airwallex** → still to settle: how/when it distributes to the 4 (treasurer + cadence).
 
 See the worked example in [Budget](../06-budget-and-finance/BUDGET.md).
 

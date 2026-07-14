@@ -9,11 +9,48 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--pine:#071A14;--raise:#10231B;--bone:#F2F0E8;--mist:#A9BBB6;--moss:#8A9A5B;--coral:#E7644A;--border:rgba(242,240,232,.14);--display:'Plus Jakarta Sans',system-ui,sans-serif}
+    :root{--pine:#071A14;--raise:#10231B;--bone:#F2F0E8;--mist:#A9BBB6;--moss:#8A9A5B;--coral:#E7644A;--coral-press:#D5573F;--radius:8px;--border:rgba(242,240,232,.14);--display:'Plus Jakarta Sans',system-ui,sans-serif}
     *{box-sizing:border-box}body{margin:0;background:var(--pine);color:var(--bone);font-family:Inter,system-ui,sans-serif;line-height:1.55}a{color:inherit}
     h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em}.wrap{max-width:1120px;margin:auto;padding:0 28px}
-    header{padding:28px 0;border-bottom:1px solid var(--border)}.nav{display:flex;align-items:center;justify-content:space-between;gap:24px}.logo{height:24px;filter:brightness(0) invert(1)}.back{color:var(--mist);text-decoration:none;font-size:.94rem}
-    main{padding:76px 0 104px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em}p.lead{font-size:1.18rem;color:var(--mist);max-width:560px}
+    /* Nav (đồng bộ landing.html) */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .35s ease,border-color .35s ease,backdrop-filter .35s ease;border-bottom:1px solid transparent}
+    .nav.scrolled{background:rgba(6,18,13,.82);backdrop-filter:blur(14px);border-bottom-color:var(--border)}
+    .nav-in{display:flex;align-items:center;gap:32px;height:76px;max-width:1320px;margin:0 auto;padding:0 28px}
+    .brand{display:flex;align-items:center}
+    .brand-logo{height:23px;width:auto;filter:brightness(0) invert(1);opacity:.96}
+    .nav-links{display:flex;gap:30px;margin-left:auto;align-items:center}
+    .nav-links a,.drop-trigger{font-size:.92rem;color:var(--mist);transition:color .2s;text-decoration:none}
+    .nav-links a:hover,.drop:hover .drop-trigger,.drop:focus-within .drop-trigger{color:var(--bone)}
+    .drop{position:relative}
+    .drop-trigger{display:inline-flex;align-items:center;gap:7px;background:none;border:0;font:inherit;cursor:pointer;padding:26px 0}
+    .drop-trigger::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.75}
+    .drop-menu{position:absolute;right:0;top:64px;min-width:230px;padding:10px;border:1px solid var(--border);border-radius:14px;background:rgba(6,18,13,.94);backdrop-filter:blur(16px);box-shadow:0 24px 54px rgba(0,0,0,.32);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease}
+    .drop:hover .drop-menu,.drop:focus-within .drop-menu{opacity:1;pointer-events:auto;transform:none}
+    .drop-menu a{display:block;padding:12px 13px;border-radius:10px;color:var(--mist);text-decoration:none}
+    .drop-menu a:hover{background:rgba(242,240,232,.07);color:var(--bone)}
+    .lang{display:flex;align-items:center;gap:3px;margin-left:10px;font-size:.85rem;color:var(--mist)}
+    .lang button{background:none;border:0;color:var(--mist);font:inherit;cursor:pointer;padding:4px 5px;border-radius:6px}
+    .lang button[aria-pressed="true"]{color:var(--bone);font-weight:600}
+    .lang .sep{opacity:.5}
+    .btn{display:inline-flex;align-items:center;gap:10px;background:var(--coral);color:var(--bone);font-family:var(--display);font-weight:600;font-size:.95rem;padding:12px 22px;border-radius:var(--radius);border:0;cursor:pointer;text-decoration:none;transition:background .2s ease,transform .2s ease;white-space:nowrap}
+    .btn:hover{background:var(--coral-press)}
+    .btn:active{transform:translateY(1px)}
+    .nav .btn{padding:10px 20px;font-size:.9rem;margin-left:14px}
+    .burger{display:none;background:none;border:0;cursor:pointer;margin-left:auto;padding:8px}
+    .burger span{display:block;width:22px;height:2px;background:var(--bone);margin:5px 0;transition:.25s}
+    .mobile-menu{display:none}
+    @media(max-width:860px){
+      .nav-links,.nav>.nav-in>.lang,.nav .btn{display:none}
+      .burger{display:block}
+      .mobile-menu{display:none;position:fixed;inset:76px 0 auto 0;z-index:49;background:rgba(6,18,13,.98);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:18px 28px 30px}
+      .mobile-menu.open{display:block}
+      .mobile-menu a{display:block;padding:15px 0;border-bottom:1px solid var(--border);font-size:1.05rem;color:var(--bone);text-decoration:none}
+      .mobile-sub{padding:8px 0 8px 16px;border-bottom:1px solid var(--border)}
+      .mobile-sub a{font-size:.96rem;color:var(--mist);border-bottom:0;padding:9px 0}
+      .mobile-menu .lang{display:flex;margin:18px 0 0;font-size:1rem}
+      .mobile-menu a.btn{display:inline-flex;width:100%;justify-content:center;margin-top:18px;padding:15px 22px;border-bottom:0;font-size:1rem}
+    }
+    main{padding:120px 0 104px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em}p.lead{font-size:1.18rem;color:var(--mist);max-width:560px}
     /* hero 2-col with cube */
     .hero-2{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center}
     .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px}
@@ -59,7 +96,48 @@
   </style>
 </head>
 <body>
-  <header><div class="wrap nav"><a href="landing.html"><img class="logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN"></a><a class="back" href="landing.html">← Back to landing</a></div></header>
+  <header class="nav" id="nav">
+    <div class="nav-in">
+      <a class="brand" href="landing.html" aria-label="FoundersVN home">
+        <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="landing.html#how">How it works</a>
+        <div class="drop">
+          <button class="drop-trigger" type="button">About</button>
+          <div class="drop-menu">
+            <a href="foundersvn-events.html">FoundersVN events</a>
+            <a href="team-behind.html">The team behind</a>
+          </div>
+        </div>
+        <a href="landing.html#faq">FAQ</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="vi" aria-pressed="false">VI</button>
+        <span class="sep">/</span>
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      </div>
+      <a class="btn" href="landing.html#apply"><span>Apply</span></a>
+      <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <div class="mobile-menu" id="mmenu">
+    <a href="landing.html#how">How it works</a>
+    <a href="landing.html#about">About</a>
+    <div class="mobile-sub">
+      <a href="foundersvn-events.html">FoundersVN events</a>
+      <a href="team-behind.html">The team behind</a>
+    </div>
+    <a href="landing.html#faq">FAQ</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="vi" aria-pressed="false">VI</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    </div>
+    <a class="btn" href="landing.html#apply"><span>Apply for a seat</span></a>
+  </div>
   <main class="wrap">
     <div class="hero-2">
       <div class="reveal">
@@ -68,7 +146,10 @@
         <p class="lead">Built by operators who care about better rooms, better introductions, and conversations that continue after the event.</p>
       </div>
       <div class="cube-wrap reveal">
-        <img class="cube-img" src="images/landing/cube-spin.webp" alt="FoundersVN mark on a rotating 3D cube" width="418" height="470">
+        <video class="cube-img" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=4" width="680" height="460" aria-label="FoundersVN mark on a rotating 3D cube">
+          <source src="tools/hero-video/out/cube-spin.webm?v=4" type="video/webm">
+          <source src="tools/hero-video/out/cube-spin.mp4?v=4" type="video/mp4">
+        </video>
       </div>
     </div>
 
@@ -150,6 +231,37 @@
   <script>
     const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.14});
     document.querySelectorAll('.reveal').forEach((el,i)=>{ el.style.setProperty('--d',(i%3*0.06)+'s'); io.observe(el); });
+
+    /* Nav scroll state */
+    const navEl = document.getElementById('nav');
+    const onScroll = ()=> navEl.classList.toggle('scrolled', window.scrollY > 24);
+    addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+    /* Mobile menu */
+    const burger = document.getElementById('burger');
+    const mmenu = document.getElementById('mmenu');
+    burger.addEventListener('click', ()=>{
+      const open = mmenu.classList.toggle('open');
+      burger.setAttribute('aria-expanded', String(open));
+    });
+    mmenu.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=>{
+      mmenu.classList.remove('open'); burger.setAttribute('aria-expanded','false');
+    }));
+
+    /* Language: this page has no Vietnamese copy yet, so buttons just persist the
+       choice and jump back to landing.html where translation actually applies. */
+    (function(){
+      let saved = null; try{ saved = localStorage.getItem('fvn-lang'); }catch(e){}
+      const lang = saved || 'en';
+      document.querySelectorAll('.lang button').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    })();
+    document.querySelectorAll('.lang button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        try{ localStorage.setItem('fvn-lang', b.dataset.lang); }catch(e){}
+        document.querySelectorAll('.lang button').forEach(x=> x.setAttribute('aria-pressed', String(x===b)));
+        if(b.dataset.lang === 'vi') location.href = 'landing.html?lang=vi';
+      });
+    });
   </script>
 </body>
 </html>

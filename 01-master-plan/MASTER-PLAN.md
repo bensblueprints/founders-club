@@ -31,15 +31,17 @@ A paid, curated networking dinner for founders in Da Nang. We run targeted ads �
 - **Time.** Late-July target is ~3 weeks out. Aggressive but doable for a 25-cap pilot if we lock decisions tonight.
 
 ## 3. Team & ownership
-See [TEAM.md](../02-team-and-contacts/TEAM.md) for detail.
-- **Maddy** — Project lead, coordination, marketing/theme/messaging.
-- **Benji** — Ads (expert) + supporting tech.
+See [TEAM.md](../02-team-and-contacts/TEAM.md) for detail. **Team is now 4.**
+- **Maddy** — Project lead, coordination, marketing/theme/messaging, pre-event guest care.
+- **Benji** — Ads (expert) + supporting tech; possible MC (TBC).
 - **An** — Lead technical (web app + landing page + payments).
+- **Matthew (Thiệu)** — Event & operations lead: on-the-night hosting/activities/coordination, agenda/script, venue, reception; co-owns pre-event guest care. _Lean scope — no LED/sound/lighting/band for the pilot._
+- ✅ Revenue split **agreed: 4-way equal (25% each)** — Maddy / An / Benji / Matthew. See [Team Agreement](../10-team-agreement/TEAM-AGREEMENT.md).
 
 ## 4. Phases
 
 ### Phase 0 — Planning & Lock-in (this week)
-- [ ] Lock event **date** (target: final week of July)
+- [x] Lock event **date** → **Fri 31 July 2026** (locked)
 - [ ] Lock **venue** (restaurant / private dining room for 25)
 - [ ] Lock **format & run-of-show**
 - [ ] Lock **price** ($150 assumed) and **what's included**
@@ -82,7 +84,7 @@ See [TEAM.md](../02-team-and-contacts/TEAM.md) for detail.
 | ~Jul 12 | Landing page + payment live; ads creative ready |
 | ~Jul 14 | Ads go live |
 | Jul 14 → event | Sell tickets, track funnel daily |
-| **Final week of July** | **Da Nang Event #1** (LOCKED) |
+| **Fri 31 July** | **Da Nang Event #1** (LOCKED) |
 | Early Aug | Debrief + push Saigon using Da Nang content/testimonials |
 | **2nd week Aug** | **Saigon Event #2** (LOCKED) |
 

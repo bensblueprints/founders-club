@@ -2,6 +2,25 @@
 
 _Owner: An (lead) — Benji supporting. This is the digital layer that makes the event different._
 
+## 🔒 Build spec — locked 14/7 (An's this-week list)
+Concrete requirements from the 14/7 meeting. Full flow in [Operations](../12-operations/OPERATIONS-AND-FLOW.md).
+
+- **Payments (automated, 2 options):**
+  - **Airwallex API** (card) — add a **+5% surcharge paid by the customer**. (Ben provides API/access; money → Ben's Airwallex → sub-accounts → VN bank.)
+  - **VNPay / VietQR** (local QR) — **no fee**. Show both at checkout.
+  - No manual/screenshot confirm — payment is automatic.
+- **Plus-one at checkout:** buy **1 or 2 tickets** (max 2 per company, same price). Plus-one needs **no separate application/profile** — just capture **name + dinner choice**.
+- **Menu pick:** each ticket selects a dinner option (e.g. **steak / chicken / vegetarian**) at checkout → feeds name-card printing (color dot: red/yellow/green).
+- **Application form field — language:** English / Vietnamese / Bilingual (drives translation + MC decisions).
+- **Account model:** on **admit**, the team **creates the account** + admits the profile. Guest just **logs in (email + password) and edits** — no self-create. Onboarding email carries the login.
+- **Directory / contacts:** guests see the **full directory + contacts (digital cards) as soon as they have access** (not gated to post-event). **Seat-blocking:** unsold seats render as a **"?" icon (no name)**; approved+paid attendees appear → scarcity + social proof.
+- **Emails (Resend API, automated):** "accepted" email → **reminder sequence** while seat is held **48h** (24h / 6h / 1h → expire). Thank-you page after apply: "check spam, mark not-spam." (Ben buys foundersvn inboxes + warms the domain.)
+- **Discord notification** to the team on each new application (+ route support emails to Slack/Discord).
+- **Cross-event:** flag "also going to Saigon" on profiles (nurture/re-book).
+- **Test:** ship a **1-cent test product** to end-to-end test purchase + email delivery before launch.
+- **Security:** fix the members RLS exposure from the [audit](../11-web-audit/FEEDBACK.md) before real traffic.
+- **Still to add:** food images + Vietnamese copy for the app (Maddy provides).
+
 ## Two things to build
 
 ### A) Event landing / sales page (Phase 1 — needed first)

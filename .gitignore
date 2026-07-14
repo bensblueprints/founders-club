@@ -10,3 +10,7 @@ Thumbs.db
 tools/hero-video/.env
 tools/hero-video/refs/
 tools/agent-platform/.env
+
+# Raw meeting transcripts / recordings (sensitive — keep out of public repo)
+meeting */
+*.srt

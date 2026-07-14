@@ -25,6 +25,22 @@ _The single source of truth for what the event actually is on the night._
 > Draft — refine with Maddy's messaging.
 "Skip 20 awkward intros. Walk into a room of 24 vetted founders where you already know who everyone is and what they're building — before you shake a single hand. Leave with the 3 connections that actually matter."
 
+## Production scope & ownership (updated 14/7)
+- **Event & ops lead: Matthew (Thiệu)** — hosting structure, bonding/intro activities, agenda & run-of-show script, props, in-event coordination + timeline control, **venue check + price deal (avoid "foreigner tax")**, reception.
+- **MC / host: Maddy + Matthew** (bilingual). Decide the mix by audience demographics once sign-ups come in; Benji welcome if he wants.
+- **AV (basic, confirmed):** 2× JBL speakers + 2 mics (talk + live translation) and a **projector + slides** (intro to FoundersVN + app demo). Matthew to confirm the venue has projection/AV. **No LED wall, no band, no big production.**
+- **Dress code: suit & tie** (required) — premium positioning, helps command/raise the price.
+- Pre-event guest care is **co-owned by Maddy + Matthew** — see [Operations & Flow](../12-operations/OPERATIONS-AND-FLOW.md).
+
+## Food, menu & seating (updated 14/7)
+- **Venue = 4U Lounge; use their food → no space-rental cost.** Food quality is the #1 selling point → put a food sizzle reel in the ad.
+- Guests **pre-pick a menu option** at signup (e.g. steak / chicken / vegetarian).
+- **Name cards** (folded card stock) at the door, printed with name + a **colored dot** (red = steak, yellow = chicken, green = veg) so servers place plates seamlessly. **Free seating** — guests place their card at any table (no assigned seats).
+- Confirm whether the meal is **included in the $150** (prior $100 event: food was billed separately).
+
+## Speaker / talk
+- One short talk. Event #1: **Ben speaks** (founder stories — "how did you start"). Host introduces the speaker. **Speaker application page** on foundersvn.com; do outreach to bigger CEOs. Keep it ~10–20 min so it doesn't drag.
+
 ## Format (the arc of the night)
 1. **App access** — everyone's profile is live; people already know who's in the room.
 2. **Host-led bonding + introduction activities** — structured icebreakers so nobody's stranded; each person gives a short self-intro/presentation.

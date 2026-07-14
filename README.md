@@ -24,6 +24,8 @@ A curated, paid, in-person networking event for founders — powered by a digita
 | [08-brand](08-brand/BRAND-GUIDE.md) | _Parked for now_ — naming/visual/social for later |
 | [09-nurturing](09-nurturing/NURTURING-PLAN.md) | Post-event community & retention across cities |
 | [10-team-agreement](10-team-agreement/TEAM-AGREEMENT.md) | Roles, revenue split, decisions, cadence — the team handshake |
+| [11-web-audit](11-web-audit/WEB-STRUCTURE.md) | Audit of Ben's existing platform: structure, user flow, feedback |
+| [12-operations](12-operations/OPERATIONS-AND-FLOW.md) | Pilot user flow (manual), guest care, payment options, comms protocol |
 
 ## Start here
 1. **Tonight's call:** present [Founders-Meetups-Team-Alignment.pptx](Founders-Meetups-Team-Alignment.pptx) — the alignment deck (scope, format, timeline, money/split, ways of working, decisions to lock).
