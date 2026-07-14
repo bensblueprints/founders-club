@@ -166,11 +166,14 @@
   .pos-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:64px;align-items:center}
   .pos-copy h2{max-width:16ch}
   .pos-copy p{color:var(--mist);font-size:1.1rem;margin-top:20px;max-width:42ch}
+  .pos-fig-wrap{position:relative}
   .pos-fig{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);
     box-shadow:0 40px 90px -40px rgba(0,0,0,.7)}
   .pos-fig img{width:100%;aspect-ratio:16/11;object-fit:cover}
   .pos-fig figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 22px 16px;font-size:.82rem;color:var(--bone);
     background:linear-gradient(0deg,rgba(6,18,13,.85),rgba(6,18,13,0))}
+  .pos-cube{position:absolute;right:-34px;bottom:-36px;width:124px;height:auto;z-index:2;filter:drop-shadow(0 18px 28px rgba(0,0,0,.55))}
+  @media(max-width:900px){.pos-cube{width:84px;right:-12px;bottom:-16px}}
 
   /* How it works — darker band, 3 steps, centered heading */
   .how{position:relative;background:var(--pine-deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden}
@@ -185,6 +188,24 @@
   .step-line{height:1px;background:var(--border);flex:1}
   .step h3{font-family:var(--display);font-weight:600;font-size:1.3rem}
   .step p{color:var(--mist);margin-top:12px;max-width:34ch}
+
+  /* Agenda — draft run-of-show, horizontal timeline */
+  .agenda{position:relative;background:var(--pine-deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden}
+  .agenda::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(56% 70% at 50% 0%, rgba(138,154,91,.16), rgba(138,154,91,0) 62%)}
+  .agenda .wrap{position:relative;z-index:1}
+  .agenda .sec-head{text-align:center;margin-bottom:8px}
+  .agenda h2{margin:0 auto;max-width:none}
+  .agenda-note{color:var(--mist);font-size:.86rem;margin-top:10px;text-align:center;font-style:italic}
+  .agenda-line{position:relative;display:flex;gap:20px;margin-top:60px}
+  .agenda-line::before{content:"";position:absolute;top:37px;left:0;right:0;height:1px;background:var(--border)}
+  .agenda-stop{flex:1;min-width:140px;position:relative}
+  .ag-time{display:block;color:var(--coral);font-family:var(--display);font-weight:600;font-size:.84rem;letter-spacing:.02em;margin-bottom:12px}
+  .ag-dot{position:relative;display:block;width:12px;height:12px;border-radius:50%;background:var(--coral);z-index:1;margin-bottom:20px;
+    box-shadow:0 0 0 6px var(--pine-deep),0 0 22px rgba(231,100,74,.5)}
+  .agenda-stop h3{font-family:var(--display);font-weight:600;font-size:1.02rem;margin:0 0 8px}
+  .agenda-stop p{color:var(--mist);font-size:.86rem;max-width:22ch;margin:0}
+  @media(max-width:900px){.agenda-line{flex-direction:column;gap:26px}.agenda-line::before{top:6px;bottom:6px;left:5px;right:auto;width:1px;height:auto}.agenda-stop{padding-left:26px}.ag-dot{position:absolute;left:0;top:2px;margin-bottom:0}.ag-time{margin-bottom:6px}}
 
   /* App layer */
   .app-layer{background:
@@ -361,7 +382,7 @@
     .ic{flex:1 1 44%}
     .pos-grid,.offer-grid,.app-grid{grid-template-columns:1fr;gap:44px}
     .app-shot{max-width:520px}
-    .pos-fig{order:-1}
+    .pos-fig-wrap{order:-1}
     .how-grid{grid-template-columns:1fr;gap:14px}
     .step{border-top:1px solid var(--border);padding-top:26px}
     .step-line{display:none}
@@ -481,10 +502,13 @@
         <p data-i18n="pos.1">A small, curated dinner for people actively building or running a business.</p>
         <p data-i18n="pos.2">Curated by quality, role, and the ability to create value for each other, not by industry.</p>
       </div>
-      <figure class="pos-fig reveal swipe-r">
-        <img loading="lazy" src="images/landing/networking-1.jpg" alt="Founders in conversation across hosted tables at 4U Lounge, Da Nang" data-i18n-alt="pos.alt">
-        <figcaption data-i18n="pos.cap">A real venue. Real people. 4U Lounge on Võ Nguyên Giáp, Da Nang.</figcaption>
-      </figure>
+      <div class="pos-fig-wrap reveal swipe-r">
+        <figure class="pos-fig">
+          <img loading="lazy" src="images/landing/networking-1.jpg" alt="Founders in conversation across hosted tables at 4U Lounge, Da Nang" data-i18n-alt="pos.alt">
+          <figcaption data-i18n="pos.cap">A real venue. Real people. 4U Lounge on Võ Nguyên Giáp, Da Nang.</figcaption>
+        </figure>
+        <img class="pos-cube" src="images/landing/cube-spin.webp" alt="" aria-hidden="true">
+      </div>
     </div>
   </div>
 </section>
@@ -578,6 +602,49 @@
   </div>
 </section>
 
+<!-- ================= AGENDA (draft run-of-show) ================= -->
+<section class="agenda" id="agenda">
+  <div class="wrap">
+    <div class="sec-head reveal fall">
+      <p class="kicker">The evening</p>
+      <h2>A rough shape for the night</h2>
+    </div>
+    <div class="agenda-line" data-stagger>
+      <div class="agenda-stop reveal">
+        <span class="ag-time">6:00 PM</span>
+        <span class="ag-dot"></span>
+        <h3>Welcome</h3>
+        <p>Arrival, check-in, first drinks.</p>
+      </div>
+      <div class="agenda-stop reveal">
+        <span class="ag-time">6:30 PM</span>
+        <span class="ag-dot"></span>
+        <h3>A founder's story</h3>
+        <p>A short guest share to open the room.</p>
+      </div>
+      <div class="agenda-stop reveal">
+        <span class="ag-time">7:00 PM</span>
+        <span class="ag-dot"></span>
+        <h3>Dinner</h3>
+        <p>The meal, hosted at tables of 6 to 8.</p>
+      </div>
+      <div class="agenda-stop reveal">
+        <span class="ag-time">8:00 PM</span>
+        <span class="ag-dot"></span>
+        <h3>Bonding &amp; intros</h3>
+        <p>Light games, then real introductions.</p>
+      </div>
+      <div class="agenda-stop reveal">
+        <span class="ag-time">8:30 PM</span>
+        <span class="ag-dot"></span>
+        <h3>Open floor</h3>
+        <p>Free-flow conversation to close the night.</p>
+      </div>
+    </div>
+    <p class="agenda-note">Draft schedule, 6 to 9 PM. Exact timing will be finalized closer to the date.</p>
+  </div>
+</section>
+
 <!-- ================= EVENT GALLERY (marquee) ================= -->
 <section class="gallery" aria-label="Photos from FoundersVN gatherings">
   <div class="marq">
@@ -619,7 +686,7 @@
         <blockquote data-i18n="testi.2">Small room, strong people, and the conversations actually continued after dinner.</blockquote>
         <div class="testi-who">
           <img src="images/landing/avatar-2.jpg" alt="" width="46" height="46" loading="lazy">
-          <p>Sarah Bennett<small data-i18n="testi.2r">Growth Lead, Meridian</small></p>
+          <p>Khoa Tran<small data-i18n="testi.2r">Product Lead, Waverly</small></p>
         </div>
       </div>
       <div class="testi-card reveal">
@@ -836,11 +903,11 @@ const I18N = {
     "meal.alt": "Premium dinner setting at 4U Lounge, Da Nang",
     "meal.cap": "A curated meal at 4U Lounge, designed to feel like dinner, not event snacks.",
     "testi.k": "People in the room", "testi.title": "A room worth showing up for.",
-    "testi.1": "I met two people I'd never have found at a normal networking event.",
+    "testi.1": "I left with three real follow-ups already lined up. Every single person at my table was worth knowing, no small talk wasted on the wrong room.",
     "testi.1r": "Founder, Rove Studio",
-    "testi.2": "Small room, strong people, and the conversations actually continued after dinner.",
-    "testi.2r": "Growth Lead, Meridian",
-    "testi.3": "The directory made it easy to know who to speak to before I arrived.",
+    "testi.2": "I never touched my phone all night, the app quietly saved every contact for me. Genuinely the coolest part of the whole evening.",
+    "testi.2r": "Product Lead, Waverly",
+    "testi.3": "Best meal I've had at any founder dinner, full stop, and the conversation matched it course for course.",
     "testi.3r": "Founder, Cortex AI",
     "faq.title": "Questions, answered straight.",
     "faq.q1": "Who is this for?",
@@ -925,11 +992,11 @@ const I18N = {
     "meal.alt": "Không gian bữa tối premium tại 4U Lounge, Đà Nẵng",
     "meal.cap": "Một bữa ăn được chuẩn bị chỉn chu tại 4U Lounge, đúng nghĩa dinner, không phải snack sự kiện.",
     "testi.k": "Người trong phòng", "testi.title": "Những cuộc gặp có lý do để tiếp tục.",
-    "testi.1": "Tôi gặp được hai người rất đúng thời điểm, kiểu kết nối khó tìm thấy ở một buổi networking thông thường.",
+    "testi.1": "Tôi rời bàn tiệc với ba cuộc hẹn follow-up đã lên lịch sẵn. Ai ngồi cùng bàn cũng đáng để quen biết, không phí câu chuyện nào cho sai chỗ.",
     "testi.1r": "Nhà sáng lập, Rove Studio",
-    "testi.2": "Phòng nhỏ, đúng người, và cuộc trò chuyện thật sự tiếp tục sau bữa tối.",
-    "testi.2r": "Growth Lead, Meridian",
-    "testi.3": "Directory giúp tôi bước vào phòng có chủ đích hơn, không phải bắt đầu từ con số không.",
+    "testi.2": "Cả tối không cần chạm điện thoại, app tự lưu hết liên hệ cho tôi. Phần cool nhất của cả buổi tối, thật sự.",
+    "testi.2r": "Product Lead, Waverly",
+    "testi.3": "Bữa ăn ngon nhất mình từng có ở một buổi dinner dành cho founder, không bàn cãi, và câu chuyện cũng hay không kém từng món.",
     "testi.3r": "Nhà sáng lập, Cortex AI",
     "faq.title": "Hỏi thẳng, trả lời thật.",
     "faq.q1": "Sự kiện này dành cho ai?",

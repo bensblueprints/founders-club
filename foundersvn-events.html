@@ -13,10 +13,22 @@
     h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em}.wrap{max-width:1120px;margin:auto;padding:0 28px}
     header{padding:28px 0;border-bottom:1px solid var(--border)}.nav{display:flex;align-items:center;justify-content:space-between;gap:24px}.logo{height:24px;filter:brightness(0) invert(1)}.back{color:var(--mist);text-decoration:none;font-size:.94rem}
     main{padding:88px 0 110px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em;max-width:840px}p.lead{font-size:1.18rem;color:var(--mist);max-width:720px}
+    /* hero 2-col with cube */
+    .hero-2{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center}
+    .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:220px}
+    .cube-wrap::before{content:"";position:absolute;width:80%;aspect-ratio:1;border-radius:50%;
+      background:radial-gradient(circle,rgba(231,100,74,.18),rgba(138,154,91,.12) 46%,transparent 70%);filter:blur(8px)}
+    .cube-img{position:relative;width:100%;max-width:280px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
+    @keyframes cubeFloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-14px) rotate(1.2deg)}}
+    @media(max-width:820px){.hero-2{grid-template-columns:1fr;gap:26px}.cube-wrap{order:-1;min-height:180px}}
     section{margin-top:86px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{border:1px solid var(--border);background:var(--raise);border-radius:18px;padding:24px}.card h3{margin:0 0 10px}.card p{color:var(--mist);font-size:.96rem}
     .timeline{border-left:1px solid var(--border);padding-left:26px;display:grid;gap:24px}.event{position:relative}.event::before{content:"";position:absolute;left:-32px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 7px rgba(231,100,74,.12)}.event p{color:var(--mist);margin:.25rem 0 0}
+    /* Hero video showcase block */
+    .showcase-video{border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:0 40px 90px -40px rgba(0,0,0,.7);aspect-ratio:16/9;background:var(--pine) url("tools/hero-video/out/poster.jpg") center 42%/cover no-repeat}
+    .showcase-video video{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block}
+    @media(prefers-reduced-motion:reduce){.showcase-video video{display:none}}
     /* Past gatherings — dải ảnh chạy ngang, KHÔNG box/border, giống landing */
-    .recap{margin-top:86px}.recap p.lead2{color:var(--mist);font-size:1.05rem;max-width:66ch;margin-top:14px}
+    .recap{margin-top:86px;margin-bottom:70px}.recap p.lead2{color:var(--mist);font-size:1.05rem;max-width:66ch;margin-top:14px}
     .marq{margin-top:26px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
     .marq-track{display:flex;width:max-content;animation:marq 42s linear infinite}
     .marq:hover .marq-track{animation-play-state:paused}
@@ -30,18 +42,32 @@
     .foot-social a:hover{color:var(--bone);border-color:var(--mist);background:rgba(242,240,232,.06)}
     .foot-social svg{width:16px;height:16px;display:block}
     .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.19,.66,.3,1),transform .7s cubic-bezier(.19,.66,.3,1)}.reveal.in{opacity:1;transform:none}
-    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.cube-img{animation:none}}
     @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:620px){.grid{grid-template-columns:1fr}main{padding-top:62px}}
   </style>
 </head>
 <body>
   <header><div class="wrap nav"><a href="landing.html"><img class="logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN"></a><a class="back" href="landing.html">← Back to landing</a></div></header>
   <main class="wrap">
-    <div class="reveal">
-      <p class="eyebrow">About</p>
-      <h1>FoundersVN events</h1>
-      <p class="lead">A phone-free networking series built around curated rooms, hosted tables, and a digital layer that keeps the logistics quiet.</p>
+    <div class="hero-2">
+      <div class="reveal">
+        <p class="eyebrow">About</p>
+        <h1>FoundersVN events</h1>
+        <p class="lead">A phone-free networking series built around curated rooms, hosted tables, and a digital layer that keeps the logistics quiet.</p>
+      </div>
+      <div class="cube-wrap reveal">
+        <img class="cube-img" src="images/landing/cube-spin.webp" alt="FoundersVN mark on a rotating 3D cube" width="418" height="470">
+      </div>
     </div>
+
+    <section class="reveal">
+      <div class="showcase-video">
+        <video controls autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/poster.jpg" aria-label="FoundersVN at 4U Lounge, Da Nang">
+          <source src="tools/hero-video/out/hero.webm" type="video/webm">
+          <source src="tools/hero-video/out/hero.mp4" type="video/mp4">
+        </video>
+      </div>
+    </section>
 
     <section class="reveal">
       <p class="eyebrow">The model</p>
