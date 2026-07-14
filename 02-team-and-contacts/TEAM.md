@@ -4,9 +4,9 @@
 
 | Person | Role | Owns |
 |---|---|---|
-| **Maddy** (Lê Hằng) | Project lead / Marketing | Coordination, project management, event theme & message, ad copy/messaging direction, partnerships, host of decisions |
-| **Benji** | Ads expert + tech support | Ad targeting, campaign setup & optimization, funnel tracking; secondary technical support. _Possible event MC (TBC)._ |
-| **An** | Lead engineer (backend-heavy) | Web app, landing page, payments, attendee profiles, data |
+| **Maddy** (Lê Hằng) | Project lead / Marketing / Front-end | Coordination, PM, event theme & message, ad direction, partnerships, decisions — **+ front-end / UI / landing-page build** |
+| **Benji** | Ads expert + payment/email infra | Ad targeting, campaign ops, funnel; **Airwallex + foundersvn email domain**; concierge for high-value questions; possible MC |
+| **An** | Lead engineer (logic + app) | **App logic, backend, payments integration, applications, emails (Resend), directory, admin, data** — not the front-end UI |
 | **Matthew Nguyễn** (Thiệu) | Event & operations lead _(new)_ | On-the-night hosting structure, activity/bonding flow, agenda & run-of-show script, props, in-event coordination & timeline control, venue check + price negotiation, reception; co-owns pre-event guest care with Maddy |
 
 **Matthew's background:** experienced event producer/coordinator — talkshows (dozens), coordinator for 1,000+ person events (with Binz, Ly Ly, Anh Tú), café openings. For this pilot we deliberately use a **lean subset** of his skills (see scope note below).

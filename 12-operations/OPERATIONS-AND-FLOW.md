@@ -96,7 +96,7 @@ Landing  →  Apply (form hỏi cả ngôn ngữ)  →  [Discord noti cho team] 
 ## App / danh sách khách
 - **Seat-blocking:** ghế chưa bán hiện **icon "?" (không tên)**; duyệt + trả tiền xong mới hiện tên trên danh sách → tạo khan hiếm + social proof.
 - App = hồ sơ kiểu LinkedIn (link + contact); sau event chat trong app. Nhắc tại event (máy chiếu/slide) + **video ghim trong WhatsApp**.
-- App còn thiếu: **ảnh món ăn**, **bản copy tiếng Việt** (làm ngày mai).
+- App còn thiếu: **ảnh món ăn** (làm ngày mai). _(Copy tiếng Việt là cho **ADS**, không phải app.)_
 
 ## Việc cần chốt (tổng hợp)
 - [x] MC → **Maddy & Matthew** (chốt theo demographics; Benji welcome)

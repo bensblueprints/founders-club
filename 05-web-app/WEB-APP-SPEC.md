@@ -1,25 +1,81 @@
 # Web App & Landing Page Spec
 
-_Owner: An (lead) — Benji supporting. This is the digital layer that makes the event different._
+## Ownership (locked 14/7)
+- **Front-end / UI / landing page = Maddy** — the visual build, landing, brand look, copy layout. See the front-end section below.
+- **Logic, app, backend, payments, data, emails, admin = An** — everything in "App logic spec" below. Benji supports payment infra (Airwallex) + email domain.
+- **Base:** built on Ben's *Founders Vietnam* platform (Supabase + Netlify functions + Airwallex), trimmed to the pilot. Full operational flow in [Operations](../12-operations/OPERATIONS-AND-FLOW.md).
 
-## 🔒 Build spec — locked 14/7 (An's this-week list)
-Concrete requirements from the 14/7 meeting. Full flow in [Operations](../12-operations/OPERATIONS-AND-FLOW.md).
+---
 
-- **Payments (automated, 2 options):**
-  - **Airwallex API** (card) — add a **+5% surcharge paid by the customer**. (Ben provides API/access; money → Ben's Airwallex → sub-accounts → VN bank.)
-  - **VNPay / VietQR** (local QR) — **no fee**. Show both at checkout.
-  - No manual/screenshot confirm — payment is automatic.
-- **Plus-one at checkout:** buy **1 or 2 tickets** (max 2 per company, same price). Plus-one needs **no separate application/profile** — just capture **name + dinner choice**.
-- **Menu pick:** each ticket selects a dinner option (e.g. **steak / chicken / vegetarian**) at checkout → feeds name-card printing (color dot: red/yellow/green).
-- **Application form field — language:** English / Vietnamese / Bilingual (drives translation + MC decisions).
-- **Account model:** on **admit**, the team **creates the account** + admits the profile. Guest just **logs in (email + password) and edits** — no self-create. Onboarding email carries the login.
-- **Directory / contacts:** guests see the **full directory + contacts (digital cards) as soon as they have access** (not gated to post-event). **Seat-blocking:** unsold seats render as a **"?" icon (no name)**; approved+paid attendees appear → scarcity + social proof.
-- **Emails (Resend API, automated):** "accepted" email → **reminder sequence** while seat is held **48h** (24h / 6h / 1h → expire). Thank-you page after apply: "check spam, mark not-spam." (Ben buys foundersvn inboxes + warms the domain.)
-- **Discord notification** to the team on each new application (+ route support emails to Slack/Discord).
-- **Cross-event:** flag "also going to Saigon" on profiles (nurture/re-book).
-- **Test:** ship a **1-cent test product** to end-to-end test purchase + email delivery before launch.
-- **Security:** fix the members RLS exposure from the [audit](../11-web-audit/FEEDBACK.md) before real traffic.
-- **Still to add:** food images + Vietnamese copy for the app (Maddy provides).
+# App logic spec (An) — locked 14/7
+Everything the app must do, from the 14/7 discussion. This is the source of truth for the logic.
+
+## 1. Lifecycle (state machine)
+```
+applied ─▶ (rejected ✗)
+        └▶ approved ─▶ account_created ─▶ email#1 "accepted" (+pay link)
+             │
+             ├─ reminders while seat held 48h: at 24h / 6h / 1h left
+             │       └─ not paid → EXPIRED → seat released
+             └─ paid ─▶ email#2 onboarding ─▶ active (on directory)
+                        ─▶ attended (checked-in) ─▶ post-event (directory stays open)
+```
+
+## 2. Application
+- Public apply form → `applications` table. Fields: name, email, company, role, **what I do / looking for / can offer**, links/socials, **language = English | Vietnamese | Bilingual** (drives translation + MC).
+- On submit: **thank-you page** ("check spam, mark as not-spam; you'll be notified when approved"); fire **Discord notification** to the team (webhook).
+
+## 3. Review → account creation
+- Admin: **approve / reject / disqualify**.
+- On **approve → the app creates the member account** (email + generated password) and **admits the profile** onto the directory. Guest never self-creates — they only **log in and edit**.
+
+## 4. Emails (Resend API — automated, no manual send)
+- **Email #1 — "You're accepted"** + unique pay link.
+- **Reminder sequence** while the seat is held **48h**: nudges at **24h / 6h / 1h left**, then **expire + release seat**.
+- **Email #2 — onboarding** (on `paid`): WhatsApp group link/QR + **app login (email + password)** + short how-to.
+- Sent from **foundersvn domain** (Ben buys inboxes + warms domain; set SPF/DKIM/DMARC). All transactional via Resend.
+
+## 5. Checkout & payments
+- Only **approved** accounts can pay (unique link).
+- **1–2 tickets** per checkout (plus-one). **Max 2 per company/application.** Same price ($150). Plus-one = **name + menu choice only** (no application, no profile, no app login).
+- **Menu choice per ticket** (steak / chicken / vegetarian) → stored → drives **name-card color dot** (red / yellow / green).
+- **Two methods:** (a) **Airwallex card — +5% surcharge paid by the customer**; (b) **VNPay / VietQR — no fee**.
+- **Server-side price validation** (never trust the client). On success (webhook/return): mark attendance `paid`, confirm the seat, fire email#2, reveal the attendee on the directory.
+- Money → **Ben's Airwallex** → tracked sub-accounts → instant VN bank transfer. (Split accounting handled downstream — 4-way.)
+- **1-cent test product** to run end-to-end purchase + email tests before launch.
+
+## 6. Seat inventory & directory
+- **Cap 25** (config). Public seat display: **sold = named attendee card**; **unsold = "?" placeholder (no name)** → scarcity + social proof.
+- **Directory access:** paid attendees log in and see the **full directory + contacts (digital cards) immediately on entry** — NOT gated to post-event.
+- Card fields: photo, name, company, role, what-I-do, looking-for / can-offer, links, **contacts (WhatsApp / Zalo / Telegram / LinkedIn)**.
+- **Filter by intent / role / language** — not by industry (positioning is cross-industry by level).
+- **Cross-event:** "also going to Saigon" flag per profile (re-book hook).
+
+## 7. Access / auth
+- Login = **email + password** (created at admit); consider magic link. Gate app + directory behind auth **and** paid status.
+
+## 8. Admin
+- Review applications (approve/reject); see payment status; **check-in** on event day (`checked_in`).
+
+## 9. Notifications
+- **Discord**: new application (and optionally new payment). Route support-email replies to **Slack/Discord** so the team sees them.
+
+## 10. Security (fix BEFORE real traffic)
+- Fix the **members RLS**: do not expose `members` rows (esp. `email` / `password_hash`) to anon/public via the client key; restrict to authenticated, never return `password_hash` to the client. Consider migrating to **Supabase Auth**. See [audit](../11-web-audit/FEEDBACK.md).
+- Keep all secrets in Netlify env (not committed).
+
+## 11. Out of scope for the pilot
+In-app chat/messaging (use WhatsApp), membership/cruise/upsell tiers, native app, complex matchmaking. Keep it a fast, reliable directory.
+
+## 12. Data model (extend Ben's schema)
+- `applications`: + `language`.
+- `members` (account): existing + `languages`, `going_to_saigon` (bool).
+- `event_attendance`: `ticket_type`, `plus_one_name`, `menu_choice`, `payment_status`, `surcharge_applied`, `checked_in`.
+
+---
+
+# Front-end / landing (Maddy)
+_Design, UI, and landing build are Maddy's. Reference/brand direction below._
 
 ## Two things to build
 
@@ -139,11 +195,9 @@ Suggested copy:
   2. a quality dining experience
 - Suggested offer line: `$150 includes both the curated networking experience and a thoughtfully prepared meal — not just a seat in the room.`
 
-**Payment decision needed (two linked questions):**
-1. **Which account/entity collects the money?** → a legal-entity company account is recommended (trust + clean split). This choice constrains the gateway. See [Team Agreement §2](../10-team-agreement/TEAM-AGREEMENT.md).
-2. **Which gateway?** Stripe (USD cards, easiest for international nomads, but limited VN support) vs PayPal vs a **local VN rail / VietQR bank transfer** (~fee-free, points at one VN account). _Decide both on the call._
+**Payment — DECIDED (14/7):** Airwallex card (+5% to customer) + VNPay QR (free), automated. Money → Ben's Airwallex. Full logic in §5 above. Open: treasurer + payout cadence for the 4-way split.
 
-**Build-vs-buy shortcut:** For the pilot, a no-code stack (e.g. a simple site + Stripe Payment Link / Lemon Squeezy + a typeform-style intake) could get us live in days and let An focus energy on the app. Worth weighing against a custom build. _Decide on the call._
+**Build-vs-buy — DECIDED:** build on Ben's existing Founders Vietnam platform (not no-code, not from scratch) — trim to pilot.
 
 ### B) Attendee networking app (the differentiator)
 A web app (mobile-friendly, no install ideally) that on event day lets attendees browse who's in the room.
@@ -188,8 +242,10 @@ The landing-page intake form should collect exactly these fields so the app is p
 ## Timeline
 | Item | Owner | Target |
 |---|---|---|
-| Landing + payment live | An | ~Jul 12 |
-| Intake form feeding profiles | An | ~Jul 12 |
-| App MVP (directory) | An | before event |
-| Access control tested | An | before event |
-| Full run-through with test data | An + team | T-2 days |
+| Web + applications working + core app | **An** | **14 Jul (today)** |
+| ALL app features (payments, emails, plus-one, menu, seat-blocking, directory, RLS) | **An** | **15 Jul** |
+| Landing page (front-end/UI) | **Maddy** | **15 Jul** |
+| Airwallex API + foundersvn inboxes + warm-up | Benji | 14–15 Jul |
+| 1-cent test → full end-to-end test | An + team | **15 Jul** |
+| **Ads live (EN + VI)** | Benji | **16 Jul (latest)** |
+| Full run-through with test data | An + team | T-2 days (29 Jul) |
