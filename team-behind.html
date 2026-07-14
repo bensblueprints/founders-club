@@ -9,27 +9,81 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--pine:#071A14;--raise:#10231B;--bone:#F2F0E8;--mist:#A9BBB6;--moss:#8A9A5B;--coral:#E7644A;--border:rgba(242,240,232,.14);--display:'Plus Jakarta Sans',system-ui,sans-serif}
+    :root{--pine:#071A14;--raise:#10231B;--bone:#F2F0E8;--mist:#A9BBB6;--moss:#8A9A5B;--coral:#E7644A;--coral-press:#D5573F;--radius:8px;--border:rgba(242,240,232,.14);--display:'Plus Jakarta Sans',system-ui,sans-serif}
     *{box-sizing:border-box}body{margin:0;background:var(--pine);color:var(--bone);font-family:Inter,system-ui,sans-serif;line-height:1.55}a{color:inherit}
     h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em}.wrap{max-width:1120px;margin:auto;padding:0 28px}
-    header{padding:28px 0;border-bottom:1px solid var(--border)}.nav{display:flex;align-items:center;justify-content:space-between;gap:24px}.logo{height:24px;filter:brightness(0) invert(1)}.back{color:var(--mist);text-decoration:none;font-size:.94rem}
-    main{padding:76px 0 104px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em}p.lead{font-size:1.18rem;color:var(--mist);max-width:560px}
+    /* Nav (đồng bộ landing.html) */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .35s ease,border-color .35s ease,backdrop-filter .35s ease;border-bottom:1px solid transparent}
+    .nav.scrolled{background:rgba(6,18,13,.82);backdrop-filter:blur(14px);border-bottom-color:var(--border)}
+    .nav-in{display:flex;align-items:center;gap:32px;height:76px;max-width:1320px;margin:0 auto;padding:0 28px}
+    .brand{display:flex;align-items:center}
+    .brand-logo{height:23px;width:auto;filter:brightness(0) invert(1);opacity:.96}
+    .nav-links{display:flex;gap:30px;margin-left:auto;align-items:center}
+    .nav-links a,.drop-trigger{font-size:.92rem;color:var(--mist);transition:color .2s;text-decoration:none}
+    .nav-links a:hover,.drop:hover .drop-trigger,.drop:focus-within .drop-trigger{color:var(--bone)}
+    .drop{position:relative}
+    .drop-trigger{display:inline-flex;align-items:center;gap:7px;background:none;border:0;font:inherit;cursor:pointer;padding:26px 0}
+    .drop-trigger::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.75}
+    .drop-menu{position:absolute;right:0;top:64px;min-width:230px;padding:10px;border:1px solid var(--border);border-radius:14px;background:rgba(6,18,13,.94);backdrop-filter:blur(16px);box-shadow:0 24px 54px rgba(0,0,0,.32);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease}
+    .drop:hover .drop-menu,.drop:focus-within .drop-menu{opacity:1;pointer-events:auto;transform:none}
+    .drop-menu a{display:block;padding:12px 13px;border-radius:10px;color:var(--mist);text-decoration:none}
+    .drop-menu a:hover{background:rgba(242,240,232,.07);color:var(--bone)}
+    .lang{display:flex;align-items:center;gap:3px;margin-left:10px;font-size:.85rem;color:var(--mist)}
+    .lang button{background:none;border:0;color:var(--mist);font:inherit;cursor:pointer;padding:4px 5px;border-radius:6px}
+    .lang button[aria-pressed="true"]{color:var(--bone);font-weight:600}
+    .lang .sep{opacity:.5}
+    .btn{display:inline-flex;align-items:center;gap:10px;background:var(--coral);color:var(--bone);font-family:var(--display);font-weight:600;font-size:.95rem;padding:12px 22px;border-radius:var(--radius);border:0;cursor:pointer;text-decoration:none;transition:background .2s ease,transform .2s ease;white-space:nowrap}
+    .btn:hover{background:var(--coral-press)}
+    .btn:active{transform:translateY(1px)}
+    .nav .btn{padding:10px 20px;font-size:.9rem;margin-left:14px}
+    .burger{display:none;background:none;border:0;cursor:pointer;margin-left:auto;padding:8px}
+    .burger span{display:block;width:22px;height:2px;background:var(--bone);margin:5px 0;transition:.25s}
+    .mobile-menu{display:none}
+    @media(max-width:860px){
+      .nav-links,.nav>.nav-in>.lang,.nav .btn{display:none}
+      .burger{display:block}
+      .mobile-menu{display:none;position:fixed;inset:76px 0 auto 0;z-index:49;background:rgba(6,18,13,.98);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:18px 28px 30px}
+      .mobile-menu.open{display:block}
+      .mobile-menu a{display:block;padding:15px 0;border-bottom:1px solid var(--border);font-size:1.05rem;color:var(--bone);text-decoration:none}
+      .mobile-sub{padding:8px 0 8px 16px;border-bottom:1px solid var(--border)}
+      .mobile-sub a{font-size:.96rem;color:var(--mist);border-bottom:0;padding:9px 0}
+      .mobile-menu .lang{display:flex;margin:18px 0 0;font-size:1rem}
+      .mobile-menu a.btn{display:inline-flex;width:100%;justify-content:center;margin-top:18px;padding:15px 22px;border-bottom:0;font-size:1rem}
+    }
+    main{padding:120px 0 104px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em}p.lead{font-size:1.18rem;color:var(--mist);max-width:560px}
     /* hero 2-col with cube */
     .hero-2{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center}
-    .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px}
+    .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:440px;overflow:visible}
     .cube-wrap::before{content:"";position:absolute;width:80%;aspect-ratio:1;border-radius:50%;
       background:radial-gradient(circle,rgba(231,100,74,.18),rgba(138,154,91,.12) 46%,transparent 70%);filter:blur(8px)}
-    .cube-img{position:relative;width:100%;max-width:440px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
+    .cube-img{position:relative;width:300%;max-width:1320px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
     @keyframes cubeFloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-14px) rotate(1.2deg)}}
-    section{margin-top:82px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    section{margin-top:82px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
     .card{border:1px solid var(--border);background:var(--raise);border-radius:18px;padding:24px}
-    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--moss),rgba(242,240,232,.28));margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.4rem;color:var(--pine)}.card h3{margin:0 0 6px}.card p{color:var(--mist);font-size:.96rem}
+    .avatar{position:relative;overflow:hidden;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--moss),rgba(242,240,232,.28));margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.4rem;color:var(--pine)}
+    .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .card h3{margin:0 0 6px}.card p{color:var(--mist);font-size:.96rem}
     .card .role{color:var(--bone);font-weight:600;font-size:.88rem;margin-bottom:10px}
+    .team-lead{color:var(--mist);font-size:1.05rem;max-width:70ch;margin:14px 0 30px}
     .soc-row{display:flex;gap:10px;margin-top:18px}
     .soc{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--border);border-radius:10px;color:var(--mist);transition:color .2s,border-color .2s,background .2s}
     .soc:hover{color:var(--bone);border-color:var(--mist);background:rgba(242,240,232,.05)}.soc svg{width:17px;height:17px;display:block}
-    .logos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.logo-card{border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;color:var(--mist);background:rgba(242,240,232,.04);font-size:.9rem}
-    .contact{background:linear-gradient(135deg,rgba(231,100,74,.22),rgba(138,154,91,.12));border:1px solid var(--border);border-radius:22px;padding:34px}.contact a{color:var(--bone);font-weight:700}
+    .logos{margin-top:26px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+    .logos-track{display:flex;width:max-content;animation:logosRun 34s linear infinite}
+    .logos:hover .logos-track{animation-play-state:paused}
+    .logo-card{flex:none;width:212px;margin-right:14px;border:1px solid rgba(242,240,232,.18);border-radius:16px;padding:22px;text-align:center;color:var(--bone);background:linear-gradient(160deg,#16301F,var(--pine));font-size:.9rem;font-weight:600;display:flex;align-items:center;justify-content:center;min-height:92px;transition:transform .2s,background .2s}
+    .logo-card:hover{background:linear-gradient(160deg,#1b3a26,var(--pine));transform:translateY(-2px)}
+    .logo-card img{max-width:100%;max-height:38px;width:auto;object-fit:contain}
+    .logo-card img.logo-white{filter:brightness(0) invert(1);opacity:.82;transition:opacity .2s}
+    .logo-card:hover img.logo-white{opacity:1}
+    @keyframes logosRun{to{transform:translateX(-50%)}}
+    .contact{background:linear-gradient(135deg,rgba(231,100,74,.22),rgba(138,154,91,.12));border:1px solid var(--border);border-radius:22px;padding:38px;margin-bottom:70px;overflow:hidden}.contact a{color:var(--bone);font-weight:700}
+    .contact-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+    .contact-photos{position:relative;min-height:190px}
+    .cp-main{width:80%;aspect-ratio:4/5;object-fit:cover;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.35);position:relative;z-index:1;display:block}
+    .cp-accent{width:50%;aspect-ratio:1;object-fit:cover;border-radius:14px;box-shadow:0 16px 30px rgba(0,0,0,.4);position:absolute;right:0;bottom:-26px;z-index:2;border:4px solid var(--pine);transform:rotate(5deg);transition:transform .3s}
+    .contact:hover .cp-accent{transform:rotate(0deg) scale(1.03)}
+    @media(max-width:820px){.contact-grid{grid-template-columns:1fr}.contact-photos{display:flex;gap:14px;min-height:0;margin-top:22px}.cp-main{width:60%;aspect-ratio:1}.cp-accent{position:relative;right:auto;bottom:auto;width:35%;border-width:3px;align-self:flex-end}}
     /* footer */
     .site-foot{border-top:1px solid var(--border);padding:44px 0 54px;color:var(--mist);font-size:.9rem}
     .foot-in{display:flex;flex-wrap:wrap;gap:18px 40px;align-items:center;justify-content:space-between}
@@ -41,12 +95,53 @@
     /* reveal */
     .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.19,.66,.3,1),transform .7s cubic-bezier(.19,.66,.3,1);transition-delay:var(--d,0s)}
     .reveal.in{opacity:1;transform:none}
-    @media(max-width:820px){.hero-2{grid-template-columns:1fr;gap:26px}.cube-wrap{order:-1;min-height:240px}.grid,.logos{grid-template-columns:1fr}main{padding-top:56px}}
+    @media(max-width:820px){.hero-2{grid-template-columns:1fr;gap:26px}.cube-wrap{order:-1;min-height:340px}.cube-img{width:220%;max-width:820px}.grid{grid-template-columns:1fr}main{padding-top:56px}.logo-card{width:190px}}
     @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.cube-img{animation:none}}
   </style>
 </head>
 <body>
-  <header><div class="wrap nav"><a href="landing.html"><img class="logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN"></a><a class="back" href="landing.html">← Back to landing</a></div></header>
+  <header class="nav" id="nav">
+    <div class="nav-in">
+      <a class="brand" href="landing.html" aria-label="FoundersVN home">
+        <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="landing.html#how">How it works</a>
+        <div class="drop">
+          <button class="drop-trigger" type="button">About</button>
+          <div class="drop-menu">
+            <a href="foundersvn-events.html">FoundersVN events</a>
+            <a href="team-behind.html">The team behind</a>
+          </div>
+        </div>
+        <a href="landing.html#faq">FAQ</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="vi" aria-pressed="false">VI</button>
+        <span class="sep">/</span>
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      </div>
+      <a class="btn" href="landing.html#apply"><span>Apply</span></a>
+      <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <div class="mobile-menu" id="mmenu">
+    <a href="landing.html#how">How it works</a>
+    <a href="landing.html#about">About</a>
+    <div class="mobile-sub">
+      <a href="foundersvn-events.html">FoundersVN events</a>
+      <a href="team-behind.html">The team behind</a>
+    </div>
+    <a href="landing.html#faq">FAQ</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="vi" aria-pressed="false">VI</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    </div>
+    <a class="btn" href="landing.html#apply"><span>Apply for a seat</span></a>
+  </div>
   <main class="wrap">
     <div class="hero-2">
       <div class="reveal">
@@ -55,37 +150,76 @@
         <p class="lead">Built by operators who care about better rooms, better introductions, and conversations that continue after the event.</p>
       </div>
       <div class="cube-wrap reveal">
-        <img class="cube-img" src="images/landing/cube-cutout.png" alt="FoundersVN mark on a 3D cube" width="440" height="248">
+        <video class="cube-img" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=7" width="680" height="460" aria-label="FoundersVN mark on a rotating 3D cube">
+          <source src="tools/hero-video/out/cube-spin.webm?v=7" type="video/webm">
+          <source src="tools/hero-video/out/cube-spin.mp4?v=7" type="video/mp4">
+        </video>
       </div>
     </div>
 
     <section>
       <p class="eyebrow reveal">Team</p>
+      <p class="team-lead reveal">Four co-founders who've sat on different sides of Vietnam's business landscape: multinational corporates, fast-moving startups, and a hands-on manufacturing floor.</p>
       <div class="grid">
-        <article class="card reveal"><div class="avatar">M</div><h3>Maddy</h3><p class="role">Project Lead, Marketing</p><p>Maddy leads FoundersVN end to end: coordination, marketing and messaging, and hosting the room on the night.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D4D03AQFPHS7iTkU34Q/profile-displayphoto-scale_400_400/B4DZwhsd3pKEAg-/0/1770091832772?e=1785369600&amp;v=beta&amp;t=BoyMddJ_42nsqL7TZsMNOSeoZR9bzVNlWH6vWTLu3q4" alt="" loading="lazy" onerror="this.remove()">M</div><h3>Maddy</h3><p class="role">Co-Founder, Marketing &amp; Community</p><p>Maddy is a community builder and ecosystem fosterer, connecting founders and operators across Southeast Asia. In 4+ years across SmartDev, Consen.ai, and Techies Lab, she has worked in marketing and product, helping grow a startup community of over 5,000 people. That same builder's instinct now drives FoundersVN.</p>
           <div class="soc-row">
             <a class="soc" href="mailto:maddy.lee@buddytrading.com" aria-label="Email Maddy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3.5 6 8.5 7 8.5-7"/></svg></a>
+            <a class="soc" href="https://www.linkedin.com/in/maddyl/" target="_blank" rel="noopener" aria-label="Maddy's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+            <a class="soc" href="https://www.instagram.com/maddy_da.techie/" target="_blank" rel="noopener" aria-label="Maddy's Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg></a>
           </div>
         </article>
-        <article class="card reveal"><div class="avatar">A</div><h3>An</h3><p class="role">Lead Engineer</p><p>An leads engineering across the web app, landing page, payments, and attendee data, the technical backbone behind every FoundersVN edition.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D5635AQEpUh5WnQ08AQ/profile-framedphoto-shrink_800_800/B56Z4diUmHH4Ag-/0/1778611997371?e=1784552400&amp;v=beta&amp;t=k5kS9DAY8TpovMQENYfFt4NnjR8SYoLZSSz7_h0DOjU" alt="" loading="lazy" onerror="this.remove()" style="transform:scale(1.85);transform-origin:50% 14%">A</div><h3>An</h3><p class="role">Co-Founder &amp; Lead Engineer</p><p>An is a product and AI builder. He has worked across P&amp;G's supply chain systems and ANZ's cloud platforms, with a Microsoft APAC hackathon win along the way. He leads engineering across the web app, landing page, payments, and attendee data, the technical backbone behind every FoundersVN edition.</p>
+          <div class="soc-row">
+            <a class="soc" href="https://www.linkedin.com/in/an-nguyen-quoc/" target="_blank" rel="noopener" aria-label="An's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+          </div>
         </article>
-        <article class="card reveal"><div class="avatar">B</div><h3>Benji</h3><p class="role">Ads and Growth</p><p>Benji runs paid acquisition end to end: targeting, creative testing, and funnel tracking, plus secondary technical support for the app.</p>
+        <article class="card reveal"><div class="avatar"><img src="https://media.licdn.com/dms/image/v2/D4E03AQG-YaFZDRv6UQ/profile-displayphoto-crop_800_800/B4EZkprN.xHoAM-/0/1757340820522?e=1785369600&amp;v=beta&amp;t=JrHsUQYLkSLJsV_7hJBPsHhsIrFoErlMjFxfxcpEmGY" alt="" loading="lazy" onerror="this.remove()">Mt</div><h3>Matthew</h3><p class="role">Co-Founder, Operations &amp; Events</p><p>Matthew's leather goods business has run in Da Nang for over 20 years, moving through one of the city's most diverse local ecosystems: hotel chains, major suppliers, and everything in between. At FoundersVN he leads operations and the night itself: venue, run of show, and every logistic that makes the room work.</p>
+          <div class="soc-row">
+            <a class="soc" href="https://www.linkedin.com/in/matthewnt/" target="_blank" rel="noopener" aria-label="Matthew's LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5v6M8 7.5v.01M12.5 16.5v-3.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v3.5M12.5 16.5v-6"/></svg></a>
+          </div>
+        </article>
+        <article class="card reveal"><div class="avatar"><img src="images/landing/team-benji.jpg" alt="" loading="lazy" onerror="this.remove()">B</div><h3>Benji</h3><p class="role">Co-Founder, Ads &amp; Growth</p><p>Benji runs paid acquisition end to end: targeting, creative testing, and funnel tracking, plus secondary technical support for the app.</p>
         </article>
       </div>
     </section>
 
     <section>
-      <p class="eyebrow reveal">Partners and collaborators</p>
+      <p class="eyebrow reveal">We've worked with</p>
       <div class="logos">
-        <div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div><div class="logo-card reveal">Partner logo</div>
+        <div class="logos-track">
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/smartdev.png" alt="SmartDev" loading="lazy" onerror="this.parentElement.textContent='SmartDev'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/hcltech.svg" alt="HCLTech" loading="lazy" onerror="this.parentElement.textContent='HCLTech'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/anz.svg" alt="ANZ" loading="lazy" onerror="this.parentElement.textContent='ANZ'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/fpt-telecom.svg" alt="FPT Telecom" loading="lazy" onerror="this.parentElement.textContent='FPT Telecom'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/yellow-network.svg" alt="Yellow Network" loading="lazy" onerror="this.parentElement.textContent='Yellow Network'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/maison-denude.svg" alt="Maison Denude" loading="lazy" onerror="this.parentElement.textContent='Maison Denude'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/byd.svg" alt="BYD Da Nang" loading="lazy" onerror="this.parentElement.textContent='BYD Da Nang'"></div>
+          <div class="logo-card reveal"><img src="images/landing/logos/techies-lab.svg" alt="Techies Lab" loading="lazy" onerror="this.parentElement.textContent='Techies Lab'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/smartdev.png" alt="" loading="lazy" onerror="this.parentElement.textContent='SmartDev'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/hcltech.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='HCLTech'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/anz.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='ANZ'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/fpt-telecom.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='FPT Telecom'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/yellow-network.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Yellow Network'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/maison-denude.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Maison Denude'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/byd.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='BYD Da Nang'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img src="images/landing/logos/techies-lab.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Techies Lab'"></div>
+        </div>
       </div>
     </section>
 
     <section class="contact reveal">
-      <p class="eyebrow">Contact</p>
-      <h2>Inquiries or collaborations?</h2>
-      <p>For partnerships, venue collaborations, future city editions, or press inquiries, contact the FoundersVN team.</p>
-      <p><a href="mailto:team@foundersvn.com">team@foundersvn.com</a></p>
+      <div class="contact-grid">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>Inquiries or collaborations?</h2>
+          <p>For partnerships, venue collaborations, future city editions, or press inquiries, contact the FoundersVN team.</p>
+          <p><a href="mailto:team@foundersvn.com">team@foundersvn.com</a></p>
+        </div>
+        <div class="contact-photos">
+          <img class="cp-main" src="images/landing/networking-1.jpg" alt="Guests networking at a FoundersVN gathering">
+          <img class="cp-accent" src="images/landing/dinner-2.jpg" alt="Founders in conversation over dinner">
+        </div>
+      </div>
     </section>
   </main>
 
@@ -111,6 +245,37 @@
   <script>
     const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.14});
     document.querySelectorAll('.reveal').forEach((el,i)=>{ el.style.setProperty('--d',(i%3*0.06)+'s'); io.observe(el); });
+
+    /* Nav scroll state */
+    const navEl = document.getElementById('nav');
+    const onScroll = ()=> navEl.classList.toggle('scrolled', window.scrollY > 24);
+    addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+    /* Mobile menu */
+    const burger = document.getElementById('burger');
+    const mmenu = document.getElementById('mmenu');
+    burger.addEventListener('click', ()=>{
+      const open = mmenu.classList.toggle('open');
+      burger.setAttribute('aria-expanded', String(open));
+    });
+    mmenu.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=>{
+      mmenu.classList.remove('open'); burger.setAttribute('aria-expanded','false');
+    }));
+
+    /* Language: this page has no Vietnamese copy yet, so buttons just persist the
+       choice and jump back to landing.html where translation actually applies. */
+    (function(){
+      let saved = null; try{ saved = localStorage.getItem('fvn-lang'); }catch(e){}
+      const lang = saved || 'en';
+      document.querySelectorAll('.lang button').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    })();
+    document.querySelectorAll('.lang button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        try{ localStorage.setItem('fvn-lang', b.dataset.lang); }catch(e){}
+        document.querySelectorAll('.lang button').forEach(x=> x.setAttribute('aria-pressed', String(x===b)));
+        if(b.dataset.lang === 'vi') location.href = 'landing.html?lang=vi';
+      });
+    });
   </script>
 </body>
 </html>
