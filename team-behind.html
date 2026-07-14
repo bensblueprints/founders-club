@@ -53,10 +53,10 @@
     main{padding:120px 0 104px}.eyebrow{color:var(--moss);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;font-weight:700}h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.04;font-weight:600;margin:18px 0 20px;letter-spacing:-.03em}p.lead{font-size:1.18rem;color:var(--mist);max-width:560px}
     /* hero 2-col with cube */
     .hero-2{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center}
-    .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px}
+    .cube-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:440px;overflow:visible}
     .cube-wrap::before{content:"";position:absolute;width:80%;aspect-ratio:1;border-radius:50%;
       background:radial-gradient(circle,rgba(231,100,74,.18),rgba(138,154,91,.12) 46%,transparent 70%);filter:blur(8px)}
-    .cube-img{position:relative;width:100%;max-width:440px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
+    .cube-img{position:relative;width:300%;max-width:1320px;height:auto;filter:drop-shadow(0 34px 54px rgba(0,0,0,.6));animation:cubeFloat 7s ease-in-out infinite}
     @keyframes cubeFloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-14px) rotate(1.2deg)}}
     section{margin-top:82px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
     .card{border:1px solid var(--border);background:var(--raise);border-radius:18px;padding:24px}
@@ -68,11 +68,15 @@
     .soc-row{display:flex;gap:10px;margin-top:18px}
     .soc{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--border);border-radius:10px;color:var(--mist);transition:color .2s,border-color .2s,background .2s}
     .soc:hover{color:var(--bone);border-color:var(--mist);background:rgba(242,240,232,.05)}.soc svg{width:17px;height:17px;display:block}
-    .logos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.logo-card{border:1px solid rgba(242,240,232,.18);border-radius:16px;padding:22px;text-align:center;color:var(--bone);background:linear-gradient(160deg,#16301F,var(--pine));font-size:.9rem;font-weight:600;display:flex;align-items:center;justify-content:center;min-height:92px;transition:transform .2s,background .2s}
+    .logos{margin-top:26px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+    .logos-track{display:flex;width:max-content;animation:logosRun 34s linear infinite}
+    .logos:hover .logos-track{animation-play-state:paused}
+    .logo-card{flex:none;width:212px;margin-right:14px;border:1px solid rgba(242,240,232,.18);border-radius:16px;padding:22px;text-align:center;color:var(--bone);background:linear-gradient(160deg,#16301F,var(--pine));font-size:.9rem;font-weight:600;display:flex;align-items:center;justify-content:center;min-height:92px;transition:transform .2s,background .2s}
     .logo-card:hover{background:linear-gradient(160deg,#1b3a26,var(--pine));transform:translateY(-2px)}
     .logo-card img{max-width:100%;max-height:38px;width:auto;object-fit:contain}
     .logo-card img.logo-white{filter:brightness(0) invert(1);opacity:.82;transition:opacity .2s}
     .logo-card:hover img.logo-white{opacity:1}
+    @keyframes logosRun{to{transform:translateX(-50%)}}
     .contact{background:linear-gradient(135deg,rgba(231,100,74,.22),rgba(138,154,91,.12));border:1px solid var(--border);border-radius:22px;padding:38px;margin-bottom:70px;overflow:hidden}.contact a{color:var(--bone);font-weight:700}
     .contact-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
     .contact-photos{position:relative;min-height:190px}
@@ -91,7 +95,7 @@
     /* reveal */
     .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.19,.66,.3,1),transform .7s cubic-bezier(.19,.66,.3,1);transition-delay:var(--d,0s)}
     .reveal.in{opacity:1;transform:none}
-    @media(max-width:820px){.hero-2{grid-template-columns:1fr;gap:26px}.cube-wrap{order:-1;min-height:240px}.grid,.logos{grid-template-columns:1fr}main{padding-top:56px}}
+    @media(max-width:820px){.hero-2{grid-template-columns:1fr;gap:26px}.cube-wrap{order:-1;min-height:340px}.cube-img{width:220%;max-width:820px}.grid{grid-template-columns:1fr}main{padding-top:56px}.logo-card{width:190px}}
     @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.cube-img{animation:none}}
   </style>
 </head>
@@ -146,9 +150,9 @@
         <p class="lead">Built by operators who care about better rooms, better introductions, and conversations that continue after the event.</p>
       </div>
       <div class="cube-wrap reveal">
-        <video class="cube-img" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=5" width="680" height="460" aria-label="FoundersVN mark on a rotating 3D cube">
-          <source src="tools/hero-video/out/cube-spin.webm?v=5" type="video/webm">
-          <source src="tools/hero-video/out/cube-spin.mp4?v=5" type="video/mp4">
+        <video class="cube-img" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=7" width="680" height="460" aria-label="FoundersVN mark on a rotating 3D cube">
+          <source src="tools/hero-video/out/cube-spin.webm?v=7" type="video/webm">
+          <source src="tools/hero-video/out/cube-spin.mp4?v=7" type="video/mp4">
         </video>
       </div>
     </div>
@@ -182,14 +186,24 @@
     <section>
       <p class="eyebrow reveal">We've worked with</p>
       <div class="logos">
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/smartdev.png" alt="SmartDev" loading="lazy" onerror="this.parentElement.textContent='SmartDev'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/hcltech.svg" alt="HCLTech" loading="lazy" onerror="this.parentElement.textContent='HCLTech'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/anz.svg" alt="ANZ" loading="lazy" onerror="this.parentElement.textContent='ANZ'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/fpt-telecom.svg" alt="FPT Telecom" loading="lazy" onerror="this.parentElement.textContent='FPT Telecom'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/yellow-network.svg" alt="Yellow Network" loading="lazy" onerror="this.parentElement.textContent='Yellow Network'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/maison-denude.svg" alt="Maison Denude" loading="lazy" onerror="this.parentElement.textContent='Maison Denude'"></div>
-        <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/byd.svg" alt="BYD Da Nang" loading="lazy" onerror="this.parentElement.textContent='BYD Da Nang'"></div>
-        <div class="logo-card reveal"><img src="images/landing/logos/techies-lab.svg" alt="Techies Lab" loading="lazy" onerror="this.parentElement.textContent='Techies Lab'"></div>
+        <div class="logos-track">
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/smartdev.png" alt="SmartDev" loading="lazy" onerror="this.parentElement.textContent='SmartDev'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/hcltech.svg" alt="HCLTech" loading="lazy" onerror="this.parentElement.textContent='HCLTech'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/anz.svg" alt="ANZ" loading="lazy" onerror="this.parentElement.textContent='ANZ'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/fpt-telecom.svg" alt="FPT Telecom" loading="lazy" onerror="this.parentElement.textContent='FPT Telecom'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/yellow-network.svg" alt="Yellow Network" loading="lazy" onerror="this.parentElement.textContent='Yellow Network'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/maison-denude.svg" alt="Maison Denude" loading="lazy" onerror="this.parentElement.textContent='Maison Denude'"></div>
+          <div class="logo-card reveal"><img class="logo-white" src="images/landing/logos/byd.svg" alt="BYD Da Nang" loading="lazy" onerror="this.parentElement.textContent='BYD Da Nang'"></div>
+          <div class="logo-card reveal"><img src="images/landing/logos/techies-lab.svg" alt="Techies Lab" loading="lazy" onerror="this.parentElement.textContent='Techies Lab'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/smartdev.png" alt="" loading="lazy" onerror="this.parentElement.textContent='SmartDev'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/hcltech.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='HCLTech'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/anz.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='ANZ'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/fpt-telecom.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='FPT Telecom'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/yellow-network.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Yellow Network'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/maison-denude.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Maison Denude'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img class="logo-white" src="images/landing/logos/byd.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='BYD Da Nang'"></div>
+          <div class="logo-card reveal" aria-hidden="true"><img src="images/landing/logos/techies-lab.svg" alt="" loading="lazy" onerror="this.parentElement.textContent='Techies Lab'"></div>
+        </div>
       </div>
     </section>
 

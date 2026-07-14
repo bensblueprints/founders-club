@@ -172,8 +172,8 @@
   .pos-fig img{width:100%;aspect-ratio:16/11;object-fit:cover}
   .pos-fig figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 22px 16px;font-size:.82rem;color:var(--bone);
     background:linear-gradient(0deg,rgba(6,18,13,.85),rgba(6,18,13,0))}
-  .pos-cube{position:absolute;right:-34px;bottom:-36px;width:124px;height:auto;z-index:2;filter:drop-shadow(0 18px 28px rgba(0,0,0,.55))}
-  @media(max-width:900px){.pos-cube{width:84px;right:-12px;bottom:-16px}}
+  .pos-cube{position:absolute;right:-70px;bottom:-64px;width:372px;height:auto;z-index:2;filter:drop-shadow(0 18px 28px rgba(0,0,0,.55))}
+  @media(max-width:900px){.pos-cube{width:252px;right:-58px;bottom:-42px}}
 
   /* How it works — darker band, 3 steps, centered heading */
   .how{position:relative;background:var(--pine-deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden}
@@ -257,9 +257,25 @@
   .marq{display:flex;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
   .marq-track{display:flex;width:max-content;animation:marq 48s linear infinite}
   .marq:hover .marq-track{animation-play-state:paused}
-  .marq img{height:232px;width:auto;flex:none;margin-right:16px;border-radius:14px;border:1px solid var(--border);object-fit:cover;display:block}
+  .marq-item{all:unset;cursor:pointer;flex:none;margin-right:16px;display:block;border-radius:14px}
+  .marq-item img{height:232px;width:auto;border-radius:14px;border:1px solid var(--border);object-fit:cover;display:block;transition:filter .2s ease,transform .2s ease}
+  .marq-item:hover img,.marq-item:focus-visible img{filter:brightness(1.08);transform:scale(1.015)}
+  .marq-item:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
   @keyframes marq{to{transform:translateX(-50%)}}
-  @media(max-width:860px){.marq img{height:168px;margin-right:12px}}
+  @media(max-width:860px){.marq-item img{height:168px}.marq-item{margin-right:12px}}
+
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;z-index:200;background:rgba(4,17,13,.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:48px;cursor:zoom-out}
+  .lightbox[hidden]{display:none}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:14px;box-shadow:0 40px 100px rgba(0,0,0,.55);cursor:default}
+  .lightbox-close{position:absolute;top:20px;right:20px;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:rgba(242,240,232,.06);color:var(--bone);font-size:1.6rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s ease}
+  .lightbox-close:hover{background:rgba(242,240,232,.16)}
+  .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;border:1px solid var(--border);background:rgba(242,240,232,.06);color:var(--bone);font-size:1.5rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s ease}
+  .lightbox-nav:hover{background:rgba(242,240,232,.16)}
+  .lightbox-prev{left:20px}
+  .lightbox-next{right:20px}
+  .lightbox-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:var(--mist);font-size:.82rem;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+  @media(max-width:640px){.lightbox{padding:20px}.lightbox-close{top:10px;right:10px;width:40px;height:40px}.lightbox-nav{width:42px;height:42px;font-size:1.25rem}.lightbox-prev{left:6px}.lightbox-next{right:6px}}
 
   /* Testimonials (People) */
   #people{position:relative;overflow:hidden}
@@ -476,7 +492,7 @@
   <div class="hero-in">
     <div class="hero-content" data-stagger>
       <h1 class="h1-anim" data-i18n="hero.h1">Phone-Free Networking for Founders</h1>
-      <p class="hero-sub reveal" data-i18n="hero.sub">An intimate founder dinner in Da Nang, designed for deeper conversations and quietly supported by technology so every introduction feels natural.</p>
+      <p class="hero-sub reveal" data-i18n="hero.sub">A curated entrepreneur dinner in Da Nang, designed for deeper conversations and quietly supported by technology, so you can stay in the conversation instead of pulling out your phone to exchange contact details.</p>
       <aside class="infocard reveal" aria-label="Event details">
         <div class="ic"><span class="ic-l" data-i18n="panel.l.date">Date</span><span class="ic-v" data-i18n="panel.date">Friday 31/07/2026</span></div>
         <div class="ic"><span class="ic-l" data-i18n="panel.l.venue">Venue</span><span class="ic-v" data-i18n="panel.venue">4U Lounge, Da Nang</span></div>
@@ -507,9 +523,9 @@
           <img loading="lazy" src="images/landing/networking-1.jpg" alt="Founders in conversation across hosted tables at 4U Lounge, Da Nang" data-i18n-alt="pos.alt">
           <figcaption data-i18n="pos.cap">A real venue. Real people. 4U Lounge on Võ Nguyên Giáp, Da Nang.</figcaption>
         </figure>
-        <video class="pos-cube" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=5" aria-hidden="true">
-          <source src="tools/hero-video/out/cube-spin.webm?v=5" type="video/webm">
-          <source src="tools/hero-video/out/cube-spin.mp4?v=5" type="video/mp4">
+        <video class="pos-cube" autoplay muted loop playsinline preload="metadata" poster="tools/hero-video/out/cube-spin-poster.png?v=7" aria-hidden="true">
+          <source src="tools/hero-video/out/cube-spin.webm?v=7" type="video/webm">
+          <source src="tools/hero-video/out/cube-spin.mp4?v=7" type="video/mp4">
         </video>
       </div>
     </div>
@@ -531,7 +547,7 @@
       <div class="step reveal">
         <div class="step-top"><span class="step-no">02</span><span class="step-line"></span></div>
         <h3 data-i18n="how.2t">Share good food and conversation</h3>
-        <p data-i18n="how.2d">Enjoy the meal and the people at your table. No need to pull out your phone to swap contacts, just be present.</p>
+        <p data-i18n="how.2d">There is no need to pause the conversation to type in a phone number, email address, or social profile. Stay focused on the meal and the people at your table.</p>
       </div>
       <div class="step reveal">
         <div class="step-top"><span class="step-no">03</span><span class="step-line"></span></div>
@@ -549,7 +565,7 @@
       <div class="app-copy reveal">
         <p class="kicker" data-i18n="app.k">Digital layer</p>
         <h2 data-i18n="app.title">The Digital Layer Behind Every Conversation</h2>
-        <p data-i18n="app.body">Before dinner, browse attendee profiles and see who's coming to future editions. After the event, contacts are saved in the app, so nobody needs to swap numbers on the spot.</p>
+        <p data-i18n="app.body">Before dinner, browse attendee profiles and decide who you would like to meet. Contact details are available through the app after the event, so there is no need to interrupt a good conversation to exchange numbers or email addresses.</p>
         <div class="app-points" aria-label="App highlights">
           <span data-i18n="app.p1">Attendee profiles before you arrive</span>
           <span data-i18n="app.p2">See upcoming FoundersVN editions</span>
@@ -598,7 +614,7 @@
         </div>
         <div class="incl-item reveal">
           <span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
-          <p data-i18n="offer.4">A phone-free setting</p>
+          <p data-i18n="offer.4">Contact sharing handled through the FoundersVN app</p>
         </div>
       </div>
     </div>
@@ -609,39 +625,39 @@
 <section class="agenda" id="agenda">
   <div class="wrap">
     <div class="sec-head reveal fall">
-      <p class="kicker">The evening</p>
-      <h2>A rough shape for the night</h2>
+      <p class="kicker" data-i18n="agenda.k">The evening</p>
+      <h2 data-i18n="agenda.title">A rough shape for the night</h2>
     </div>
     <div class="agenda-line" data-stagger>
       <div class="agenda-stop reveal">
         <span class="ag-time">6:00 PM</span>
         <span class="ag-dot"></span>
-        <h3>Welcome</h3>
-        <p>Arrival, check-in, first drinks.</p>
+        <h3 data-i18n="agenda.1t">Welcome</h3>
+        <p data-i18n="agenda.1d">Arrival, check-in, first drinks.</p>
       </div>
       <div class="agenda-stop reveal">
         <span class="ag-time">6:30 PM</span>
         <span class="ag-dot"></span>
-        <h3>A founder's story</h3>
-        <p>A short guest share to open the room.</p>
+        <h3 data-i18n="agenda.2t">A founder's story</h3>
+        <p data-i18n="agenda.2d">A short guest share to open the room.</p>
       </div>
       <div class="agenda-stop reveal">
         <span class="ag-time">7:00 PM</span>
         <span class="ag-dot"></span>
-        <h3>Dinner</h3>
-        <p>The meal, hosted at tables of 6 to 8.</p>
+        <h3 data-i18n="agenda.3t">Dinner</h3>
+        <p data-i18n="agenda.3d">The meal, hosted at tables of 6 to 8.</p>
       </div>
       <div class="agenda-stop reveal">
         <span class="ag-time">8:00 PM</span>
         <span class="ag-dot"></span>
-        <h3>Bonding &amp; intros</h3>
-        <p>Light games, then real introductions.</p>
+        <h3 data-i18n="agenda.4t">Bonding &amp; intros</h3>
+        <p data-i18n="agenda.4d">Light games, then real introductions.</p>
       </div>
       <div class="agenda-stop reveal">
         <span class="ag-time">8:30 PM</span>
         <span class="ag-dot"></span>
-        <h3>Open floor</h3>
-        <p>Free-flow conversation to close the night.</p>
+        <h3 data-i18n="agenda.5t">Open floor</h3>
+        <p data-i18n="agenda.5d">Free-flow conversation to close the night.</p>
       </div>
     </div>
   </div>
@@ -651,21 +667,33 @@
 <section class="gallery" aria-label="Photos from FoundersVN gatherings">
   <div class="marq">
     <div class="marq-track">
-      <img src="images/landing/venue-wide.jpg" alt="4U Lounge, the room and its tables" loading="lazy">
-      <img src="images/landing/networking-1.jpg" alt="Guests talking before dinner" loading="lazy">
-      <img src="images/landing/dinner-2.jpg" alt="Founders in conversation over dinner" loading="lazy">
-      <img src="images/landing/group-photo.jpg" alt="Guests at a past FoundersVN gathering" loading="lazy">
-      <img src="images/landing/networking-2.jpg" alt="Conversations between tables" loading="lazy">
-      <img src="images/landing/venue-detail.jpg" alt="Warm wood interior details at 4U Lounge" loading="lazy">
-      <img src="images/landing/venue-wide.jpg" alt="" aria-hidden="true" loading="lazy">
-      <img src="images/landing/networking-1.jpg" alt="" aria-hidden="true" loading="lazy">
-      <img src="images/landing/dinner-2.jpg" alt="" aria-hidden="true" loading="lazy">
-      <img src="images/landing/group-photo.jpg" alt="" aria-hidden="true" loading="lazy">
-      <img src="images/landing/networking-2.jpg" alt="" aria-hidden="true" loading="lazy">
-      <img src="images/landing/venue-detail.jpg" alt="" aria-hidden="true" loading="lazy">
+      <button class="marq-item" type="button"><img src="images/landing/venue-wide.jpg" alt="4U Lounge, the room and its tables" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="images/landing/networking-1.jpg" alt="Guests talking before dinner" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="assets/event-generated/founders-vn-steak-lobster-dinner.png" alt="Steak and lobster dinner plate at FoundersVN" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="images/landing/dinner-2.jpg" alt="Founders in conversation over dinner" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="images/landing/group-photo.jpg" alt="Guests at a past FoundersVN gathering" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="images/landing/networking-2.jpg" alt="Conversations between tables" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="assets/event-generated/founders-vn-steak-lobster-waiter-pov.png" alt="Server presenting the steak and lobster dinner" loading="lazy"></button>
+      <button class="marq-item" type="button"><img src="images/landing/venue-detail.jpg" alt="Warm wood interior details at 4U Lounge" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/venue-wide.jpg" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/networking-1.jpg" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="assets/event-generated/founders-vn-steak-lobster-dinner.png" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/dinner-2.jpg" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/group-photo.jpg" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/networking-2.jpg" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="assets/event-generated/founders-vn-steak-lobster-waiter-pov.png" alt="" loading="lazy"></button>
+      <button class="marq-item" type="button" aria-hidden="true" tabindex="-1"><img src="images/landing/venue-detail.jpg" alt="" loading="lazy"></button>
     </div>
   </div>
 </section>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+  <button class="lightbox-close" type="button" aria-label="Close">&times;</button>
+  <button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous photo">&#8249;</button>
+  <img id="lightbox-img" src="" alt="">
+  <button class="lightbox-nav lightbox-next" type="button" aria-label="Next photo">&#8250;</button>
+  <p class="lightbox-count" id="lightbox-count"></p>
+</div>
 
 <!-- ================= TESTIMONIALS (People) =================
      Placeholder tạm theo spec — thay bằng quote thật sau Event #1.
@@ -723,8 +751,8 @@
         <p data-i18n="faq.a3">No. The event has Vietnamese/English hosting. If you're not comfortable in English, the team can help you prepare a short intro before the event.</p>
       </details>
       <details class="reveal">
-        <summary><span data-i18n="faq.q4">What does phone-free mean?</span><span class="pm"></span></summary>
-        <p data-i18n="faq.a4">During the main parts of the night, we ask people to put phones away and focus on the conversation. You can still use your phone when necessary.</p>
+        <summary><span data-i18n="faq.q4">Do I need my phone to exchange contacts?</span><span class="pm"></span></summary>
+        <p data-i18n="faq.a4">No. FoundersVN makes attendee information available through the app, so you do not need to stop a conversation to type in a phone number or email address. You are free to focus on the meal and the people in front of you.</p>
       </details>
       <details class="reveal">
         <summary><span data-i18n="faq.q5">What does $150 include?</span><span class="pm"></span></summary>
@@ -833,7 +861,7 @@
   <div class="wrap foot-in">
     <div>
       <img class="foot-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
-      <p data-i18n="foot.tag">Phone-free networking for founders.</p>
+      <p data-i18n="foot.tag">Curated networking for founders and business owners.</p>
       <div class="foot-social">
         <a href="https://www.facebook.com/profile.php?id=61592081271397" target="_blank" rel="noopener" aria-label="FoundersVN on Facebook">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.6h2.6l.4-3h-3v-1.9c0-.87.24-1.46 1.5-1.46h1.6V4.14C15.9 4.06 15 4 13.9 4c-2.3 0-3.9 1.4-3.9 4v2.4H7.4v3H10V21h3.5Z"/></svg>
@@ -870,7 +898,7 @@ const I18N = {
     "cta.seat": "Apply for a seat",
     "hero.eyebrow": "Da Nang · Friday, July 31 · 4U Lounge",
     "hero.h1": "Phone-Free Networking for Founders",
-    "hero.sub": "An intimate founder dinner in Da Nang, designed for deeper conversations and quietly supported by technology so every introduction feels natural.",
+    "hero.sub": "A curated entrepreneur dinner in Da Nang, designed for deeper conversations and quietly supported by technology, so you can stay in the conversation instead of pulling out your phone to exchange contact details.",
     "hero.cta2": "How it works",
     "seats.left": "{x}/{t} seats left",
     "panel.l.date": "Date", "panel.date": "Friday 31/07/2026",
@@ -885,11 +913,11 @@ const I18N = {
     "pos.cap": "A real venue. Real people. 4U Lounge, Da Nang.",
     "how.title": "How it works",
     "how.1t": "Know the room", "how.1d": "Open the FoundersVN app before you arrive and see who's coming, what they do, and where you can help each other.",
-    "how.2t": "Share good food and conversation", "how.2d": "Enjoy the meal and the people at your table. No need to pull out your phone to swap contacts, just be present.",
+    "how.2t": "Stay with the conversation", "how.2d": "There is no need to pause the conversation to type in a phone number, email address, or social profile. Stay focused on the meal and the people at your table.",
     "how.3t": "Follow up after", "how.3d": "After the dinner, reconnect through the app. Save contacts and reach out to the people worth following up with.",
     "app.k": "Digital layer",
     "app.title": "The Digital Layer Behind Every Conversation",
-    "app.body": "Before dinner, browse attendee profiles and see who's coming to future editions. After the event, contacts are saved in the app, so nobody needs to swap numbers on the spot.",
+    "app.body": "Before dinner, browse attendee profiles and decide who you would like to meet. Contact details are available through the app after the event, so there is no need to interrupt a good conversation to exchange numbers or email addresses.",
     "app.p1": "Attendee profiles before you arrive",
     "app.p2": "See upcoming FoundersVN editions",
     "app.p3": "Contacts saved, ready to follow up",
@@ -901,15 +929,21 @@ const I18N = {
     "offer.1": "Curated meal at 4U Lounge, Da Nang",
     "offer.2": "Attendee directory, before and after",
     "offer.3": "Hosted introductions in Vietnamese & English",
-    "offer.4": "A phone-free setting",
+    "offer.4": "Contact sharing handled through the FoundersVN app",
     "meal.alt": "Premium dinner setting at 4U Lounge, Da Nang",
     "meal.cap": "A curated meal at 4U Lounge, designed to feel like dinner, not event snacks.",
-    "testi.k": "People in the room", "testi.title": "A room worth showing up for.",
-    "testi.1": "I left with three real follow-ups already lined up. Every single person at my table was worth knowing, no small talk wasted on the wrong room.",
+    "agenda.k": "The evening", "agenda.title": "A rough shape for the night",
+    "agenda.1t": "Welcome", "agenda.1d": "Arrival, check-in, first drinks.",
+    "agenda.2t": "A founder's story", "agenda.2d": "A short guest share to open the room.",
+    "agenda.3t": "Dinner", "agenda.3d": "The meal, hosted at tables of 6 to 8.",
+    "agenda.4t": "Bonding & intros", "agenda.4d": "Light games, then real introductions.",
+    "agenda.5t": "Open floor", "agenda.5d": "Free-flow conversation to close the night.",
+    "testi.k": "Attendee reviews", "testi.title": "What attendees say about FoundersVN",
+    "testi.1": "The group was small enough to have proper conversations, and the table arrangement made it easy to meet people outside my usual circle. I left with three useful introductions already lined up.",
     "testi.1r": "Founder, Rove Studio",
-    "testi.2": "I never touched my phone all night, the app quietly saved every contact for me. Genuinely the coolest part of the whole evening.",
+    "testi.2": "The hosts were warm, attentive, and genuinely helpful. They remembered what each person was looking for and introduced me to two founders who were especially relevant to my business.",
     "testi.2r": "Product Lead, Waverly",
-    "testi.3": "Best meal I've had at any founder dinner, full stop, and the conversation matched it course for course.",
+    "testi.3": "Everything felt thoughtfully organised, from the dinner at 4U Lounge to the attendee profiles in the app. I knew who I wanted to speak with before arriving and could reconnect easily afterwards.",
     "testi.3r": "Founder, Cortex AI",
     "faq.title": "Questions, answered straight.",
     "faq.q1": "Who is this for?",
@@ -918,8 +952,8 @@ const I18N = {
     "faq.a2": "Because there are only 25 seats. We want everyone in the room to have a reason to meet the others.",
     "faq.q3": "Do I need strong English?",
     "faq.a3": "No. The event has Vietnamese/English hosting. If you're not comfortable in English, the team can help you prepare a short intro before the event.",
-    "faq.q4": "What does phone-free mean?",
-    "faq.a4": "During the main parts of the night, we ask people to put phones away and focus on the conversation. You can still use your phone when necessary.",
+    "faq.q4": "Do I need my phone to exchange contacts?",
+    "faq.a4": "No. FoundersVN makes attendee information available through the app, so you do not need to stop a conversation to type in a phone number or email address. You are free to focus on the meal and the people in front of you.",
     "faq.q5": "What does $150 include?",
     "faq.a5": "A curated meal at 4U Lounge, bilingual hosting, access to the attendee directory before and after the event, and a room curated for 25 people.",
     "faq.q6": "What if the event is cancelled?",
@@ -947,76 +981,82 @@ const I18N = {
     "band.k": "Da Nang · Friday, July 31",
     "band.title": "25 seats for Da Nang.",
     "band.lead": "A better room. Better conversations. Apply now.",
-    "foot.tag": "Phone-free networking for founders.",
+    "foot.tag": "Curated networking for founders and business owners.",
     "foot.next": "Next edition: <b>Ho Chi Minh City, August 2026</b>",
     "foot.rights": "© 2026 FoundersVN · Da Nang, Vietnam"
   },
   vi: {
-    "title": "FoundersVN · Phone-Free Networking for Founders · Đà Nẵng 31/07/2026",
-    "desc": "Một bữa tối kết nối thân mật cho founder tại Đà Nẵng, được thiết kế để cuộc trò chuyện đi sâu hơn và được công nghệ hỗ trợ nhẹ nhàng phía sau. Thứ Sáu 31/07/2026 tại 4U Lounge. 25 ghế · vé $150.",
+    "title": "FoundersVN · Mở rộng mạng lưới doanh nghiệp · Đà Nẵng 31/07/2026",
+    "desc": "Một bữa tối networking chọn lọc dành cho 25 nhà sáng lập và chủ doanh nghiệp tại Đà Nẵng. Thứ Sáu 31/07/2026 tại 4U Lounge · vé $150.",
     "skip": "Đến thẳng form đăng ký",
-    "nav.how": "Cách vận hành", "nav.about": "Về FoundersVN", "nav.about.events": "FoundersVN events", "nav.about.team": "The team behind", "nav.cta": "Đăng ký",
-    "cta.seat": "Đăng ký tham dự",
+    "nav.how": "Trải nghiệm", "nav.about": "Về FoundersVN", "nav.about.events": "Sự kiện FoundersVN", "nav.about.team": "Đội ngũ tổ chức", "nav.cta": "Tôi muốn tham gia",
+    "cta.seat": "Tôi muốn tham gia",
     "hero.eyebrow": "Đà Nẵng · Thứ Sáu 31/7 · 4U Lounge",
-    "hero.h1": "Phone-Free Networking for Founders",
-    "hero.sub": "Một bữa tối kết nối thân mật cho founder tại Đà Nẵng, được thiết kế để cuộc trò chuyện đi sâu hơn và được công nghệ hỗ trợ nhẹ nhàng phía sau.",
-    "hero.cta2": "Xem cách hoạt động",
+    "hero.h1": "Mở rộng mạng lưới doanh nghiệp cùng FoundersVN",
+    "hero.sub": "Một bữa tối networking chọn lọc dành cho 25 nhà sáng lập và chủ doanh nghiệp tại Đà Nẵng.",
+    "hero.cta2": "Khám phá trải nghiệm",
     "seats.left": "Còn {x}/{t} ghế",
     "panel.l.date": "Ngày", "panel.date": "Thứ Sáu 31/07/2026",
     "panel.l.venue": "Địa điểm", "panel.venue": "4U Lounge, Đà Nẵng",
     "panel.l.cap": "Số chỗ", "panel.seats": "25 ghế", "panel.seats.left": "Còn {x}/{t} ghế",
     "panel.l.price": "Giá vé", "panel.price": "$150",
-    "pos.k": "Vì sao có FoundersVN",
-    "pos.title": "Không phải một buổi networking đông người.",
-    "pos.1": "Một bữa tối nhỏ cho những người đang trực tiếp xây, vận hành, hoặc mở rộng doanh nghiệp.",
-    "pos.2": "Không xếp phòng theo ngành. Chúng tôi chọn theo vai trò, mức độ nghiêm túc, và lý do để mọi người thật sự nên gặp nhau.",
+    "pos.k": "Vì sao chọn FoundersVN",
+    "pos.title": "Không cần gặp thật nhiều. Chỉ cần gặp đúng người.",
+    "pos.1": "FoundersVN quy tụ một nhóm nhỏ các nhà sáng lập và chủ doanh nghiệp đang phát triển, vận hành hoặc mở rộng doanh nghiệp.",
+    "pos.2": "Người tham dự được ban tổ chức lựa chọn dựa trên kinh nghiệm, mục tiêu kết nối và giá trị họ có thể mang đến cho nhau.",
     "pos.alt": "Founders trò chuyện quanh các bàn tại 4U Lounge, Đà Nẵng",
     "pos.cap": "Không gian thật. Người thật. Đủ yên để nói chuyện sâu hơn phần giới thiệu ban đầu.",
-    "how.title": "Cách vận hành",
-    "how.1t": "Biết trước căn phòng", "how.1d": "Mở app FoundersVN trước khi đến để xem ai sẽ có mặt, họ đang làm gì, và bạn có thể giúp nhau ở đâu.",
-    "how.2t": "Ăn ngon, nói chuyện thật", "how.2d": "Tận hưởng bữa ăn và những người cùng bàn. Không cần lấy điện thoại ra để xin liên hệ, cứ tập trung vào cuộc trò chuyện.",
-    "how.3t": "Kết nối tiếp sau đó", "how.3d": "Sau bữa tối, quay lại app để lưu liên hệ và chủ động nhắn cho những người bạn muốn tiếp tục trò chuyện.",
-    "app.k": "Lớp digital",
-    "app.title": "The Digital Layer Behind Every Conversation",
-    "app.body": "Trước bữa tối, xem hồ sơ người tham dự và các edition FoundersVN sắp tới. Sau sự kiện, liên hệ được lưu sẵn trong app, không cần xin số ngay tại chỗ.",
-    "app.p1": "Hồ sơ người tham dự trước khi đến",
-    "app.p2": "Xem các edition FoundersVN sắp tới",
-    "app.p3": "Liên hệ được lưu sẵn để follow up",
-    "app.alt": "Mockup app FoundersVN gồm directory, hồ sơ người tham dự và màn hình liên hệ",
-    "offer.k": "Tấm vé", "offer.title": "Vé của bạn bao gồm",
-    "offer.sub": "Với $150, bạn nhận nhiều hơn một bữa ăn: một căn phòng chọn lọc gồm 25 founder và operator nghiêm túc, host song ngữ ấm áp, và một bữa tối đáng để ngồi lâu tại 4U Lounge.",
-    "offer.people": "Một căn phòng chọn lọc gồm 25 founder & operator",
+    "how.title": "Trải nghiệm tại FoundersVN",
+    "how.1t": "Nắm bắt thông tin trước buổi tiệc", "how.1d": "Xem hồ sơ người tham dự trên ứng dụng FoundersVN để biết mình sẽ gặp ai, họ đang làm gì và đâu là điểm chung đáng để bắt đầu câu chuyện.",
+    "how.2t": "Tập trung vào cuộc trò chuyện", "how.2d": "Bạn không cần ngắt câu chuyện để nhập số điện thoại, email hay tài khoản mạng xã hội. Hãy dành trọn sự chú ý cho bữa ăn và những người đang ngồi cùng bàn.",
+    "how.3t": "Giữ kết nối sau sự kiện", "how.3d": "Ứng dụng FoundersVN lưu lại thông tin liên hệ, giúp bạn dễ dàng tiếp tục những cuộc trao đổi còn dang dở sau bữa tối.",
+    "app.k": "Ứng dụng FoundersVN",
+    "app.title": "Kết nối bắt đầu trước khi bạn đến",
+    "app.body": "Ứng dụng là một phần quan trọng của trải nghiệm FoundersVN. Trước buổi tiệc, bạn có thể xem hồ sơ người tham dự và chủ động chuẩn bị cho những cuộc gặp phù hợp. Sau sự kiện, thông tin liên hệ có sẵn trên ứng dụng, nên bạn không cần ngắt một cuộc trò chuyện chỉ để lấy số điện thoại hay email.",
+    "app.p1": "Biết trước mình sẽ gặp ai",
+    "app.p2": "Theo dõi các sự kiện FoundersVN sắp tới",
+    "app.p3": "Lưu liên hệ để tiếp tục trao đổi",
+    "app.alt": "Ứng dụng FoundersVN với hồ sơ người tham dự và thông tin liên hệ",
+    "offer.k": "Quyền lợi tham dự", "offer.title": "Giá trị FoundersVN mang lại",
+    "offer.sub": "Vé $150 bao gồm bữa tối sang trọng tại 4U Lounge, chương trình kết nối song ngữ và quyền xem hồ sơ các nhà sáng lập, chủ doanh nghiệp tham dự trước và sau sự kiện. Hơn hết, bạn bước vào một vòng tròn đã được chọn lọc để mỗi cuộc gặp gỡ đều có ý nghĩa hơn.",
+    "offer.people": "25 nhà sáng lập và chủ doanh nghiệp được chọn lọc",
     "offer.refund": "Hoàn tiền đầy đủ nếu chương trình bị hủy.",
-    "offer.1": "Bữa ăn được curate tại 4U Lounge, Đà Nẵng",
-    "offer.2": "Directory người tham dự, mở trước và sau sự kiện",
-    "offer.3": "Host song ngữ Việt & Anh để dẫn nhịp buổi tối",
-    "offer.4": "Không gian phone-free trong phần chính của chương trình",
-    "meal.alt": "Không gian bữa tối premium tại 4U Lounge, Đà Nẵng",
-    "meal.cap": "Một bữa ăn được chuẩn bị chỉn chu tại 4U Lounge, đúng nghĩa dinner, không phải snack sự kiện.",
-    "testi.k": "Người trong phòng", "testi.title": "Những cuộc gặp có lý do để tiếp tục.",
-    "testi.1": "Tôi rời bàn tiệc với ba cuộc hẹn follow-up đã lên lịch sẵn. Ai ngồi cùng bàn cũng đáng để quen biết, không phí câu chuyện nào cho sai chỗ.",
+    "offer.1": "Bữa tối chỉn chu tại 4U Lounge, Đà Nẵng",
+    "offer.2": "Hồ sơ người tham dự trước và sau sự kiện",
+    "offer.3": "Điều phối song ngữ Việt – Anh",
+    "offer.4": "Thông tin liên hệ được lưu trên ứng dụng FoundersVN",
+    "meal.alt": "Không gian bữa tối sang trọng tại 4U Lounge, Đà Nẵng",
+    "meal.cap": "Một bữa tối được chuẩn bị chỉn chu tại 4U Lounge, để mọi người có đủ thời gian dùng bữa và trò chuyện.",
+    "agenda.k": "Lịch trình buổi tối", "agenda.title": "Một buổi tối tại FoundersVN",
+    "agenda.1t": "Chào đón khách", "agenda.1d": "Đón khách, check-in và dùng thức uống đầu tiên.",
+    "agenda.2t": "Câu chuyện từ nhà sáng lập", "agenda.2d": "Một chia sẻ ngắn từ khách mời để mở đầu cuộc trò chuyện.",
+    "agenda.3t": "Dùng bữa tối", "agenda.3d": "Thưởng thức bữa tối tại các bàn từ 6 đến 8 người.",
+    "agenda.4t": "Kết nối và làm quen", "agenda.4d": "Hoạt động nhẹ giúp mọi người hiểu nhau và bắt đầu trò chuyện tự nhiên.",
+    "agenda.5t": "Trò chuyện tự do", "agenda.5d": "Tiếp tục những cuộc trao đổi bạn muốn dành thêm thời gian.",
+    "testi.k": "Đánh giá từ người tham dự", "testi.title": "Người tham dự nghĩ gì về FoundersVN",
+    "testi.1": "Số lượng khách vừa đủ để trò chuyện kỹ, cách sắp xếp bàn cũng giúp tôi gặp được những người ngoài vòng kết nối quen thuộc. Sau buổi tối, tôi đã có thêm ba mối liên hệ thực sự hữu ích.",
     "testi.1r": "Nhà sáng lập, Rove Studio",
-    "testi.2": "Cả tối không cần chạm điện thoại, app tự lưu hết liên hệ cho tôi. Phần cool nhất của cả buổi tối, thật sự.",
-    "testi.2r": "Product Lead, Waverly",
-    "testi.3": "Bữa ăn ngon nhất mình từng có ở một buổi dinner dành cho founder, không bàn cãi, và câu chuyện cũng hay không kém từng món.",
+    "testi.2": "Các bạn host rất thân thiện, chu đáo và hỗ trợ nhiệt tình. Host nhớ khá rõ mỗi người đang tìm kiếm điều gì và đã chủ động giới thiệu tôi với hai nhà sáng lập phù hợp với công việc của mình.",
+    "testi.2r": "Trưởng nhóm Sản phẩm, Waverly",
+    "testi.3": "Mọi thứ được chuẩn bị chỉn chu, từ bữa tối tại 4U Lounge đến hồ sơ người tham dự trên ứng dụng. Tôi biết trước mình muốn gặp ai và sau sự kiện cũng dễ dàng kết nối lại.",
     "testi.3r": "Nhà sáng lập, Cortex AI",
     "faq.title": "Hỏi thẳng, trả lời thật.",
     "faq.q1": "Sự kiện này dành cho ai?",
-    "faq.a1": "Founder, chủ doanh nghiệp, operator, và những người đang trực tiếp chịu trách nhiệm xây hoặc tăng trưởng một công ty/dự án nghiêm túc.",
+    "faq.a1": "Nhà sáng lập, chủ doanh nghiệp và những người trực tiếp chịu trách nhiệm vận hành hoặc phát triển doanh nghiệp.",
     "faq.q2": "Vì sao phải đăng ký trước?",
     "faq.a2": "Vì chỉ có 25 ghế. Chúng tôi muốn hiểu mỗi người đang tìm gì và có thể đóng góp gì, để căn phòng có lý do thật sự để kết nối.",
     "faq.q3": "Có cần nói tiếng Anh giỏi không?",
-    "faq.a3": "Không. Sự kiện có host song ngữ Việt/Anh, và phần giới thiệu sẽ được dẫn để cả khách Việt Nam lẫn quốc tế đều dễ tham gia.",
-    "faq.q4": "Phone-free nghĩa là gì?",
-    "faq.a4": "Trong phần chính của chương trình, mọi người cất điện thoại để hiện diện hơn với người đối diện. Bạn vẫn có thể dùng điện thoại khi cần thiết ở những khoảng phù hợp.",
+    "faq.a3": "Không. Chương trình được điều phối song ngữ Việt – Anh để cả khách Việt Nam và quốc tế đều có thể tham gia thoải mái.",
+    "faq.q4": "Có cần dùng điện thoại để trao đổi liên hệ không?",
+    "faq.a4": "Không. FoundersVN cung cấp thông tin người tham dự qua ứng dụng, nên bạn không cần dừng cuộc trò chuyện để nhập số điện thoại hay email. Bạn có thể tập trung hoàn toàn vào bữa ăn và những cuộc trao đổi quan trọng trước mắt.",
     "faq.q5": "Vé $150 gồm gì?",
-    "faq.a5": "Bữa ăn được curate tại 4U Lounge, host song ngữ, directory người tham dự trước/sau sự kiện, và trải nghiệm được curate cho 25 người.",
+    "faq.a5": "Bữa tối tại 4U Lounge, chương trình điều phối song ngữ và quyền xem hồ sơ người tham dự trước và sau sự kiện. Số lượng được giới hạn ở 25 người để bảo đảm chất lượng kết nối.",
     "faq.q6": "Nếu sự kiện bị hủy thì sao?",
-    "faq.a6": "Bạn sẽ được hoàn tiền. Nếu bạn đã thanh toán nhưng edition này chưa phải là sự phù hợp tốt nhất, team sẽ trao đổi rõ ràng về hoàn tiền hoặc lịch phù hợp hơn.",
+    "faq.a6": "Bạn sẽ được hoàn tiền đầy đủ. Nếu sự kiện hiện tại chưa phù hợp với bạn, đội ngũ FoundersVN sẽ trao đổi rõ ràng về phương án hoàn tiền hoặc lịch tổ chức phù hợp hơn.",
     "faq.q7": "Sau Đà Nẵng có sự kiện khác không?",
-    "faq.a7": "Có. Sau edition Đà Nẵng, FoundersVN dự kiến mở edition tiếp theo tại TP.HCM trong tháng 8, dựa trên những gì học được từ buổi đầu tiên.",
+    "faq.a7": "Có. Sau sự kiện tại Đà Nẵng, FoundersVN dự kiến tổ chức chương trình tiếp theo tại TP.HCM trong tháng 8.",
     "apply.k": "Đăng ký", "apply.title": "25 ghế cho Đà Nẵng.",
-    "apply.lead": "Mất khoảng 2 phút. Chúng tôi chỉ hỏi những thông tin cần thiết để hiểu bạn đang xây gì, đang tìm ai, và có thể kết nối bạn với ai trong phòng.",
+    "apply.lead": "Mất khoảng 2 phút. Chúng tôi chỉ hỏi những thông tin cần thiết để hiểu doanh nghiệp của bạn, người bạn muốn gặp và giá trị bạn có thể chia sẻ với những người tham dự khác.",
     "f.name": "Họ và tên", "f.email": "Email", "f.company": "Công ty / dự án", "f.role": "Vai trò của bạn",
     "f.what": "Một câu: bạn đang xây gì?",
     "f.clink": "Website công ty hoặc LinkedIn",
@@ -1028,16 +1068,16 @@ const I18N = {
     "f.lang": "Bạn muốn dùng ngôn ngữ nào trong sự kiện?",
     "f.lang.vi": "Tiếng Việt", "f.lang.en": "Tiếng Anh", "f.lang.both": "Cả hai đều ổn",
     "f.submit": "Gửi đăng ký",
-    "f.privacy": "Thông tin của bạn chỉ dùng để curate phòng và chuẩn bị directory, không chia sẻ công khai khi chưa có sự đồng ý.",
-    "f.success": "Cảm ơn bạn. Team sẽ xem đăng ký và phản hồi sớm nếu edition Đà Nẵng là một sự phù hợp tốt cho bạn.",
+    "f.privacy": "Thông tin của bạn chỉ được dùng để lựa chọn và kết nối người tham dự, không chia sẻ công khai khi chưa có sự đồng ý.",
+    "f.success": "Cảm ơn bạn. Đội ngũ FoundersVN sẽ xem đăng ký và phản hồi sớm nếu sự kiện tại Đà Nẵng phù hợp với bạn.",
     "f.mailto": "Gần xong, ứng dụng email của bạn sẽ mở với nội dung đăng ký soạn sẵn. Bạn chỉ cần bấm Gửi.",
-    "f.error": "Có lỗi xảy ra. Vui lòng thử lại, hoặc email trực tiếp cho team.",
+    "f.error": "Có lỗi xảy ra. Vui lòng thử lại hoặc gửi email trực tiếp cho đội ngũ FoundersVN.",
     "f.required": "Vui lòng điền đủ các trường bắt buộc.",
     "band.k": "Đà Nẵng · Thứ Sáu 31/7",
     "band.title": "Đà Nẵng chỉ có 25 ghế.",
-    "band.lead": "Một căn phòng đúng người, đủ yên, và đáng để hiện diện. Đăng ký nếu bạn muốn có mặt.",
-    "foot.tag": "Kết nối không điện thoại dành cho founder.",
-    "foot.next": "Edition tiếp theo: <b>TP.HCM, tháng 8/2026</b>",
+    "band.lead": "Một vòng tròn đúng người, những cuộc trò chuyện có giá trị và cơ hội kết nối lâu dài.",
+    "foot.tag": "Mạng lưới dành cho nhà sáng lập và chủ doanh nghiệp.",
+    "foot.next": "Sự kiện tiếp theo: <b>TP.HCM, tháng 8/2026</b>",
     "foot.rights": "© 2026 FoundersVN · Đà Nẵng, Việt Nam"
   }
 };
@@ -1141,15 +1181,19 @@ function renderEvent(){
 }
 document.querySelectorAll(".ev-tab").forEach(b=> b.addEventListener("click", ()=>{ CURRENT_EVENT = b.dataset.ev; renderEvent(); }));
 
-/* Language init: ?lang= > saved > browser > en */
+/* Bare landing URL is English; Vietnamese is explicit via ?lang=vi. */
 (function(){
   const q = new URLSearchParams(location.search).get("lang");
-  let saved = null; try{ saved = localStorage.getItem("fvn-lang"); }catch(e){}
-  const nav = (navigator.language || "").toLowerCase().startsWith("vi") ? "vi" : null;
-  applyLang(q || saved || nav || "en");
+  applyLang(q === "vi" ? "vi" : "en");
 })();
 document.querySelectorAll(".lang button").forEach(b=>{
-  b.addEventListener("click", ()=> applyLang(b.dataset.lang));
+  b.addEventListener("click", ()=>{
+    const url = new URL(location.href);
+    if (b.dataset.lang === "vi") url.searchParams.set("lang", "vi");
+    else url.searchParams.delete("lang");
+    history.replaceState(null, "", url);
+    applyLang(b.dataset.lang);
+  });
 });
 
 /* Nav scroll state */
@@ -1275,6 +1319,57 @@ form.addEventListener("submit", async (e)=>{
     formMsg.textContent = t("f.mailto");
   }
 });
+
+// Gallery lightbox
+(function(){
+  const lb = document.getElementById("lightbox");
+  if(!lb) return;
+  const lbImg = document.getElementById("lightbox-img");
+  const lbClose = lb.querySelector(".lightbox-close");
+  const lbPrev = lb.querySelector(".lightbox-prev");
+  const lbNext = lb.querySelector(".lightbox-next");
+  const lbCount = document.getElementById("lightbox-count");
+  const photos = Array.from(document.querySelectorAll(".marq-item:not([aria-hidden]) img")).map(function(img){
+    return { src: img.currentSrc || img.src, alt: img.alt || "" };
+  });
+  let index = 0;
+  let lastFocus = null;
+  function show(i){
+    index = (i + photos.length) % photos.length;
+    const p = photos[index];
+    lbImg.src = p.src;
+    lbImg.alt = p.alt;
+    lbCount.textContent = (index + 1) + " / " + photos.length;
+  }
+  function openLb(src){
+    lastFocus = document.activeElement;
+    const i = photos.findIndex(function(p){ return p.src === src; });
+    show(i >= 0 ? i : 0);
+    lb.hidden = false;
+    lbClose.focus();
+  }
+  function closeLb(){
+    lb.hidden = true;
+    lbImg.src = "";
+    if(lastFocus) lastFocus.focus();
+  }
+  document.querySelectorAll(".marq-item").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const img = btn.querySelector("img");
+      openLb(img.currentSrc || img.src);
+    });
+  });
+  lbClose.addEventListener("click", closeLb);
+  lbPrev.addEventListener("click", function(){ show(index - 1); });
+  lbNext.addEventListener("click", function(){ show(index + 1); });
+  lb.addEventListener("click", function(e){ if(e.target === lb) closeLb(); });
+  document.addEventListener("keydown", function(e){
+    if(lb.hidden) return;
+    if(e.key === "Escape") closeLb();
+    else if(e.key === "ArrowRight") show(index + 1);
+    else if(e.key === "ArrowLeft") show(index - 1);
+  });
+})();
 </script>
 </body>
 </html>
