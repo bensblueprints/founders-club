@@ -14,3 +14,6 @@ tools/agent-platform/.env
 # Raw meeting transcripts / recordings (sensitive — keep out of public repo)
 meeting */
 *.srt
+
+# Large marketing bundles — keep in Drive, not git
+*.zip
