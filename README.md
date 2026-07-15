@@ -77,3 +77,11 @@ Production must explicitly set `PAYMENTS_ENV=production`, choose its
 `DATABASE_URL`, and set strong unique values for `SESSION_SECRET`,
 `ADMIN_TOKEN`, and `DATA_ENCRYPTION_KEY`. Mock settlement is only enabled when
 `PAYMENTS_ENV=mock` (the automated test environment).
+
+For Netlify's `.env` import flow, copy `prod.env.example` to `prod.env`, fill the
+blank values, and import `prod.env` in the Netlify UI. The production webhook
+URLs are prefilled:
+
+- `https://foundersvn.com/api/function/airwallex-webhook`
+- `https://foundersvn.com/api/function/sepay-webhook`
+- `https://foundersvn.com/api/function/resend-webhook`

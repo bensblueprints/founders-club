@@ -3,6 +3,7 @@ node_modules/
 .netlify/
 .env
 .env.local
+prod.env
 .DS_Store
 npm-debug.log*
 coverage/
