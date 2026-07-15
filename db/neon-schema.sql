@@ -50,6 +50,10 @@ CREATE TABLE IF NOT EXISTS members (
     social_link VARCHAR(500),
     is_approved BOOLEAN DEFAULT FALSE,
     is_admin BOOLEAN DEFAULT FALSE,
+    member_type TEXT DEFAULT 'member',
+    must_reset_password BOOLEAN DEFAULT FALSE,
+    account_status TEXT NOT NULL DEFAULT 'active',
+    payment_access_expires_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -62,7 +66,8 @@ CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    event_id UUID,
     age INTEGER,
     social_link VARCHAR(500),
     company VARCHAR(255),
@@ -85,6 +90,8 @@ CREATE TABLE IF NOT EXISTS applications (
     what_you_do TEXT,
     page_language VARCHAR(20),
     event TEXT,
+    ticket_count SMALLINT NOT NULL DEFAULT 1,
+    guest_name TEXT,
     -- lifecycle / payment
     status VARCHAR(20) DEFAULT 'pending',     -- pending, approved, rejected, disqualified, expired
     payment_status VARCHAR(20),               -- awaiting | paid | expired
@@ -93,6 +100,7 @@ CREATE TABLE IF NOT EXISTS applications (
     expires_at TIMESTAMP WITH TIME ZONE,
     reminders_sent INTEGER[] DEFAULT '{}',
     paid_at TIMESTAMP WITH TIME ZONE,
+    approval_email_sent_at TIMESTAMP WITH TIME ZONE,
     reviewed_at TIMESTAMP WITH TIME ZONE,
     reviewed_by UUID REFERENCES members(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -118,6 +126,17 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- An email can apply to multiple events, but only once per event.
+ALTER TABLE applications
+    DROP CONSTRAINT IF EXISTS applications_email_key;
+ALTER TABLE applications
+    DROP CONSTRAINT IF EXISTS applications_event_id_fkey;
+ALTER TABLE applications
+    ADD CONSTRAINT applications_event_id_fkey
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE RESTRICT;
+CREATE UNIQUE INDEX IF NOT EXISTS applications_event_email_unique
+    ON applications(event_id, LOWER(email));
+
 -- ========================================
 -- EVENT ATTENDANCE
 -- ========================================
@@ -125,8 +144,15 @@ CREATE TABLE IF NOT EXISTS event_attendance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID REFERENCES events(id) ON DELETE CASCADE,
     member_id UUID REFERENCES members(id) ON DELETE CASCADE,
+    application_id UUID UNIQUE REFERENCES applications(id) ON DELETE SET NULL,
     ticket_type VARCHAR(20) NOT NULL,         -- 'dinner' or 'full'
     payment_status VARCHAR(20) DEFAULT 'pending',
+    seat_count SMALLINT NOT NULL DEFAULT 1,
+    meal_option TEXT,
+    guest_name TEXT,
+    guest_meal_option TEXT,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    paid_at TIMESTAMP WITH TIME ZONE,
     checked_in BOOLEAN DEFAULT FALSE,
     checked_in_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -155,6 +181,80 @@ CREATE TABLE IF NOT EXISTS sessions (
     token VARCHAR(500) UNIQUE NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ========================================
+-- PAYMENT ORDERS (one reservation, two payment methods)
+-- ========================================
+CREATE TABLE IF NOT EXISTS payment_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL UNIQUE REFERENCES applications(id) ON DELETE CASCADE,
+    member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'preparing',
+    ticket_count SMALLINT NOT NULL DEFAULT 1,
+    base_amount_usd NUMERIC(10,2) NOT NULL,
+    airwallex_fee_usd NUMERIC(10,2) NOT NULL,
+    airwallex_total_usd NUMERIC(10,2) NOT NULL,
+    sepay_amount_vnd BIGINT NOT NULL,
+    sepay_code TEXT NOT NULL UNIQUE,
+    airwallex_link_id TEXT,
+    airwallex_url_encrypted TEXT,
+    airwallex_intent_id TEXT,
+    airwallex_client_secret_encrypted TEXT,
+    airwallex_intent_created_at TIMESTAMP WITH TIME ZONE,
+    provider_environment TEXT NOT NULL DEFAULT 'sandbox',
+    paid_provider TEXT,
+    paid_amount NUMERIC(14,2),
+    paid_currency TEXT,
+    provider_transaction_id TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    paid_at TIMESTAMP WITH TIME ZONE,
+    reminder_sent_at TIMESTAMP WITH TIME ZONE,
+    confirmation_email_sent_at TIMESTAMP WITH TIME ZONE,
+    account_was_existing BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT payment_orders_status_check CHECK (status IN ('preparing', 'pending', 'paid', 'expired', 'cancelled')),
+    CONSTRAINT payment_orders_provider_check CHECK (paid_provider IS NULL OR paid_provider IN ('airwallex', 'sepay')),
+    CONSTRAINT payment_orders_provider_environment_check CHECK (provider_environment IN ('mock', 'sandbox', 'production')),
+    CONSTRAINT payment_orders_ticket_count_check CHECK (ticket_count IN (1, 2))
+);
+
+CREATE TABLE IF NOT EXISTS payment_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider TEXT NOT NULL,
+    provider_event_id TEXT NOT NULL,
+    payment_order_id UUID REFERENCES payment_orders(id) ON DELETE SET NULL,
+    event_type TEXT,
+    payload JSONB NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    processed_at TIMESTAMP WITH TIME ZONE,
+    UNIQUE(provider, provider_event_id)
+);
+
+CREATE TABLE IF NOT EXISTS email_deliveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_email_id TEXT UNIQUE,
+    member_id UUID REFERENCES members(id) ON DELETE SET NULL,
+    application_id UUID REFERENCES applications(id) ON DELETE SET NULL,
+    event_id UUID REFERENCES events(id) ON DELETE SET NULL,
+    recipient TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    email_type TEXT NOT NULL DEFAULT 'transactional',
+    status TEXT NOT NULL DEFAULT 'queued',
+    sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    event_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    error TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS email_webhook_events (
+    svix_id TEXT PRIMARY KEY,
+    provider_email_id TEXT,
+    event_type TEXT NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- ========================================
@@ -209,7 +309,9 @@ INSERT INTO events (slug, name, event_date, day_of_week, status, description) VA
     ('apr-2026', 'April Gathering', '2026-04-14', 'Tuesday', 'upcoming', 'Monthly gathering for founders.'),
     ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
     ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'upcoming', 'Monthly gathering for founders.')
+    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'open', 'Curated FoundersVN networking dinner at 4U Lounge.'),
+    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ========================================
@@ -221,10 +323,15 @@ CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_payment_status ON applications(payment_status);
 CREATE INDEX IF NOT EXISTS idx_applications_status_payment ON applications(status, payment_status);
+CREATE INDEX IF NOT EXISTS idx_applications_event ON applications(event_id);
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date);
 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
 CREATE INDEX IF NOT EXISTS idx_attendance_event ON event_attendance(event_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_member ON event_attendance(member_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_paid_event ON event_attendance(event_id, payment_status);
+CREATE INDEX IF NOT EXISTS idx_payment_orders_member ON payment_orders(member_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_orders_event_status ON payment_orders(event_id, status);
+CREATE INDEX IF NOT EXISTS idx_payment_orders_expiry ON payment_orders(status, expires_at);
 CREATE INDEX IF NOT EXISTS idx_photos_event ON event_photos(event_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_email ON transactions(user_email);

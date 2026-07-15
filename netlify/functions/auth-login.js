@@ -69,6 +69,10 @@ exports.handler = async (event) => {
         return json(401, GENERIC_401);
     }
 
+    if (row.account_status === 'locked') {
+        return json(423, { error: 'This account is locked because the payment window expired.' });
+    }
+
     const ok = await checkPassword(password, row.password_hash);
     if (!ok) {
         return json(401, GENERIC_401);
@@ -79,7 +83,9 @@ exports.handler = async (event) => {
         sub: user.id,
         email: user.email,
         role: user.role,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        account_status: user.account_status || 'active',
+        must_reset_password: user.must_reset_password === true
     });
 
     // Also set an HttpOnly cookie so server-side guards (auth-me) work even if the

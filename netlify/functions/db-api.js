@@ -17,7 +17,13 @@
 // ============================================================
 
 const { sql, isConfigured } = require('./lib/neon');
+const crypto = require('crypto');
 const { isAdminRequest, getBearerToken, verifyToken, hashPassword } = require('./lib/auth');
+const { decrypt } = require('./lib/field-crypto');
+const { encrypt } = require('./lib/field-crypto');
+const { config: sepayConfig, qrUrl: sepayQrUrl } = require('./lib/sepay');
+const { createPaymentIntent, isConfigured: airwallexConfigured } = require('./lib/airwallex');
+const { paymentProviderEnabled, paymentEnvironment } = require('./lib/payment-environment');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -37,35 +43,132 @@ const ADMIN_ACTIONS = new Set([
     'applications.list',
     'applications.get',
     'events.create',
-    'event_photos.add'
+    'events.update',
+    'events.delete',
+    'event_photos.add',
+    'transactions.updateStatus',
+    'transactions.all',
+    'bookings.byEvent',
+    'bookings.all',
+    'bookings.stats',
+    'attendance.adminCheckinList',
+    'attendance.checkIn'
 ]);
 
 // Actions that require ANY logged-in member (a valid member JWT). The current
 // member id is taken from the verified token — NEVER from client-supplied input.
 const MEMBER_ACTIONS = new Set([
+    'members.list',
+    'members.get',
+    'members.update',
+    'attendance.byEvent',
+    'attendance.check',
+    'attendance.register',
+    'transactions.create',
+    'transactions.byUser',
+    'transactions.byEmail',
+    'bookings.create',
+    'bookings.byUser',
+    'bookings.byEmail',
+    'bookings.get',
+    'bookings.latest',
     'messages.send',
     'messages.thread',
     'messages.inbox',
     'messages.unreadCount',
-    'messages.markRead'
+    'messages.markRead',
+    'payments.current',
+    'payments.list',
+    'payments.ensureAirwallexCheckout',
+    'meals.get',
+    'meals.update'
 ]);
+
+const PENDING_ACCOUNT_ACTIONS = new Set(['members.update', 'payments.current', 'payments.list', 'payments.ensureAirwallexCheckout']);
+
+function publicPaymentOrder(order) {
+    if (!order) return null;
+    let airwallexUrl = null;
+    try { airwallexUrl = decrypt(order.airwallex_url_encrypted); } catch (_) {}
+    const sepay = sepayConfig();
+    return {
+        id: order.id, status: order.status, providerEnvironment: order.provider_environment,
+        ticketCount: Number(order.ticket_count), guestName: order.guest_name,
+        baseAmountUsd: Number(order.base_amount_usd), airwallexFeeUsd: Number(order.airwallex_fee_usd),
+        airwallexTotalUsd: Number(order.airwallex_total_usd), airwallexUrl,
+        sepayAmountVnd: Number(order.sepay_amount_vnd), sepayCode: order.sepay_code,
+        sepayQrUrl: sepayQrUrl({ amountVnd: order.sepay_amount_vnd, code: order.sepay_code }),
+        sepayBank: sepay.bank, sepayAccount: sepay.account, sepayAccountName: sepay.accountName,
+        paidProvider: order.paid_provider, paidAt: order.paid_at, expiresAt: order.expires_at,
+        createdAt: order.created_at,
+        event: { id: order.event_id, name: order.event_name, date: order.event_date,
+            time: order.event_time, location: order.event_location }
+    };
+}
 
 // ---- action handlers -------------------------------------------------------
 // Each returns the plain data (array / object / null) the browser expects.
 
 const handlers = {
     // ---------- MEMBERS ----------
-    async 'members.list'() {
-        const rows = await sql`
-            SELECT * FROM members
-            WHERE is_approved = true
-            ORDER BY created_at DESC`;
-        return rows;
+    async 'members.list'(_payload, ctx) {
+        if (ctx.isAdmin) {
+            return await sql`
+                SELECT id, email, first_name, last_name, age, company, role, industry,
+                       bio, website, websites, profile_photo, whatsapp, zalo, telegram,
+                       linkedin, twitter, wechat, facebook, instagram, social_link,
+                       is_approved, is_admin, member_type, created_at, updated_at
+                FROM members
+                WHERE is_approved = true
+                ORDER BY created_at DESC`;
+        }
+        return await sql`
+            SELECT DISTINCT m.id, m.email, m.first_name, m.last_name, m.age,
+                   m.company, m.role, m.industry, m.bio, m.website, m.websites,
+                   m.profile_photo, m.whatsapp, m.zalo, m.telegram, m.linkedin,
+                   m.twitter, m.wechat, m.facebook, m.instagram, m.social_link,
+                   m.is_approved, m.is_admin, m.member_type, m.created_at, m.updated_at
+            FROM event_attendance viewer
+            JOIN event_attendance attendee
+              ON attendee.event_id = viewer.event_id
+             AND attendee.payment_status = 'paid'
+            JOIN members m ON m.id = attendee.member_id
+            WHERE viewer.member_id = ${ctx.memberId}
+              AND viewer.payment_status = 'paid'
+              AND m.is_approved = true
+            ORDER BY m.created_at DESC`;
     },
 
-    async 'members.get'({ id }) {
+    async 'members.get'({ id }, ctx) {
         if (!id) return null;
-        const rows = await sql`SELECT * FROM members WHERE id = ${id} LIMIT 1`;
+        const rows = ctx.isAdmin
+            ? await sql`
+                SELECT id, email, first_name, last_name, age, company, role, industry,
+                       bio, website, websites, profile_photo, whatsapp, zalo, telegram,
+                       linkedin, twitter, wechat, facebook, instagram, social_link,
+                       is_approved, is_admin, member_type, created_at, updated_at
+                FROM members WHERE id = ${id} LIMIT 1`
+            : await sql`
+                SELECT DISTINCT m.id, m.email, m.first_name, m.last_name, m.age,
+                       m.company, m.role, m.industry, m.bio, m.website, m.websites,
+                       m.profile_photo, m.whatsapp, m.zalo, m.telegram, m.linkedin,
+                       m.twitter, m.wechat, m.facebook, m.instagram, m.social_link,
+                       m.is_approved, m.is_admin, m.member_type, m.created_at, m.updated_at
+                FROM members m
+                WHERE m.id = ${id}
+                  AND (
+                    m.id = ${ctx.memberId}
+                    OR EXISTS (
+                      SELECT 1
+                      FROM event_attendance mine
+                      JOIN event_attendance theirs ON theirs.event_id = mine.event_id
+                      WHERE mine.member_id = ${ctx.memberId}
+                        AND mine.payment_status = 'paid'
+                        AND theirs.member_id = m.id
+                        AND theirs.payment_status = 'paid'
+                    )
+                  )
+                LIMIT 1`;
         return rows[0] || null;
     },
 
@@ -105,8 +208,9 @@ const handlers = {
         return rows[0] || null;
     },
 
-    async 'members.update'({ id, profile }) {
-        if (!id) return null;
+    async 'members.update'({ id, profile }, ctx) {
+        const targetId = ctx.isAdmin ? id : ctx.memberId;
+        if (!targetId) return null;
         const p = profile || {};
         const rows = await sql`
             UPDATE members SET
@@ -117,8 +221,8 @@ const handlers = {
                 role       = COALESCE(${p.role ?? null}, role),
                 industry   = COALESCE(${p.industry ?? null}, industry),
                 website    = COALESCE(${p.website ?? null}, website),
-                websites   = COALESCE(${p.websites ? JSON.stringify(p.websites) : null}::jsonb, websites),
-                profile_photo = COALESCE(${p.profilePhoto ?? null}, profile_photo),
+                websites   = CASE WHEN ${Array.isArray(p.websites)} THEN ${Array.isArray(p.websites) ? JSON.stringify(p.websites) : null}::jsonb ELSE websites END,
+                profile_photo = CASE WHEN ${Object.prototype.hasOwnProperty.call(p, 'profilePhoto')} THEN ${p.profilePhoto ?? null} ELSE profile_photo END,
                 whatsapp   = COALESCE(${p.whatsapp ?? null}, whatsapp),
                 zalo       = COALESCE(${p.zalo ?? null}, zalo),
                 telegram   = COALESCE(${p.telegram ?? null}, telegram),
@@ -127,7 +231,7 @@ const handlers = {
                 wechat     = COALESCE(${p.wechat ?? null}, wechat),
                 facebook   = COALESCE(${p.facebook ?? null}, facebook),
                 instagram  = COALESCE(${p.instagram ?? null}, instagram)
-            WHERE id = ${id}
+            WHERE id = ${targetId}
             RETURNING *`;
         return rows[0] || null;
     },
@@ -162,9 +266,31 @@ const handlers = {
     // Admin-gated.
     async 'applications.list'({ status } = {}) {
         if (status) {
-            return await sql`SELECT * FROM applications WHERE status = ${status} ORDER BY created_at DESC`;
+            return await sql`
+                SELECT a.*, e.name AS event_name, e.max_attendees,
+                       po.id AS payment_order_id, po.status AS order_status,
+                       po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
+                       po.paid_provider, po.paid_at AS order_paid_at,
+                       m.id AS existing_member_id, m.account_status AS existing_account_status,
+                       (m.id IS NOT NULL) AS has_existing_account
+                FROM applications a
+                LEFT JOIN events e ON e.id = a.event_id
+                LEFT JOIN payment_orders po ON po.application_id = a.id
+                LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+                WHERE a.status = ${status} ORDER BY a.created_at DESC`;
         }
-        return await sql`SELECT * FROM applications ORDER BY created_at DESC`;
+        return await sql`
+            SELECT a.*, e.name AS event_name, e.max_attendees,
+                   po.id AS payment_order_id, po.status AS order_status,
+                   po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
+                   po.paid_provider, po.paid_at AS order_paid_at,
+                   m.id AS existing_member_id, m.account_status AS existing_account_status,
+                   (m.id IS NOT NULL) AS has_existing_account
+            FROM applications a
+            LEFT JOIN events e ON e.id = a.event_id
+            LEFT JOIN payment_orders po ON po.application_id = a.id
+            LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+            ORDER BY a.created_at DESC`;
     },
 
     async 'applications.get'({ id, email } = {}) {
@@ -182,9 +308,17 @@ const handlers = {
     // ---------- EVENTS ----------
     async 'events.list'({ status } = {}) {
         if (status) {
-            return await sql`SELECT * FROM events WHERE status = ${status} ORDER BY event_date ASC`;
+            return await sql`
+                SELECT e.*,
+                    COALESCE((SELECT SUM(ea.seat_count) FROM event_attendance ea WHERE ea.event_id = e.id AND ea.payment_status IN ('preparing', 'awaiting', 'paid')), 0)::int AS reserved_seats,
+                    COALESCE((SELECT SUM(ea.seat_count) FROM event_attendance ea WHERE ea.event_id = e.id AND ea.payment_status = 'paid'), 0)::int AS paid_seats
+                FROM events e WHERE e.status = ${status} ORDER BY e.event_date ASC`;
         }
-        return await sql`SELECT * FROM events ORDER BY event_date ASC`;
+        return await sql`
+            SELECT e.*,
+                COALESCE((SELECT SUM(ea.seat_count) FROM event_attendance ea WHERE ea.event_id = e.id AND ea.payment_status IN ('preparing', 'awaiting', 'paid')), 0)::int AS reserved_seats,
+                COALESCE((SELECT SUM(ea.seat_count) FROM event_attendance ea WHERE ea.event_id = e.id AND ea.payment_status = 'paid'), 0)::int AS paid_seats
+            FROM events e ORDER BY e.event_date ASC`;
     },
 
     async 'events.getBySlug'({ slug }) {
@@ -199,51 +333,250 @@ const handlers = {
 
     // Admin-gated.
     async 'events.create'(p) {
+        if (!p.slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug)) throw new Error('Event slug must use lowercase letters, numbers, and hyphens');
+        if (!p.name || !p.date) throw new Error('Event name and date are required');
+        if (Number(p.capacity) < 1) throw new Error('Capacity must be at least 1');
         const rows = await sql`
             INSERT INTO events
                 (slug, name, event_date, event_time, location, description,
-                 dinner_price, max_attendees, status)
+                 dinner_price, cruise_price, max_attendees, max_cruise_spots, status)
             VALUES
                 (${p.slug}, ${p.name}, ${p.date}, ${p.time || '18:00'}, ${p.location || null},
-                 ${p.description || null}, ${p.price || null}, ${p.capacity || null},
-                 ${p.status || 'open'})
-            ON CONFLICT (slug) DO UPDATE SET
-                name = EXCLUDED.name,
-                event_date = EXCLUDED.event_date,
-                event_time = EXCLUDED.event_time,
-                location = EXCLUDED.location,
-                description = EXCLUDED.description,
-                dinner_price = EXCLUDED.dinner_price,
-                max_attendees = EXCLUDED.max_attendees,
-                status = EXCLUDED.status
+                 ${p.description || null}, ${Number(p.price || 150)}, ${Number(p.cruisePrice || 297)},
+                 ${Number(p.capacity)}, ${Number(p.cruiseCapacity || 0)}, ${p.status || 'open'})
             RETURNING *`;
         return rows[0] || null;
     },
 
+    async 'events.update'(p) {
+        if (!p.id) throw new Error('Missing event');
+        if (!p.slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug)) throw new Error('Event slug must use lowercase letters, numbers, and hyphens');
+        if (!p.name || !p.date) throw new Error('Event name and date are required');
+        if (Number(p.capacity) < 1) throw new Error('Capacity must be at least 1');
+        const rows = await sql`
+            UPDATE events SET slug = ${p.slug}, name = ${p.name}, event_date = ${p.date},
+                event_time = ${p.time || '18:00'}, location = ${p.location || null},
+                description = ${p.description || null}, dinner_price = ${Number(p.price || 150)},
+                cruise_price = ${Number(p.cruisePrice || 297)}, max_attendees = ${Number(p.capacity)},
+                max_cruise_spots = ${Number(p.cruiseCapacity || 0)}, status = ${p.status || 'open'}
+            WHERE id = ${p.id} RETURNING *`;
+        if (!rows[0]) throw new Error('Event not found');
+        return rows[0];
+    },
+
+    async 'events.delete'({ id }) {
+        if (!id) throw new Error('Missing event');
+        const dependencies = await sql`
+            SELECT
+              (SELECT COUNT(*)::int FROM applications WHERE event_id = ${id}) AS applications,
+              (SELECT COUNT(*)::int FROM event_attendance WHERE event_id = ${id}) AS attendance`;
+        if (Number(dependencies[0]?.applications || 0) > 0 || Number(dependencies[0]?.attendance || 0) > 0) {
+            throw new Error('This event has applications or registrations. Close it instead of deleting it.');
+        }
+        const rows = await sql`DELETE FROM events WHERE id = ${id} RETURNING id`;
+        if (!rows[0]) throw new Error('Event not found');
+        return { id: rows[0].id, deleted: true };
+    },
+
     // ---------- EVENT ATTENDANCE ----------
-    async 'attendance.byEvent'({ eventId }) {
+    async 'attendance.byEvent'({ eventId }, ctx) {
         // Returns the member rows for attendees of an event.
         if (!eventId) return [];
         return await sql`
-            SELECT m.* FROM event_attendance a
+            SELECT m.id, m.email, m.first_name, m.last_name, m.company, m.role,
+                   m.industry, m.bio, m.website, m.websites, m.profile_photo,
+                   m.whatsapp, m.zalo, m.telegram, m.linkedin, m.twitter,
+                   m.wechat, m.facebook, m.instagram, m.social_link
+            FROM event_attendance a
             JOIN members m ON m.id = a.member_id
-            WHERE a.event_id = ${eventId}`;
+            WHERE a.event_id = ${eventId}
+              AND a.payment_status = 'paid'
+              AND (
+                ${ctx.isAdmin} = true
+                OR EXISTS (
+                  SELECT 1 FROM event_attendance viewer
+                  WHERE viewer.event_id = a.event_id
+                    AND viewer.member_id = ${ctx.memberId}
+                    AND viewer.payment_status = 'paid'
+                )
+              )`;
     },
 
-    async 'attendance.check'({ memberId, eventId }) {
-        if (!memberId || !eventId) return false;
+    async 'attendance.adminCheckinList'({ eventId }) {
+        if (!eventId) throw new Error('Missing event');
+        return await sql`
+            SELECT ea.id AS attendance_id, ea.event_id, ea.ticket_type, ea.seat_count,
+                   ea.guest_name, ea.meal_option, ea.guest_meal_option,
+                   ea.approved_at, ea.paid_at, ea.payment_status, ea.checked_in, ea.checked_in_at,
+                   m.id AS member_id, m.first_name, m.last_name, m.email,
+                   m.age, m.company, m.role, m.industry, m.bio, m.website, m.websites,
+                   m.whatsapp, m.zalo, m.telegram, m.linkedin, m.twitter, m.wechat,
+                   m.facebook, m.instagram, m.social_link, m.member_type, m.account_status,
+                   e.name AS event_name, e.event_date, e.event_time, e.location,
+                   po.id AS payment_order_id, po.paid_provider,
+                   po.provider_transaction_id, po.paid_amount, po.paid_currency,
+                   po.base_amount_usd, po.sepay_amount_vnd, po.created_at AS order_created_at,
+                   COALESCE(email_summary.status,
+                     CASE WHEN po.confirmation_email_sent_at IS NOT NULL OR po.reminder_sent_at IS NOT NULL OR a.approval_email_sent_at IS NOT NULL THEN 'sent' ELSE 'not_sent' END) AS email_status,
+                   COALESCE(email_summary.email_type,
+                     CASE WHEN po.confirmation_email_sent_at IS NOT NULL THEN 'payment_confirmation' WHEN po.reminder_sent_at IS NOT NULL THEN 'payment_reminder' WHEN a.approval_email_sent_at IS NOT NULL THEN 'approval' END) AS email_type,
+                   COALESCE(email_summary.sent_at, po.confirmation_email_sent_at, po.reminder_sent_at, a.approval_email_sent_at) AS email_sent_at,
+                   email_summary.event_at AS email_status_at, email_summary.error AS email_error,
+                   a.created_at AS applied_at, a.revenue, a.team_size, a.company_link,
+                   a.looking_for, a.can_offer, a.what_you_do, a.biggest_challenge,
+                   a.unique_value, a.goals_12_month, a.why_join, a.referral,
+                   a.referrer_name, a.membership_type, a.page_language
+            FROM event_attendance ea
+            JOIN members m ON m.id = ea.member_id
+            JOIN events e ON e.id = ea.event_id
+            LEFT JOIN applications a ON a.id = ea.application_id
+            LEFT JOIN payment_orders po ON po.application_id = ea.application_id
+            LEFT JOIN LATERAL (
+              SELECT ed.status, ed.email_type, ed.sent_at, ed.event_at, ed.error
+              FROM email_deliveries ed
+              WHERE ed.event_id = ea.event_id AND ed.member_id = ea.member_id
+              ORDER BY ed.event_at DESC NULLS LAST, ed.sent_at DESC
+              LIMIT 1
+            ) email_summary ON true
+            WHERE ea.event_id = ${eventId} AND ea.payment_status = 'paid'
+            ORDER BY LOWER(m.last_name), LOWER(m.first_name), ea.paid_at ASC`;
+    },
+
+    async 'attendance.checkIn'({ eventId, reference, checkedIn = true }, ctx) {
+        const ref = String(reference || '').trim().replace(/^FVN:/i, '');
+        if (!eventId || !ref) throw new Error('Event and ticket reference are required');
+        const rows = await sql`
+            UPDATE event_attendance ea SET
+                checked_in = ${Boolean(checkedIn)},
+                checked_in_at = CASE WHEN ${Boolean(checkedIn)} THEN NOW() ELSE NULL END
+            FROM payment_orders po, members m
+            WHERE ea.application_id = po.application_id
+              AND ea.member_id = m.id
+              AND ea.event_id = ${eventId}
+              AND ea.payment_status = 'paid'
+              AND (ea.id::text = ${ref} OR po.id::text = ${ref} OR UPPER(po.sepay_code) = UPPER(${ref}))
+            RETURNING ea.id AS attendance_id, ea.checked_in, ea.checked_in_at,
+                      m.first_name, m.last_name, m.email, po.id AS booking_reference`;
+        if (!rows[0]) throw new Error('No paid ticket matching this reference was found for this event');
+        return rows[0];
+    },
+
+    async 'attendance.check'({ eventId }, ctx) {
+        if (!ctx.memberId || !eventId) return false;
         const rows = await sql`
             SELECT id FROM event_attendance
-            WHERE event_id = ${eventId} AND member_id = ${memberId} LIMIT 1`;
+            WHERE event_id = ${eventId} AND member_id = ${ctx.memberId}
+              AND payment_status = 'paid' LIMIT 1`;
         return rows.length > 0;
     },
 
-    async 'attendance.register'({ memberId, eventId, ticketType }) {
+    async 'attendance.register'({ eventId, ticketType }, ctx) {
+        const memberId = ctx.memberId;
+        if (!memberId) throw new Error('Not authenticated');
+        if (!eventId) throw new Error('Missing event');
         const rows = await sql`
-            INSERT INTO event_attendance (event_id, member_id, ticket_type)
-            VALUES (${eventId}, ${memberId}, ${ticketType})
-            ON CONFLICT (event_id, member_id) DO UPDATE SET ticket_type = EXCLUDED.ticket_type
+            INSERT INTO event_attendance (event_id, member_id, ticket_type, payment_status, paid_at)
+            VALUES (${eventId}, ${memberId}, ${ticketType || 'dinner'}, 'pending', NULL)
+            ON CONFLICT (event_id, member_id) DO UPDATE SET
+                ticket_type = EXCLUDED.ticket_type,
+                payment_status = CASE WHEN event_attendance.payment_status = 'paid' THEN 'paid' ELSE 'pending' END
             RETURNING *`;
+        return rows[0] || null;
+    },
+
+    // ---------- PAYMENT STATUS ----------
+    async 'payments.current'({ orderId } = {}, ctx) {
+        const rows = orderId
+            ? await sql`
+                SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                       e.event_date, e.event_time, e.location AS event_location
+                FROM payment_orders po
+                JOIN applications a ON a.id = po.application_id
+                JOIN events e ON e.id = po.event_id
+                WHERE po.id = ${orderId} AND po.member_id = ${ctx.memberId} LIMIT 1`
+            : await sql`
+                SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                       e.event_date, e.event_time, e.location AS event_location
+                FROM payment_orders po
+                JOIN applications a ON a.id = po.application_id
+                JOIN events e ON e.id = po.event_id
+                WHERE po.member_id = ${ctx.memberId}
+                ORDER BY po.created_at DESC LIMIT 1`;
+        return publicPaymentOrder(rows[0]);
+    },
+
+    async 'payments.list'(_payload, ctx) {
+        const rows = await sql`
+            SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                   e.event_date, e.event_time, e.location AS event_location
+            FROM payment_orders po
+            JOIN applications a ON a.id = po.application_id
+            JOIN events e ON e.id = po.event_id
+            WHERE po.member_id = ${ctx.memberId}
+            ORDER BY e.event_date DESC, po.created_at DESC`;
+        return rows.map(publicPaymentOrder);
+    },
+
+    async 'payments.ensureAirwallexCheckout'({ orderId }, ctx) {
+        if (!orderId) throw new Error('Missing payment order');
+        if (!paymentProviderEnabled('airwallex') || !airwallexConfigured()) {
+            throw new Error('Airwallex sandbox is not configured');
+        }
+        const rows = await sql`
+            SELECT po.*, e.name AS event_name, m.email, m.first_name, m.last_name
+            FROM payment_orders po JOIN events e ON e.id = po.event_id JOIN members m ON m.id = po.member_id
+            WHERE po.id = ${orderId} AND po.member_id = ${ctx.memberId}
+              AND po.status = 'pending' AND po.expires_at > NOW() LIMIT 1`;
+        const order = rows[0];
+        if (!order) throw new Error('No active pending reservation found');
+        if (order.provider_environment !== paymentEnvironment()) throw new Error('Payment environment mismatch');
+        const createdAt = order.airwallex_intent_created_at && new Date(order.airwallex_intent_created_at).getTime();
+        if (order.airwallex_intent_id && order.airwallex_client_secret_encrypted && createdAt > Date.now() - 50 * 60 * 1000) {
+            return { intentId:order.airwallex_intent_id, clientSecret:decrypt(order.airwallex_client_secret_encrypted),
+                currency:'USD', environment:order.provider_environment === 'production' ? 'prod' : 'demo' };
+        }
+        const configuredUrl = String(process.env.URL || '');
+        const publicBase = configuredUrl.startsWith('https://') ? configuredUrl : 'https://foundersvn.com';
+        const intent = await createPaymentIntent({
+            amount:Number(order.airwallex_total_usd), currency:'USD', orderId:order.id,
+            requestId:crypto.randomUUID(), returnUrl:`${publicBase}/payment-success?order=${order.id}`,
+            customer:{ email:order.email, firstName:order.first_name, lastName:order.last_name }
+        });
+        await sql`UPDATE payment_orders SET airwallex_intent_id = ${intent.id},
+            airwallex_client_secret_encrypted = ${encrypt(intent.clientSecret)},
+            airwallex_intent_created_at = NOW(), updated_at = NOW() WHERE id = ${order.id}`;
+        return { intentId:intent.id, clientSecret:intent.clientSecret, currency:'USD',
+            environment:order.provider_environment === 'production' ? 'prod' : 'demo' };
+    },
+
+    // ---------- MEAL SELECTION (paid registrations only) ----------
+    async 'meals.get'(_payload, ctx) {
+        const rows = await sql`
+            SELECT ea.meal_option, ea.guest_meal_option, ea.guest_name, ea.seat_count,
+                   e.name AS event_name, e.event_date
+            FROM event_attendance ea
+            JOIN events e ON e.id = ea.event_id
+            WHERE ea.member_id = ${ctx.memberId} AND ea.payment_status = 'paid'
+            ORDER BY ea.paid_at DESC LIMIT 1`;
+        return rows[0] || null;
+    },
+
+    async 'meals.update'({ mealOption, guestMealOption }, ctx) {
+        const allowed = new Set(['steak', 'shrimp', 'chicken', 'vegan']);
+        if (!allowed.has(mealOption)) throw new Error('Invalid meal option');
+        const current = await handlers['meals.get']({}, ctx);
+        if (!current) throw new Error('A paid event registration is required');
+        if (Number(current.seat_count) === 2 && !allowed.has(guestMealOption)) {
+            throw new Error('Choose a meal for the second ticket');
+        }
+        const rows = await sql`
+            UPDATE event_attendance SET meal_option = ${mealOption},
+                guest_meal_option = ${Number(current.seat_count) === 2 ? guestMealOption : null}
+            WHERE id = (
+                SELECT id FROM event_attendance
+                WHERE member_id = ${ctx.memberId} AND payment_status = 'paid'
+                ORDER BY paid_at DESC LIMIT 1
+            ) RETURNING meal_option, guest_meal_option, guest_name, seat_count`;
         return rows[0] || null;
     },
 
@@ -266,15 +599,15 @@ const handlers = {
     },
 
     // ---------- TRANSACTIONS ----------
-    async 'transactions.create'(p) {
+    async 'transactions.create'(p, ctx) {
         const rows = await sql`
             INSERT INTO transactions
                 (id, user_id, user_email, user_name, amount, currency, status,
                  payment_intent_id, payment_method, product_id, product_name,
                  event_id, error_message, metadata)
             VALUES
-                (${p.id}, ${p.user_id || null}, ${p.user_email || null}, ${p.user_name || null},
-                 ${p.amount || null}, ${p.currency || 'USD'}, ${p.status || 'attempted'},
+                (${p.id}, ${ctx.memberId || p.user_id || null}, ${ctx.email || p.user_email || null}, ${p.user_name || null},
+                 ${p.amount || null}, ${p.currency || 'USD'}, 'attempted',
                  ${p.payment_intent_id || null}, ${p.payment_method || 'card'},
                  ${p.product_id || null}, ${p.product_name || null}, ${p.event_id || null},
                  ${p.error_message || null}, ${JSON.stringify(p.metadata || {})}::jsonb)
@@ -296,14 +629,14 @@ const handlers = {
         return rows[0] || null;
     },
 
-    async 'transactions.byUser'({ userId }) {
-        if (!userId) return [];
-        return await sql`SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC`;
+    async 'transactions.byUser'(_payload, ctx) {
+        if (!ctx.memberId) return [];
+        return await sql`SELECT * FROM transactions WHERE user_id = ${ctx.memberId} ORDER BY created_at DESC`;
     },
 
-    async 'transactions.byEmail'({ email }) {
-        if (!email) return [];
-        return await sql`SELECT * FROM transactions WHERE user_email = ${email} ORDER BY created_at DESC`;
+    async 'transactions.byEmail'(_payload, ctx) {
+        if (!ctx.email) return [];
+        return await sql`SELECT * FROM transactions WHERE user_email = ${ctx.email} ORDER BY created_at DESC`;
     },
 
     async 'transactions.all'({ limit } = {}) {
@@ -312,29 +645,51 @@ const handlers = {
     },
 
     // ---------- BOOKINGS ----------
-    async 'bookings.create'(p) {
+    async 'bookings.create'(p, ctx) {
         const rows = await sql`
             INSERT INTO bookings
                 (id, user_id, user_email, user_name, event_id, ticket_type, ticket_name,
                  ticket_price, transaction_id, payment_status, booking_status)
             VALUES
-                (${p.id}, ${p.user_id || null}, ${p.user_email || null}, ${p.user_name || null},
+                (${p.id}, ${ctx.memberId || p.user_id || null}, ${ctx.email || p.user_email || null}, ${p.user_name || null},
                  ${p.event_id || null}, ${p.ticket_type || null}, ${p.ticket_name || null},
                  ${p.ticket_price || null}, ${p.transaction_id || null},
-                 ${p.payment_status || 'pending'}, ${p.booking_status || 'confirmed'})
+                 'pending', 'pending_payment')
             ON CONFLICT (id) DO NOTHING
             RETURNING *`;
         return rows[0] || null;
     },
 
-    async 'bookings.byUser'({ userId }) {
-        if (!userId) return [];
-        return await sql`SELECT * FROM bookings WHERE user_id = ${userId} ORDER BY created_at DESC`;
+    async 'bookings.byUser'(_payload, ctx) {
+        if (!ctx.memberId) return [];
+        return await sql`SELECT * FROM bookings WHERE user_id = ${ctx.memberId} ORDER BY created_at DESC`;
     },
 
-    async 'bookings.byEmail'({ email }) {
-        if (!email) return [];
-        return await sql`SELECT * FROM bookings WHERE user_email = ${email} ORDER BY created_at DESC`;
+    async 'bookings.get'({ id }, ctx) {
+        if (!id) return null;
+        const rows = ctx.isAdmin
+            ? await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`
+            : await sql`
+                SELECT * FROM bookings
+                WHERE id = ${id}
+                  AND (user_id = ${ctx.memberId} OR user_email = ${ctx.email || ''})
+                LIMIT 1`;
+        return rows[0] || null;
+    },
+
+    async 'bookings.latest'(_payload, ctx) {
+        if (!ctx.memberId && !ctx.email) return null;
+        const rows = await sql`
+            SELECT * FROM bookings
+            WHERE user_id = ${ctx.memberId || ''} OR user_email = ${ctx.email || ''}
+            ORDER BY created_at DESC
+            LIMIT 1`;
+        return rows[0] || null;
+    },
+
+    async 'bookings.byEmail'(_payload, ctx) {
+        if (!ctx.email) return [];
+        return await sql`SELECT * FROM bookings WHERE user_email = ${ctx.email} ORDER BY created_at DESC`;
     },
 
     async 'bookings.byEvent'({ eventId }) {
@@ -368,8 +723,15 @@ const handlers = {
         if (to === from) throw new Error('Cannot message yourself');
         const rows = await sql`
             INSERT INTO messages (from_member, to_member, body)
-            VALUES (${from}, ${to}, ${text})
+            SELECT ${from}, ${to}, ${text}
+            WHERE EXISTS (
+                SELECT 1 FROM event_attendance mine
+                JOIN event_attendance theirs ON theirs.event_id = mine.event_id
+                WHERE mine.member_id = ${from} AND mine.payment_status = 'paid'
+                  AND theirs.member_id = ${to} AND theirs.payment_status = 'paid'
+            )
             RETURNING *`;
+        if (!rows[0]) throw new Error('You can only message paid attendees from your events');
         return rows[0] || null;
     },
 
@@ -503,7 +865,8 @@ exports.handler = async (event) => {
     const claims = token ? verifyToken(token) : null;
     const ctx = {
         memberId: claims ? claims.sub : null,
-        isAdmin: claims ? claims.is_admin === true : false,
+        email: claims ? claims.email : null,
+        isAdmin: (claims ? claims.is_admin === true : false) || isAdminRequest(event),
         claims
     };
 
@@ -516,7 +879,20 @@ exports.handler = async (event) => {
     // Auth gate for member actions: any valid member JWT. The sender/member id
     // is taken from the token (ctx.memberId), never from the request body.
     if (MEMBER_ACTIONS.has(action)) {
-        if (!ctx.memberId) return json(401, { error: 'Unauthorized' });
+        if (!ctx.memberId && !ctx.isAdmin) return json(401, { error: 'Unauthorized' });
+        if (ctx.memberId && !ctx.isAdmin && ctx.claims?.must_reset_password === true && !PENDING_ACCOUNT_ACTIONS.has(action)) {
+            return json(403, { error: 'Set a permanent password before using this feature', passwordResetRequired: true });
+        }
+        if (ctx.memberId && !ctx.isAdmin && ctx.claims?.account_status === 'payment_pending') {
+            // Payment-pending sessions can transition to locked while their JWT
+            // is still valid, so refresh this one state on every protected call.
+            const rows = await sql`SELECT account_status FROM members WHERE id = ${ctx.memberId} LIMIT 1`;
+            const accountStatus = rows[0]?.account_status || 'payment_pending';
+            if (accountStatus === 'locked') return json(423, { error: 'Account locked' });
+            if (accountStatus === 'payment_pending' && !PENDING_ACCOUNT_ACTIONS.has(action)) {
+                return json(403, { error: 'Complete payment to unlock this feature', paymentRequired: true });
+            }
+        }
     }
 
     try {

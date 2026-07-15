@@ -10,22 +10,24 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
     <link rel="stylesheet" href="events.css">
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
 
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="events.html" class="active">Events</a>
-            <a href="members.html">Members</a>
-            <a href="sponsor.html">Sponsor</a>
-            <a href="speak.html">Speak</a>
-            <a href="login.html" class="nav-login" id="navLogin">Login</a>
+            <a href="/">Home</a>
+            <a href="/events" class="active">Events</a>
+            <a href="/members">Members</a>
+            <a href="/sponsor">Sponsor</a>
+            <a href="/speak">Speak</a>
+            <a href="/login" class="nav-login" id="navLogin">Login</a>
             <a href="#" class="nav-profile" id="navProfile" style="display: none;">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
@@ -206,25 +208,6 @@
         });
 
         function initEventsPage() {
-            // Update nav
-            if (Auth.isLoggedIn()) {
-                const user = Auth.getCurrentUser();
-                document.getElementById('navLogin').style.display = 'none';
-                document.getElementById('navProfile').style.display = 'flex';
-                document.getElementById('navProfile').href = 'profile.html';
-                document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
-
-                // Show admin link for admin users
-                const adminRoles = ['owner', 'admin', 'organiser'];
-                if (adminRoles.includes(user.memberType)) {
-                    const navLinks = document.querySelector('.nav-links');
-                    const adminLink = document.createElement('a');
-                    adminLink.href = 'admin.html';
-                    adminLink.textContent = 'Admin';
-                    navLinks.insertBefore(adminLink, document.getElementById('navLogin'));
-                }
-            }
-
             // Load events
             loadUpcomingEvents();
         }
@@ -342,7 +325,7 @@
         function openBookingModal(eventId) {
             if (!Auth.isLoggedIn()) {
                 alert('Please log in to book events.');
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -423,7 +406,7 @@
 
             if (!user) {
                 alert('Please log in to book events');
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -609,7 +592,7 @@
 
                 // Close modal and redirect to ticket
                 closePaymentModal();
-                window.location.href = `ticket.html?id=${transactionId}`;
+                window.location.href = `/ticket?id=${transactionId}`;
 
             } catch (error) {
                 console.error('Error saving booking:', error);
@@ -759,7 +742,7 @@
                     closePaymentModal();
 
                     // Redirect to ticket page
-                    window.location.href = `ticket.html?id=${bookingResult.data?.id || transactionId}`;
+                    window.location.href = `/ticket?id=${bookingResult.data?.id || transactionId}`;
 
                 } else {
                     // Payment failed

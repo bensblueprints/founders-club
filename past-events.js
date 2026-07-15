@@ -7,25 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initPastEventsPage() {
-    updateNavState();
     loadFeaturedEvent('jan-2026');
     initModals();
-}
-
-function updateNavState() {
-    const navLogin = document.getElementById('navLogin');
-    const navProfile = document.getElementById('navProfile');
-    const navAvatar = document.getElementById('navAvatar');
-
-    if (Auth.isLoggedIn()) {
-        const user = Auth.getCurrentUser();
-        if (user) {
-            navLogin.style.display = 'none';
-            navProfile.style.display = 'flex';
-            navAvatar.textContent = user.firstName[0] + user.lastName[0];
-            navProfile.href = 'profile.html';
-        }
-    }
 }
 
 function loadFeaturedEvent(eventId) {

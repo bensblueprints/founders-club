@@ -14,7 +14,7 @@ const CORS = {
 const NOTIFY_EMAILS = (process.env.NOTIFY_EMAILS || 'ben@advancedmarketing.co')
     .split(',').map(s => s.trim()).filter(Boolean);
 
-const ADMIN_URL = `${process.env.URL || 'https://foundersvn.com'}/admin.html`;
+const ADMIN_URL = `${process.env.URL || 'https://foundersvn.com'}/admin`;
 
 // Split a single "Full name" field into first/last to satisfy the NOT NULL columns.
 function splitName(name) {
@@ -39,8 +39,11 @@ exports.handler = async (event) => {
         return json(400, { error: 'Invalid JSON body' });
     }
 
-    // Required fields (match the form's `required` inputs)
-    const required = ['name', 'email', 'company', 'role'];
+    // Required fields (match the public landing application form).
+    const required = [
+        'name', 'email', 'company', 'role', 'event_slug', 'company_link',
+        'industry', 'looking_for', 'can_offer', 'what_you_do', 'links', 'language'
+    ];
     const missing = required.filter(f => !String(body[f] || '').trim());
     if (missing.length) {
         return json(400, { error: `Missing required field(s): ${missing.join(', ')}` });
@@ -50,6 +53,12 @@ exports.handler = async (event) => {
     }
 
     const { first, last } = splitName(body.name);
+    const ticketCount = Number(body.ticket_count || 1);
+    if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
+    const guestName = String(body.guest_name || '').trim();
+    if (ticketCount === 2 && !guestName) {
+        return json(400, { error: 'Please enter your partner / co-founder name for the second ticket.' });
+    }
 
     // Map the landing form's fields onto the applications table.
     const email = String(body.email).trim().toLowerCase();
@@ -60,21 +69,37 @@ exports.handler = async (event) => {
         return json(500, { error: 'Server not configured (missing DATABASE_URL).' });
     }
 
-    // Upsert on email so a re-submission updates the existing pending row instead of 409-ing.
+    let selectedEvent;
+    try {
+        const events = await sql`
+            SELECT id, slug, name, event_date, dinner_price
+            FROM events
+            WHERE slug = ${String(body.event_slug).trim().toLowerCase()}
+              AND status IN ('open', 'upcoming')
+            LIMIT 1`;
+        selectedEvent = events[0];
+    } catch (error) {
+        console.error('[submit-application] event lookup error:', error);
+        return json(500, { error: 'Could not load the selected event' });
+    }
+    if (!selectedEvent) return json(400, { error: 'The selected event is not open for applications.' });
+
+    // A person may apply to several events, but only once per event. Re-submitting
+    // updates an existing pending application without changing reviewed records.
     let data;
     try {
         const rows = await sql`
             INSERT INTO applications
-                (first_name, last_name, email, company, role, company_link, industry,
+                (first_name, last_name, email, event_id, company, role, company_link, industry,
                  looking_for, can_offer, what_you_do, social_link, page_language,
-                 event, event_interest, status, payment_status, reminders_sent)
+                 event, event_interest, ticket_count, guest_name, status, payment_status, reminders_sent)
             VALUES
-                (${first}, ${last}, ${email}, ${body.company || null}, ${body.role || null},
+                (${first}, ${last}, ${email}, ${selectedEvent.id}, ${body.company || null}, ${body.role || null},
                  ${body.company_link || null}, ${body.industry || null}, ${body.looking_for || null},
                  ${body.can_offer || null}, ${body.what_you_do || null}, ${body.links || null},
-                 ${body.page_language || null}, ${body.event || null}, ${body.event || null},
+                 ${body.page_language || null}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, ${guestName || null},
                  'pending', NULL, '{}')
-            ON CONFLICT (email) DO UPDATE SET
+            ON CONFLICT (event_id, LOWER(email)) DO UPDATE SET
                 first_name    = EXCLUDED.first_name,
                 last_name     = EXCLUDED.last_name,
                 company       = EXCLUDED.company,
@@ -87,34 +112,17 @@ exports.handler = async (event) => {
                 social_link   = EXCLUDED.social_link,
                 page_language = EXCLUDED.page_language,
                 event         = EXCLUDED.event,
-                event_interest = EXCLUDED.event_interest
+                event_interest = EXCLUDED.event_interest,
+                ticket_count   = EXCLUDED.ticket_count,
+                guest_name     = EXCLUDED.guest_name
+            WHERE applications.status = 'pending'
             RETURNING *`;
         data = rows[0];
     } catch (error) {
         console.error('[submit-application] insert error:', error);
         return json(500, { error: 'Could not save application', details: error.message });
     }
-
-    // Also create a PENDING member row (is_approved = false, no password yet).
-    // The applicant "becomes a member pending approval": they show up as a member
-    // record, but stay hidden from the public directory (members.list filters
-    // is_approved = true) and cannot log in until an admin approves them and a
-    // password is generated. Idempotent on email — never clobber an existing
-    // member (e.g. an already-approved one re-applying), so we DO NOTHING on
-    // conflict rather than downgrading their approval/profile.
-    try {
-        await sql`
-            INSERT INTO members
-                (email, first_name, last_name, company, role, industry, is_approved)
-            VALUES
-                (${email}, ${first}, ${last}, ${body.company || null},
-                 ${body.role || null}, ${body.industry || null}, false)
-            ON CONFLICT (email) DO NOTHING`;
-    } catch (memErr) {
-        // Non-fatal: the application is saved; a pending member can be created on
-        // approval as a fallback. Log and continue.
-        console.error('[submit-application] pending member upsert failed:', memErr);
-    }
+    if (!data) return json(409, { error: 'An application for this event has already been reviewed.' });
 
     // Notify organisers (best-effort — never fail the submission on email trouble).
     try {
@@ -125,5 +133,5 @@ exports.handler = async (event) => {
         console.error('[submit-application] notify email failed:', e);
     }
 
-    return json(200, { success: true, id: data.id });
+    return json(200, { success: true, id: data.id, eventId: selectedEvent.id, ticketCount });
 };

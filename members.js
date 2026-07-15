@@ -9,10 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function initDirectory() {
     const loginRequired = document.getElementById('loginRequired');
     const directoryMain = document.getElementById('directoryMain');
-    const navLogin = document.getElementById('navLogin');
-    const navProfile = document.getElementById('navProfile');
-    const navAvatar = document.getElementById('navAvatar');
-
     // Check authentication
     if (!Auth.isLoggedIn()) {
         loginRequired.style.display = 'flex';
@@ -24,24 +20,7 @@ function initDirectory() {
     loginRequired.style.display = 'none';
     directoryMain.style.display = 'block';
 
-    // Update nav
     const user = Auth.getCurrentUser();
-    if (user) {
-        navLogin.style.display = 'none';
-        navProfile.style.display = 'flex';
-        navAvatar.textContent = user.firstName[0] + user.lastName[0];
-        navProfile.href = 'profile.html';
-
-        // Show admin link for admin users
-        const adminRoles = ['owner', 'admin', 'organiser'];
-        if (adminRoles.includes(user.memberType)) {
-            const navLinks = document.querySelector('.nav-links');
-            const adminLink = document.createElement('a');
-            adminLink.href = 'admin.html';
-            adminLink.textContent = 'Admin';
-            navLinks.insertBefore(adminLink, navProfile);
-        }
-    }
 
     // Load members
     loadMembers();

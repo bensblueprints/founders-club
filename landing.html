@@ -73,6 +73,8 @@
   .nav-links{display:flex;gap:30px;margin-left:auto;align-items:center}
   .nav-links a,.drop-trigger{font-size:.92rem;color:var(--mist);transition:color .2s}
   .nav-links a:hover,.drop:hover .drop-trigger,.drop:focus-within .drop-trigger{color:var(--bone)}
+  .nav-login-link{display:inline-flex;align-items:center;justify-content:center;padding:9px 15px;border:1px solid var(--border);border-radius:var(--radius);color:var(--bone)!important;font-family:var(--display);font-size:.9rem;font-weight:600;white-space:nowrap}
+  .nav-login-link:hover{background:rgba(242,240,232,.07);border-color:rgba(169,187,182,.28)}
   .drop{position:relative}
   .drop-trigger{display:inline-flex;align-items:center;gap:7px;background:none;border:0;font:inherit;cursor:pointer;padding:26px 0}
   .drop-trigger::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.75}
@@ -95,7 +97,7 @@
   .btn:active{transform:translateY(1px)}
   .btn .arr{transition:transform .2s}
   .btn:hover .arr{transform:translateX(3px)}
-  .nav .btn{padding:10px 20px;font-size:.9rem;margin-left:14px}
+  .nav .btn{padding:10px 20px;font-size:.9rem}
   .burger{display:none;background:none;border:0;cursor:pointer;margin-left:auto;padding:8px}
   .burger span{display:block;width:22px;height:2px;background:var(--bone);margin:5px 0;transition:.25s}
   .mobile-menu{display:none}
@@ -412,7 +414,7 @@
       radial-gradient(90% 55% at 100% 100%, rgba(231,100,74,.26) 0%, rgba(231,100,74,0) 52%),
       linear-gradient(180deg, rgba(6,18,13,.52) 0%, rgba(6,18,13,.5) 30%, rgba(6,18,13,.8) 68%, rgba(6,18,13,.9) 100%)}
     .hero-sub{text-shadow:0 2px 10px rgba(0,0,0,.7),0 0 24px rgba(6,18,13,.8)}
-    .nav-links,.nav>.nav-in>.lang,.nav .btn{display:none}
+    .nav-links,.nav>.nav-in>.lang,.nav>.nav-in>.nav-login-link,.nav .btn{display:none}
     .burger{display:block}
     .mobile-menu{
       display:none;position:fixed;inset:76px 0 auto 0;z-index:49;
@@ -425,6 +427,10 @@
     .mobile-sub a{font-size:.96rem;color:var(--mist);border-bottom:0;padding:9px 0}
     .mobile-menu .lang{display:flex;margin:18px 0 0;font-size:1rem}
     .mobile-menu a.btn{display:inline-flex;width:100%;justify-content:center;margin-top:18px;padding:15px 22px;border-bottom:0;font-size:1rem}
+    .mobile-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+    .mobile-actions a{display:inline-flex;align-items:center;justify-content:center;margin:0;padding:14px 16px;border-bottom:0;border-radius:var(--radius);font-family:var(--display);font-size:1rem;font-weight:600}
+    .mobile-actions .nav-login-link{border:1px solid var(--border)}
+    .mobile-actions a.btn{width:100%;margin:0}
     section{padding:78px 0}
     .band{padding:44px 30px}
     .band .btn{width:100%;justify-content:center}
@@ -432,6 +438,8 @@
     .f-grid{grid-template-columns:1fr}
   }
 </style>
+<link rel="stylesheet" href="/site-nav.css">
+<script src="/site-nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#apply" data-i18n="skip">Skip to application</a>
@@ -447,17 +455,19 @@
       <div class="drop">
         <button class="drop-trigger" type="button" data-i18n="nav.about">About</button>
         <div class="drop-menu">
-          <a href="foundersvn-events.html" data-i18n="nav.about.events">FoundersVN events</a>
-          <a href="team-behind.html" data-i18n="nav.about.team">The team behind</a>
+          <a href="/foundersvn-events" data-i18n="nav.about.events">FoundersVN events</a>
+          <a href="/team-behind" data-i18n="nav.about.team">The team behind</a>
         </div>
       </div>
       <a href="#faq">FAQ</a>
+      <a href="/members" data-i18n="nav.members">Members</a>
     </nav>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-lang="vi" aria-pressed="false">VI</button>
       <span class="sep">/</span>
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
     </div>
+    <a class="nav-login-link" href="/login" data-i18n="nav.login">Login</a>
     <a class="btn" href="#apply"><span data-i18n="nav.cta">Apply</span></a>
     <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -468,16 +478,20 @@
   <a href="#how" data-i18n="nav.how">How it works</a>
   <a href="#about" data-i18n="nav.about">About</a>
   <div class="mobile-sub">
-    <a href="foundersvn-events.html" data-i18n="nav.about.events">FoundersVN events</a>
-    <a href="team-behind.html" data-i18n="nav.about.team">The team behind</a>
+    <a href="/foundersvn-events" data-i18n="nav.about.events">FoundersVN events</a>
+    <a href="/team-behind" data-i18n="nav.about.team">The team behind</a>
   </div>
   <a href="#faq">FAQ</a>
+  <a href="/members" data-i18n="nav.members">Members</a>
   <div class="lang" role="group" aria-label="Language">
     <button type="button" data-lang="vi" aria-pressed="false">VI</button>
     <span class="sep">/</span>
     <button type="button" data-lang="en" aria-pressed="true">EN</button>
   </div>
-  <a class="btn" href="#apply"><span data-i18n="cta.seat">Apply for a seat</span></a>
+  <div class="mobile-actions">
+    <a class="nav-login-link" href="/login" data-i18n="nav.login">Login</a>
+    <a class="btn" href="#apply"><span data-i18n="cta.seat">Apply for a seat</span></a>
+  </div>
 </div>
 
 <!-- ================= HERO ================= -->
@@ -873,7 +887,7 @@
     </div>
     <p class="foot-next" data-i18n="foot.next">Next edition: <b>Ho Chi Minh City, August 2026</b></p>
     <p data-i18n="foot.rights">© 2026 FoundersVN · Da Nang, Vietnam</p>
-    <a class="foot-login" href="login.html" style="color:var(--mist);font-size:.8rem;text-decoration:none;opacity:.7">Member &amp; Admin login →</a>
+    <a class="foot-login" href="/login" style="color:var(--mist);font-size:.8rem;text-decoration:none;opacity:.7">Member &amp; Admin login →</a>
   </div>
 </footer>
 
@@ -886,7 +900,7 @@ const CONFIG = {
   // Dán endpoint form (Formspree / Google Apps Script / API riêng) khi có.
   // Để trống "" → form sẽ mở email soạn sẵn gửi về FALLBACK_EMAIL.
   FORM_ENDPOINT: "/.netlify/functions/submit-application",
-  FALLBACK_EMAIL: "team@foundersvn.com"
+  FALLBACK_EMAIL: "support@foundersvn.com"
 };
 
 /* ================= I18N ================= */
@@ -895,7 +909,7 @@ const I18N = {
     "title": "FoundersVN · Phone-Free Networking for Founders · Da Nang, July 31, 2026",
     "desc": "An intimate founder dinner in Da Nang, designed for deeper conversations and quietly supported by technology. Friday, July 31, 2026 at 4U Lounge. 25 seats · $150.",
     "skip": "Skip to application",
-    "nav.how": "How it works", "nav.about": "About", "nav.about.events": "FoundersVN events", "nav.about.team": "The team behind", "nav.cta": "Apply",
+    "nav.how": "How it works", "nav.about": "About", "nav.about.events": "FoundersVN events", "nav.about.team": "The team behind", "nav.members": "Members", "nav.login": "Login", "nav.cta": "Apply",
     "cta.seat": "Apply for a seat",
     "hero.eyebrow": "Da Nang · Friday, July 31 · 4U Lounge",
     "hero.h1": "Phone-Free Networking for Founders",
@@ -990,7 +1004,7 @@ const I18N = {
     "title": "FoundersVN · Mở rộng mạng lưới doanh nghiệp · Đà Nẵng 31/07/2026",
     "desc": "Một bữa tối networking chọn lọc dành cho 25 nhà sáng lập và chủ doanh nghiệp tại Đà Nẵng. Thứ Sáu 31/07/2026 tại 4U Lounge · vé $150.",
     "skip": "Đến thẳng form đăng ký",
-    "nav.how": "Trải nghiệm", "nav.about": "Về FoundersVN", "nav.about.events": "Sự kiện FoundersVN", "nav.about.team": "Đội ngũ tổ chức", "nav.cta": "Tôi muốn tham gia",
+    "nav.how": "Trải nghiệm", "nav.about": "Về FoundersVN", "nav.about.events": "Sự kiện FoundersVN", "nav.about.team": "Đội ngũ tổ chức", "nav.members": "Thành viên", "nav.login": "Đăng nhập", "nav.cta": "Tôi muốn tham gia",
     "cta.seat": "Tôi muốn tham gia",
     "hero.eyebrow": "Đà Nẵng · Thứ Sáu 31/7 · 4U Lounge",
     "hero.h1": "Mở rộng mạng lưới doanh nghiệp cùng FoundersVN",
@@ -1161,10 +1175,10 @@ function renderChips(){
 
 /* ===== 2 luồng event trong Apply: Da Nang (mặc định) + HCMC ===== */
 const EVENTS = {
-  danang: { value:"FoundersVN, Da Nang, Fri 2026-07-31, 25 seats, $150",
+  danang: { slug:"danang-jul-2026", value:"FoundersVN, Da Nang, Fri 2026-07-31, 25 seats, $150",
     en:{tab:"Da Nang · Jul 31", title:"25 seats for Da Nang.", meta:"Friday, July 31, 2026 · 4U Lounge · 25 seats · $150"},
     vi:{tab:"Đà Nẵng · 31/7", title:"25 ghế cho Đà Nẵng.", meta:"Thứ Sáu, 31/07/2026 · 4U Lounge · 25 ghế · $150"} },
-  hcmc: { value:"FoundersVN, Ho Chi Minh City, Sat to Sun 2026-08-15/16, ~50 people",
+  hcmc: { slug:"hcmc-aug-2026", value:"FoundersVN, Ho Chi Minh City, Sat to Sun 2026-08-15/16, ~50 people",
     en:{tab:"HCMC · Aug 15 to 16", title:"50 seats for Ho Chi Minh City.", meta:"Sat to Sun, Aug 15 to 16, 2026 · Ho Chi Minh City · ~50 people"},
     vi:{tab:"TP.HCM · 15 đến 16/8", title:"50 ghế cho TP.HCM.", meta:"Thứ Bảy đến CN, 15 đến 16/08/2026 · TP.HCM · ~50 người"} }
 };
@@ -1275,6 +1289,7 @@ form.addEventListener("submit", async (e)=>{
   data.can_offer = [...CHIP_STATE.offer].map(v=>chipLabel("offer",v)).join(", ");
   data.page_language = LANG;
   data.event = EVENTS[CURRENT_EVENT].value;
+  data.event_slug = EVENTS[CURRENT_EVENT].slug;
 
   if (CONFIG.FORM_ENDPOINT){
     submitBtn.disabled = true;

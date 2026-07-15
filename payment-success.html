@@ -150,6 +150,8 @@
             color: rgba(255, 255, 255, 0.7);
         }
     </style>
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
@@ -187,8 +189,8 @@
             </div>
 
             <div class="success-actions">
-                <a href="events.html" class="btn-primary">View Upcoming Events</a>
-                <a href="members.html" class="btn-secondary">Browse Member Directory</a>
+                <a href="/events" class="btn-primary">View Upcoming Events</a>
+                <a href="/members" class="btn-secondary">Browse Member Directory</a>
             </div>
         </div>
     </main>
@@ -247,8 +249,8 @@
                     // Update actions for application
                     const actionsDiv = document.querySelector('.success-actions');
                     actionsDiv.innerHTML = `
-                        <a href="index.html" class="btn-primary">Return Home</a>
-                        <a href="index.html#faq" class="btn-secondary">View FAQ</a>
+                        <a href="/" class="btn-primary">Return Home</a>
+                        <a href="/#faq" class="btn-secondary">View FAQ</a>
                     `;
 
                 } catch (e) {
@@ -292,8 +294,8 @@
                         // Update actions to include ticket link
                         const actionsDiv = document.querySelector('.success-actions');
                         actionsDiv.innerHTML = `
-                            <a href="ticket.html?id=${bookingResult.id}" class="btn-primary">View Your Ticket</a>
-                            <a href="events.html" class="btn-secondary">View Upcoming Events</a>
+                            <a href="/ticket?id=${bookingResult.id}" class="btn-primary">View Your Ticket</a>
+                            <a href="/events" class="btn-secondary">View Upcoming Events</a>
                         `;
                     }
 

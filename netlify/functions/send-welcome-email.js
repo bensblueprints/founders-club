@@ -3,7 +3,7 @@
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 // Use verified domain email or Resend's test email for development
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Founders Vietnam <noreply@foundersvietnam.com>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Founders Vietnam <support@foundersvn.com>';
 
 exports.handler = async (event, context) => {
     // Handle CORS preflight
@@ -105,7 +105,7 @@ exports.handler = async (event, context) => {
                                 For security, please change your password after your first login.
                             </p>
 
-                            <a href="https://foundersvietnam.com/login.html" style="display: inline-block; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 500; font-size: 16px;">
+                            <a href="https://foundersvietnam.com/login" style="display: inline-block; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 500; font-size: 16px;">
                                 Login to Your Account
                             </a>
                         </td>
@@ -154,7 +154,7 @@ exports.handler = async (event, context) => {
                             <p style="color: #ffffff; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
                                 We received a request to reset your password. Click the button below to set a new password.
                             </p>
-                            <a href="https://foundersvietnam.com/login.html" style="display: inline-block; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 500;">
+                            <a href="https://foundersvietnam.com/login" style="display: inline-block; background: linear-gradient(135deg, #c9a227, #e5c464); color: #1a1a1a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 500;">
                                 Reset Password
                             </a>
                             <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin: 30px 0 0;">

@@ -1,0 +1,308 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { CalendarDays, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock3, Download, ExternalLink, Mail, Pencil, Plus, RefreshCw, Save, ScanLine, ShieldCheck, Ticket, Trash2, UserCheck, UsersRound, Utensils, X } from 'lucide-react';
+import { useAuth } from '@/components/AuthProvider';
+import { callFunction, db, formatDate } from '@/lib/api';
+
+const REVIEW_SECTIONS = [
+    {
+        title: 'Applicant and company',
+        fields: [
+            ['Full name', app => `${app.first_name || ''} ${app.last_name || ''}`.trim()],
+            ['Work email', 'email'], ['Age', 'age'], ['Company / project', 'company'],
+            ['Role', 'role'], ['Industry', 'industry'], ['Company website or LinkedIn', 'company_link'],
+            ['Profile / social link', 'social_link'], ['Revenue', 'revenue'], ['Team size', 'team_size']
+        ]
+    },
+    {
+        title: 'Networking profile',
+        fields: [
+            ['What they do', 'what_you_do'], ['Looking for', 'looking_for'], ['Can offer', 'can_offer'],
+            ['Biggest challenge', 'biggest_challenge'], ['Unique value', 'unique_value'],
+            ['Goals for the next 12 months', 'goals_12_month'], ['Why they want to join', 'why_join']
+        ]
+    },
+    {
+        title: 'Event request',
+        fields: [
+            ['Event', app => app.event_name || app.event || app.event_interest],
+            ['Tickets requested', app => `${app.ticket_count || 1} ticket${Number(app.ticket_count || 1) === 1 ? '' : 's'}`],
+            ['Partner / co-founder', 'guest_name'], ['Membership request', 'membership_type'],
+            ['Referral source', 'referral'], ['Referred by', 'referrer_name'],
+            ['Form language', 'page_language'], ['Submitted', app => app.created_at ? new Date(app.created_at).toLocaleString() : null]
+        ]
+    }
+];
+
+function ReviewValue({ label, value }) {
+    const resolved = typeof value === 'string' ? value.trim() : value;
+    const isLink = typeof resolved === 'string' && /^https?:\/\//i.test(resolved);
+    return <div className="review-field"><dt>{label}</dt><dd>{resolved || <span className="not-provided">Not provided</span>}{isLink && <a href={resolved} target="_blank" rel="noreferrer" aria-label={`Open ${label}`}><ExternalLink size={14}/></a>}</dd></div>;
+}
+
+function ApplicationReview({ app }) {
+    return <div className="application-review">
+        <div className={`account-path ${app.has_existing_account ? 'existing' : 'new'}`}>
+            <UserCheck size={20}/><div><b>{app.has_existing_account ? 'Existing member account will be reused' : 'A new member account will be created'}</b><span>{app.has_existing_account ? `Approval keeps the current password and sends only the 48-hour payment notice. Account status: ${app.existing_account_status || 'active'}.` : 'Approval creates one account, emails temporary credentials, and reserves the requested seats for 48 hours.'}</span></div>
+        </div>
+        {REVIEW_SECTIONS.map(section => <section className="review-section" key={section.title}><h4>{section.title}</h4><dl className="review-grid">{section.fields.map(([label, accessor]) => <ReviewValue key={label} label={label} value={typeof accessor === 'function' ? accessor(app) : app[accessor]}/>)}</dl></section>)}
+        <section className="review-section"><h4>Review and payment lifecycle</h4><dl className="review-grid">
+            <ReviewValue label="Application status" value={app.status}/><ReviewValue label="Payment status" value={app.order_status || app.payment_status}/>
+            <ReviewValue label="Reservation expires" value={app.payment_expires_at ? new Date(app.payment_expires_at).toLocaleString() : null}/><ReviewValue label="Paid via" value={app.paid_provider}/>
+            <ReviewValue label="Paid at" value={app.order_paid_at ? new Date(app.order_paid_at).toLocaleString() : null}/><ReviewValue label="Reviewed at" value={app.reviewed_at ? new Date(app.reviewed_at).toLocaleString() : null}/>
+        </dl></section>
+    </div>;
+}
+
+const MEAL_LABELS = { steak: 'Steak', shrimp: 'Shrimp', chicken: 'Chicken', vegan: 'Vegan' };
+const isUpcomingEvent = event => event.status !== 'completed' && new Date(`${String(event.event_date).slice(0, 10)}T23:59:59`).getTime() >= Date.now();
+
+function attendeeTicketRows(registrations = []) {
+    return registrations.flatMap(registration => {
+        const primary = {
+            ...registration,
+            registrationId: registration.attendance_id,
+            attendee: `${registration.first_name || ''} ${registration.last_name || ''}`.trim(),
+            type: 'Member', email: registration.email || '', company: registration.company || '',
+            meal: MEAL_LABELS[registration.meal_option] || 'Not selected',
+            paidVia: registration.paid_provider || '—', paidAt: registration.paid_at
+        };
+        if (Number(registration.seat_count || 1) !== 2) return [primary];
+        return [primary, {
+            ...registration,
+            registrationId: registration.attendance_id,
+            attendee: registration.guest_name || 'Guest name not provided', type: 'Guest',
+            email: '', company: registration.company || '',
+            meal: MEAL_LABELS[registration.guest_meal_option] || 'Not selected',
+            paidVia: registration.paid_provider || '—', paidAt: registration.paid_at
+        }];
+    });
+}
+
+function downloadCsv(filename, rows) {
+    const quote = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const columns = ['Checked in', 'Attendee', 'Type', 'Email', 'Age', 'Company', 'Role', 'Industry', 'Ticket type',
+        'Seat count', 'Guest name', 'Meal', 'Member meal', 'Guest meal', 'Phone / WhatsApp', 'Zalo', 'Telegram',
+        'LinkedIn', 'Website', 'What they do', 'Looking for', 'Can offer', 'Revenue', 'Team size', 'Referral',
+        'Paid via', 'Paid amount', 'Currency', 'Paid at', 'Payment transaction ID', 'Payment order ID', 'Registration ID'];
+    const data = rows.map(row => [row.checked_in ? 'Yes' : '', row.attendee, row.type, row.email, row.age, row.company,
+        row.role, row.industry, row.ticket_type, row.seat_count, row.guest_name, row.meal,
+        MEAL_LABELS[row.meal_option] || 'Not selected', MEAL_LABELS[row.guest_meal_option] || 'Not selected',
+        row.whatsapp, row.zalo, row.telegram, row.linkedin, row.website || row.social_link, row.what_you_do,
+        row.looking_for, row.can_offer, row.revenue, row.team_size, row.referral, row.paidVia,
+        row.paid_amount, row.paid_currency, row.paidAt ? new Date(row.paidAt).toLocaleString() : '',
+        row.provider_transaction_id, row.payment_order_id, row.registrationId]);
+    const blob = new Blob(['\ufeff', [columns, ...data].map(line => line.map(quote).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function printCheckinList(event, registrations) {
+    const rows = attendeeTicketRows(registrations);
+    const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]);
+    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.meal]: (counts[row.meal] || 0) + 1 }), {});
+    const eventDate = event?.event_date ? new Date(event.event_date).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape(event?.name)} check-in</title><style>
+      @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,"Helvetica Neue",sans-serif;color:#17231f;margin:0;font-size:10px}
+      header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #ef654b;padding-bottom:12px;margin-bottom:14px}h1{font-size:24px;margin:0 0 5px}p{margin:3px 0;color:#53625d}.summary{text-align:right}.summary b{font-size:16px;color:#17231f}
+      .meals{display:flex;gap:8px;margin-bottom:12px}.meal{border:1px solid #cfd8d4;border-radius:6px;padding:5px 9px}.meal b{color:#ef654b}
+      table{width:100%;border-collapse:collapse;table-layout:fixed}th{background:#0b241b;color:white;text-align:left;padding:7px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.04em}td{border-bottom:1px solid #dce3e0;padding:7px 6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f5f7f6}
+      .check{width:14px;height:14px;border:1.5px solid #17231f;display:inline-block}.num{width:28px}.check-col{width:48px}.type{width:52px}.meal-col{width:78px}.paid{width:92px}.email{width:165px}.company{width:130px}
+      footer{margin-top:10px;display:flex;justify-content:space-between;color:#71807a;font-size:9px}@media print{button{display:none}}
+    </style></head><body><header><div><h1>${escape(event?.name || 'Event')} - Check-in list</h1><p>${escape(eventDate)}${event?.event_time ? ` at ${escape(event.event_time)}` : ''}</p><p>${escape(event?.location || '')}</p></div><div class="summary"><b>${rows.length} attendee${rows.length === 1 ? '' : 's'}</b><p>${registrations.length} paid registration${registrations.length === 1 ? '' : 's'}</p></div></header>
+    <div class="meals">${Object.entries(mealCounts).map(([meal,count]) => `<span class="meal">${escape(meal)}: <b>${count}</b></span>`).join('')}</div>
+    <table><thead><tr><th class="num">#</th><th class="check-col">In</th><th>Attendee</th><th class="type">Type</th><th class="email">Email</th><th class="company">Company</th><th class="meal-col">Meal</th><th class="paid">Payment</th></tr></thead><tbody>
+    ${rows.map((row,index) => `<tr><td>${index+1}</td><td><span class="check"></span></td><td><b>${escape(row.attendee)}</b></td><td>${escape(row.type)}</td><td>${escape(row.email || '—')}</td><td>${escape(row.company || '—')}</td><td>${escape(row.meal)}</td><td>${escape(row.paidVia)}</td></tr>`).join('')}</tbody></table>
+    <footer><span>FoundersVN event operations</span><span>Generated ${escape(new Date().toLocaleString())}</span></footer></body></html>`;
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    Object.assign(frame.style, { position:'fixed', width:'1px', height:'1px', right:'0', bottom:'0', border:'0', opacity:'0' });
+    document.body.appendChild(frame);
+    const printDocument = frame.contentWindow.document;
+    printDocument.open(); printDocument.write(html); printDocument.close();
+    setTimeout(() => {
+        frame.contentWindow.focus(); frame.contentWindow.print();
+        setTimeout(() => frame.remove(), 1000);
+    }, 250);
+}
+
+function CheckinDetail({ row }) {
+    const fields = [
+        ['Full name', row.attendee], ['Record type', row.type], ['Email', row.email], ['Age', row.age],
+        ['Company', row.company], ['Role', row.role], ['Industry', row.industry], ['Member type', row.member_type],
+        ['Account status', row.account_status], ['WhatsApp', row.whatsapp], ['Zalo', row.zalo], ['Telegram', row.telegram],
+        ['LinkedIn', row.linkedin], ['Website', row.website], ['Social profile', row.social_link], ['Other websites', Array.isArray(row.websites) ? row.websites.join(', ') : row.websites],
+        ['Ticket type', row.ticket_type], ['Seats', row.seat_count], ['Guest', row.guest_name], ['Member meal', MEAL_LABELS[row.meal_option] || 'Not selected'],
+        ['Guest meal', Number(row.seat_count) === 2 ? MEAL_LABELS[row.guest_meal_option] || 'Not selected' : 'Not applicable'],
+        ['Applied', row.applied_at ? new Date(row.applied_at).toLocaleString() : null], ['Approved', row.approved_at ? new Date(row.approved_at).toLocaleString() : null],
+        ['Paid', row.paid_at ? new Date(row.paid_at).toLocaleString() : null], ['Paid via', row.paid_provider],
+        ['Paid amount', row.paid_amount != null ? `${Number(row.paid_amount).toLocaleString()} ${row.paid_currency || ''}` : null],
+        ['Payment transaction', row.provider_transaction_id], ['Payment order', row.payment_order_id],
+        ['Latest email', row.email_type ? row.email_type.replaceAll('_', ' ') : null], ['Email status', row.email_status?.replaceAll('_', ' ')],
+        ['Email status updated', row.email_status_at ? new Date(row.email_status_at).toLocaleString() : null], ['Email error', row.email_error],
+        ['Checked in', row.checked_in ? `Yes${row.checked_in_at ? ` · ${new Date(row.checked_in_at).toLocaleString()}` : ''}` : 'No'],
+        ['Revenue', row.revenue], ['Team size', row.team_size], ['Company link', row.company_link],
+        ['What they do', row.what_you_do], ['Looking for', row.looking_for], ['Can offer', row.can_offer],
+        ['Biggest challenge', row.biggest_challenge], ['Unique value', row.unique_value], ['12-month goals', row.goals_12_month],
+        ['Why join', row.why_join], ['Referral', row.referral], ['Referred by', row.referrer_name],
+        ['Membership request', row.membership_type], ['Form language', row.page_language], ['Bio', row.bio]
+    ];
+    return <div className="checkin-detail-grid">{fields.map(([label,value])=><div key={label}><span>{label}</span><strong>{value || '—'}</strong></div>)}</div>;
+}
+
+function CheckinView({ events, selectedEventId, setSelectedEventId, registrations, loading, notice, refresh }) {
+    const [expanded, setExpanded] = useState(null);
+    const [reference, setReference] = useState('');
+    const [checking, setChecking] = useState(false);
+    const event = events?.find(item => item.id === selectedEventId);
+    const rows = attendeeTicketRows(registrations || []);
+    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.meal]: (counts[row.meal] || 0) + 1 }), {});
+    const slug = (event?.slug || event?.name || 'event').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    async function checkIn(value = reference, checkedIn = true) {
+        const cleaned = String(value || '').trim();
+        if (!cleaned) return notice('Scan or enter a booking reference.');
+        setChecking(true);
+        try {
+            const result = await db('attendance.checkIn', { eventId:selectedEventId, reference:cleaned, checkedIn });
+            setReference(''); await refresh();
+            notice(`${result.first_name} ${result.last_name} ${checkedIn ? 'checked in' : 'marked as not checked in'}.`, 'success');
+        } catch (error) { notice(error.message); }
+        finally { setChecking(false); }
+    }
+    async function scan() {
+        if (!('BarcodeDetector' in window)) return notice('QR camera scanning is not supported in this browser. Enter the booking reference instead.');
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+            const video = document.createElement('video'); video.srcObject = stream; video.playsInline = true; await video.play();
+            const detector = new window.BarcodeDetector({ formats:['qr_code'] });
+            const deadline = Date.now() + 20000;
+            while (Date.now() < deadline) {
+                const codes = await detector.detect(video);
+                if (codes[0]?.rawValue) { stream.getTracks().forEach(track=>track.stop()); return checkIn(codes[0].rawValue); }
+                await new Promise(resolve=>setTimeout(resolve,250));
+            }
+            stream.getTracks().forEach(track=>track.stop()); notice('No QR was detected. Try again or enter the reference.');
+        } catch (error) { notice(error.message || 'Could not open the camera.'); }
+    }
+    return <div className="checkin-admin">
+        <div className="panel checkin-controls"><div className="field"><label htmlFor="checkin-event">Upcoming event</label><select id="checkin-event" value={selectedEventId || ''} onChange={e=>setSelectedEventId(e.target.value)}>{events?.filter(isUpcomingEvent).map(item=><option key={item.id} value={item.id}>{item.name} · {formatDate(item.event_date)}</option>)}</select></div><div className="checkin-export-actions"><button className="button ghost small" disabled={!rows.length} onClick={()=>downloadCsv(`${slug}-checkin.csv`, rows)}><Download size={15}/> Export CSV</button><button className="button primary small" disabled={!rows.length} onClick={()=>{try{printCheckinList(event, registrations);}catch(error){notice(error.message);}}}><Download size={15}/> Export PDF / Print</button></div></div>
+        <form className="panel checkin-scanner" onSubmit={e=>{e.preventDefault();checkIn();}}><div><span className="eyebrow">Door check-in</span><h3>Scan QR or enter booking reference</h3><p className="muted">Accepts the ticket booking ref, attendance ID, or SePay transfer code.</p></div><div className="checkin-scanner-actions"><input aria-label="Booking reference" placeholder="FVN:9f4c9a0e-…" value={reference} onChange={e=>setReference(e.target.value)}/><button type="button" className="button ghost" onClick={scan}><ScanLine size={17}/> Scan QR</button><button className="button primary" disabled={checking}>{checking?'Checking…':'Check in'}</button></div></form>
+        {loading ? <div className="loading">Loading paid attendees…</div> : <><div className="checkin-stats"><div className="panel"><span>Paid registrations</span><strong>{registrations?.length || 0}</strong></div><div className="panel"><span>Confirmed attendees</span><strong>{rows.length}</strong></div>{Object.entries(mealCounts).map(([meal,count])=><div className="panel" key={meal}><span>{meal}</span><strong>{count}</strong></div>)}</div>
+        <div className="panel table-wrap"><table className="data-table checkin-table"><thead><tr><th>Attendee</th><th>Ticket</th><th>Meal</th><th>Email</th><th>Attendance</th><th>Details</th></tr></thead><tbody>{rows.flatMap((row,index)=>{const key=`${row.registrationId}-${row.type}-${index}`; const open=expanded===key; return [<tr key={key}><td><b>{row.attendee}</b>{row.email && <><br/><span className="muted">{row.email}</span></>}</td><td>{row.type}<br/><span className="muted">{row.ticket_type} · {row.seat_count} seat{Number(row.seat_count)===1?'':'s'}</span></td><td><span className={`meal-pill ${row.meal === 'Not selected' ? 'missing' : ''}`}><Utensils size={13}/>{row.meal}</span></td><td><span className={`status email-${row.email_status}`}><Mail size={12}/>{row.email_status || 'not sent'}</span><br/><span className="muted">{row.email_type?.replaceAll('_',' ') || '—'}</span></td><td>{row.type==='Member'?<button className={`button small ${row.checked_in?'ghost':'primary'}`} onClick={()=>checkIn(row.payment_order_id,!row.checked_in)}>{row.checked_in?'Undo check-in':'Check in'}</button>:<span className="muted">With member</span>}</td><td><button className="button ghost small" aria-expanded={open} onClick={()=>setExpanded(open?null:key)}>{open?<ChevronUp size={14}/>:<ChevronDown size={14}/>} {open?'Hide':'All info'}</button></td></tr>, open?<tr className="checkin-detail-row" key={`${key}-details`}><td colSpan="6"><CheckinDetail row={row}/></td></tr>:null];})}</tbody></table>{!rows.length && <div className="empty">No paid attendees for this event yet.</div>}</div></>}
+    </div>;
+}
+
+const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', description:'', price:150, cruisePrice:297, capacity:25, cruiseCapacity:0, status:'open' };
+
+function EventManager({ events, reload, notify }) {
+    const [editing, setEditing] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const beginEdit = event => setEditing({
+        id:event.id, slug:event.slug || '', name:event.name || '', date:String(event.event_date || '').slice(0,10),
+        time:String(event.event_time || '18:00').slice(0,5), location:event.location || '', description:event.description || '',
+        price:Number(event.dinner_price || 150), cruisePrice:Number(event.cruise_price || 297),
+        capacity:Number(event.max_attendees || 25), cruiseCapacity:Number(event.max_cruise_spots || 0), status:event.status || 'open'
+    });
+    async function save(eventObject) {
+        eventObject.preventDefault(); setSaving(true);
+        try {
+            await db(editing.id ? 'events.update' : 'events.create', editing);
+            notify('success', editing.id ? 'Event updated.' : 'Event created.');
+            setEditing(null); await reload();
+        } catch (error) { notify('error', error.message); }
+        finally { setSaving(false); }
+    }
+    async function remove(event) {
+        if (!window.confirm(`Delete “${event.name}”? Events with applications or registrations cannot be deleted.`)) return;
+        try { await db('events.delete', { id:event.id }); notify('success', 'Event deleted.'); await reload(); }
+        catch (error) { notify('error', error.message); }
+    }
+    const update = (field, value) => setEditing(current => ({ ...current, [field]:value }));
+    return <div className="event-manager">
+        <div className="event-manager-heading"><p className="muted">Create and maintain event details, pricing, capacity, and publishing status.</p><button className="button primary small" onClick={()=>setEditing({...EMPTY_EVENT})}><Plus size={15}/> New event</button></div>
+        {editing && <form className="panel event-editor" onSubmit={save}><div className="event-editor-title"><div><span className="eyebrow">{editing.id ? 'Edit event' : 'New event'}</span><h3>{editing.name || 'Untitled event'}</h3></div><button type="button" className="icon-button" aria-label="Close event editor" onClick={()=>setEditing(null)}><X size={18}/></button></div><div className="event-form-grid">
+            <div className="field"><label htmlFor="event-name">Event name</label><input id="event-name" value={editing.name} onChange={e=>update('name',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-slug">URL slug</label><input id="event-slug" value={editing.slug} onChange={e=>update('slug',e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} required/></div>
+            <div className="field"><label htmlFor="event-date">Date</label><input id="event-date" type="date" value={editing.date} onChange={e=>update('date',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-time">Time</label><input id="event-time" type="time" value={editing.time} onChange={e=>update('time',e.target.value)} required/></div>
+            <div className="field wide"><label htmlFor="event-location">Location</label><input id="event-location" value={editing.location} onChange={e=>update('location',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-price">Dinner ticket (USD)</label><input id="event-price" type="number" min="0" step="0.01" value={editing.price} onChange={e=>update('price',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-capacity">Total capacity</label><input id="event-capacity" type="number" min="1" value={editing.capacity} onChange={e=>update('capacity',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-cruise-price">Full/cruise ticket (USD)</label><input id="event-cruise-price" type="number" min="0" step="0.01" value={editing.cruisePrice} onChange={e=>update('cruisePrice',e.target.value)}/></div>
+            <div className="field"><label htmlFor="event-cruise-capacity">Full/cruise capacity</label><input id="event-cruise-capacity" type="number" min="0" value={editing.cruiseCapacity} onChange={e=>update('cruiseCapacity',e.target.value)}/></div>
+            <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
+            <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
+        </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
+        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner<br/><span className="muted">${Number(event.cruise_price || 0).toFixed(2)} full</span></td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="icon-button" aria-label={`Edit ${event.name}`} onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="icon-button danger" aria-label={`Delete ${event.name}`} onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
+    </div>;
+}
+
+export default function AdminPage() {
+    const { user, ready } = useAuth();
+    const [tab, setTab] = useState('applications');
+    const [applications, setApplications] = useState(null);
+    const [members, setMembers] = useState(null);
+    const [events, setEvents] = useState(null);
+    const [notice, setNotice] = useState(null);
+    const [processingId, setProcessingId] = useState(null);
+    const [reviewingId, setReviewingId] = useState(null);
+    const [selectedEventId, setSelectedEventId] = useState('');
+    const [checkinRows, setCheckinRows] = useState(null);
+    const [checkinLoading, setCheckinLoading] = useState(false);
+
+    async function load() {
+        try {
+            const [apps, people, eventRows] = await Promise.all([db('applications.list'), db('members.list'), db('events.list')]);
+            setApplications(apps); setMembers(people); setEvents(eventRows);
+            setSelectedEventId(current => current || eventRows.find(isUpcomingEvent)?.id || '');
+        } catch(e) { setNotice({type:'error', message:e.message}); }
+    }
+    async function loadCheckin(eventId = selectedEventId) {
+        if (!eventId) return;
+        setCheckinLoading(true);
+        try { setCheckinRows(await db('attendance.adminCheckinList', { eventId })); }
+        catch (error) { setNotice({ type:'error', message:error.message }); }
+        finally { setCheckinLoading(false); }
+    }
+    useEffect(() => { if (user?.is_admin) load(); }, [user]);
+    useEffect(() => {
+        if (!user?.is_admin || !selectedEventId) return;
+        loadCheckin(selectedEventId);
+    }, [user, selectedEventId]);
+
+    async function accept(id) {
+        setNotice(null);
+        setProcessingId(id);
+        try {
+            const result = await callFunction('accept-application', { id });
+            const email = result.member?.email || applications?.find(app => app.id === id)?.email || 'the applicant';
+            const message = result.alreadyAccepted
+                ? `This application already has a reservation${result.accountReused ? ' on the existing member account' : ''}.`
+                : result.accountReused
+                    ? `Approved and reserved for 48 hours. The existing account and password for ${email} were kept.${result.emailSent || result.emailMock ? ' The payment notice was sent.' : ' The payment notice could not be sent; ask the member to sign in and pay from their account.'}`
+                    : `Approved and reserved for 48 hours. Account created for ${email}.${result.emailMock ? ` Local email mock used; temporary password: ${result.tempPassword}` : result.emailSent ? ' Credentials and both payment options were emailed.' : ` Email failed — securely deliver this one-time password: ${result.tempPassword}`}`;
+            setNotice({type:'success', message});
+            await load();
+        } catch(e) { setNotice({type:'error', message:e.message}); }
+        finally { setProcessingId(null); }
+    }
+
+    if (!ready) return <div className="loading">Checking admin access…</div>;
+    if (!user?.is_admin) return <section className="auth-page"><div className="auth-card center"><ShieldCheck style={{color:'var(--lime)'}} size={40}/><h1>Admin access required.</h1><p className="muted">Sign in with an administrator account to review applications.</p><Link className="button primary" href="/login?next=/admin">Admin sign in</Link></div></section>;
+
+    return <><section className="page-hero"><div className="container"><span className="eyebrow">Operations</span><h1 className="display medium">Admin workspace.</h1><p className="lead">Review applicants, create accounts, and monitor the event network.</p></div></section><section className="section compact"><div className="container dashboard">
+        <aside className="side-nav"><button className={tab==='applications'?'active':''} onClick={()=>setTab('applications')}><CheckCircle2 size={17}/> Applications</button><button className={tab==='checkin'?'active':''} onClick={()=>setTab('checkin')}><ClipboardCheck size={17}/> Event check-in</button><button className={tab==='members'?'active':''} onClick={()=>setTab('members')}><UsersRound size={17}/> Members</button><button className={tab==='events'?'active':''} onClick={()=>setTab('events')}><CalendarDays size={17}/> Events</button></aside>
+        <div><div className="toolbar"><div><h2>{tab === 'checkin' ? 'Event check-in' : tab[0].toUpperCase()+tab.slice(1)}</h2><p className="muted">{tab === 'applications' ? `${applications?.filter(a=>a.status==='pending').length || 0} applications pending review` : tab === 'checkin' ? 'Paid attendees, tickets, meals, and event-day exports' : tab === 'members' ? `${members?.length || 0} member profiles` : `${events?.length || 0} events`}</p></div><button className="button ghost small" onClick={()=>{load(); if(tab === 'checkin') loadCheckin();}}><RefreshCw size={15}/> Refresh</button></div>
+            {notice && <div className={`form-status ${notice.type}`} style={{marginBottom:16}}>{notice.message}</div>}
+            {tab==='applications' && <div className="application-list">{applications === null ? <div className="loading">Loading applications…</div> : applications.map(app => <article className={`application-row admin-application-card ${reviewingId === app.id ? 'review-open' : ''}`} key={app.id}><div className="application-summary"><div><div className="application-status-line"><span className={`status ${app.status}`}>{app.status}</span><span className={`status ${app.order_status || app.payment_status || 'pending'}`}>{app.order_status || app.payment_status || 'not approved'}</span>{app.has_existing_account && <span className="status existing-account">existing account</span>}</div><h3>{app.first_name} {app.last_name}</h3><p>{app.role || 'Founder'} at {app.company || '—'} · {app.email}</p><p style={{marginTop:8}}>{app.what_you_do || app.why_join || 'No additional introduction.'}</p><div className="application-meta-grid"><span><CalendarDays size={15}/>{app.event_name || app.event || app.event_interest || 'Event not assigned'}</span><span><Ticket size={15}/>{app.ticket_count || 1} ticket{Number(app.ticket_count || 1) === 1 ? '' : 's'}{app.guest_name ? ` · ${app.guest_name}` : ''}</span>{app.payment_expires_at && <span><Clock3 size={15}/>Hold ends {new Date(app.payment_expires_at).toLocaleString()}</span>}{app.paid_provider && <span><CheckCircle2 size={15}/>Paid via {app.paid_provider}</span>}</div></div><div className="application-actions">{app.status==='pending' && <button className="button primary small" disabled={processingId===app.id} onClick={()=>accept(app.id)}>{processingId===app.id ? 'Reserving…' : app.has_existing_account ? 'Approve registration' : 'Approve & create account'}</button>}{app.payment_link && <a className="button ghost small" href={app.payment_link} target="_blank" rel="noreferrer">Payment page</a>}<button className="button ghost small review-toggle" aria-expanded={reviewingId === app.id} onClick={()=>setReviewingId(reviewingId === app.id ? null : app.id)}>{reviewingId === app.id ? <ChevronUp size={16}/> : <ChevronDown size={16}/>} {reviewingId === app.id ? 'Hide details' : 'Review all details'}</button></div></div>{reviewingId === app.id && <ApplicationReview app={app}/>}</article>)}{applications && !applications.length && <div className="empty">No applications yet.</div>}</div>}
+            {tab==='members' && <div className="panel table-wrap"><table className="data-table"><thead><tr><th>Member</th><th>Company</th><th>Industry</th><th>Status</th></tr></thead><tbody>{members?.map(m=><tr key={m.id}><td><b>{m.first_name} {m.last_name}</b><br/><span className="muted">{m.email}</span></td><td>{m.role}<br/><span className="muted">{m.company}</span></td><td>{m.industry || '—'}</td><td><span className={`status ${m.is_approved?'approved':'pending'}`}>{m.is_approved?'approved':'pending'}</span></td></tr>)}</tbody></table></div>}
+            {tab==='events' && <EventManager events={events} reload={load} notify={(type,message)=>setNotice({type,message})}/>}
+            {tab==='checkin' && <CheckinView events={events} selectedEventId={selectedEventId} setSelectedEventId={setSelectedEventId} registrations={checkinRows} loading={checkinLoading} refresh={()=>loadCheckin(selectedEventId)} notice={(message,type='error')=>setNotice({type, message})}/>} 
+        </div>
+    </div></section></>;
+}

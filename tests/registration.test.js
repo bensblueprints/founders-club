@@ -7,8 +7,8 @@
 // is unset) are loaded for real, so we exercise the ACTUAL password hashing.
 //
 // Asserts the desired flow:
-//   * submit-application  → inserts BOTH an application AND a pending member
-//                           (is_approved = false, NO password_hash column).
+//   * submit-application  → inserts an event-scoped application, but does not
+//                           create an account before admin approval.
 //   * accept-application  → flips the member to is_approved = true, stores a
 //                           bcrypt password_hash, and returns a temp password.
 //   * db-api members.create → hashes a PLAINTEXT password (stored value is a
@@ -18,6 +18,8 @@
 
 const path = require('path');
 const assert = require('assert');
+process.env.PAYMENTS_ENV = 'mock';
+process.env.PAYMENT_PROVIDERS = 'airwallex,sepay';
 
 const fnDir = path.resolve(__dirname, '../netlify/functions');
 const neonPath = path.join(fnDir, 'lib', 'neon.js');
@@ -36,7 +38,10 @@ const memberRow = { id: 'm1', email: 'jane@x.co', first_name: 'Jane', last_name:
 function fakeSql(strings, ...values) {
     const text = Array.from(strings).join(' ');
     calls.push({ text, strings: Array.from(strings), values });
-    if (/SELECT \* FROM applications/i.test(text)) return Promise.resolve(appRow ? [appRow] : []);
+    if (/FROM events/i.test(text) && /WHERE slug/i.test(text)) {
+        return Promise.resolve([{ id: 'evt1', slug: 'danang-jul-2026', name: 'FoundersVN Da Nang', dinner_price: 150 }]);
+    }
+    if (/FROM applications a/i.test(text)) return Promise.resolve(appRow ? [appRow] : []);
     if (/INSERT INTO members/i.test(text)) return Promise.resolve([memberRow]);
     if (/INSERT INTO applications/i.test(text)) return Promise.resolve([appRow || { id: 'app1' }]);
     return Promise.resolve([]);
@@ -62,10 +67,10 @@ function loadSubmit() {
     inject(neonPath, fakeNeon());
     return require(submitPath);
 }
-function loadAccept() {
+function loadAccept(createPaymentLink = async () => ({ url: 'https://pay.mock/x', mock: true })) {
     fresh([neonPath, airwallexPath, emailerPath, authPath, acceptPath]);
     inject(neonPath, fakeNeon());
-    inject(airwallexPath, { createPaymentLink: async () => ({ url: 'https://pay.mock/x', mock: true }) });
+    inject(airwallexPath, { createPaymentLink });
     return require(acceptPath);
 }
 function loadDbApi() {
@@ -95,38 +100,58 @@ async function test(name, fn) {
     const auth = require(authPath);            // real bcrypt for round-trip checks
 
     // -----------------------------------------------------------------
-    // submit-application: application + PENDING member (no password)
+    // submit-application: event-scoped application only
     // -----------------------------------------------------------------
     const submit = loadSubmit();
+    const completeApplicationPayload = {
+        name: 'Jane Doe',
+        email: 'JANE@X.CO',
+        company: 'Acme',
+        role: 'CEO',
+        event_slug: 'danang-jul-2026',
+        company_link: 'https://acme.test',
+        industry: 'Tech / SaaS',
+        looking_for: 'Customers / Clients',
+        can_offer: 'Expertise / Advice',
+        what_you_do: 'Building founder workflow software',
+        links: 'https://linkedin.com/in/jane',
+        language: 'en'
+    };
 
-    await test('submit-application inserts BOTH an application and a pending member', async () => {
+    await test('submit-application inserts an event-scoped application without creating an account', async () => {
         const res = await submit.handler({
             httpMethod: 'POST',
             headers: {},
-            body: JSON.stringify({ name: 'Jane Doe', email: 'JANE@X.CO', company: 'Acme', role: 'CEO', industry: 'saas' })
+            body: JSON.stringify(completeApplicationPayload)
         });
         assert.strictEqual(res.statusCode, 200, 'expected 200');
 
         const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
         const memInsert = calls.find(c => /INSERT INTO members/i.test(c.text));
         assert.ok(appInsert, 'must insert an application');
-        assert.ok(memInsert, 'must ALSO insert a pending member');
-
-        // Pending member: is_approved = false, and NO password set at all.
-        assert.ok(!/password_hash/i.test(memInsert.text), 'pending member must not touch password_hash');
-        assert.ok(/is_approved/i.test(memInsert.text), 'pending member sets is_approved');
-        assert.ok(/,\s*false\s*\)/i.test(memInsert.text), 'pending member is_approved must be false (literal)');
-        assert.ok(memInsert.values.includes('jane@x.co'), 'member email lowercased + bound');
-        assert.ok(!findHash(memInsert.values), 'pending member must have no password hash');
+        assert.ok(!memInsert, 'account must not exist before approval');
+        assert.ok(appInsert.values.includes('evt1'), 'application is bound to the selected event id');
+        assert.ok(appInsert.values.includes('jane@x.co'), 'email is normalized and bound');
     });
 
-    await test('submit-application pending member upsert is idempotent (DO NOTHING)', async () => {
+    await test('submit-application rejects incomplete landing application data', async () => {
+        const res = await submit.handler({
+            httpMethod: 'POST',
+            headers: {},
+            body: JSON.stringify({ ...completeApplicationPayload, looking_for: '' })
+        });
+        assert.strictEqual(res.statusCode, 400);
+        assert.match(JSON.parse(res.body).error, /looking_for/i);
+        assert.strictEqual(calls.length, 0, 'no SQL for incomplete application');
+    });
+
+    await test('submit-application upserts only within the same event', async () => {
         await submit.handler({
             httpMethod: 'POST', headers: {},
-            body: JSON.stringify({ name: 'Jane Doe', email: 'jane@x.co', company: 'Acme', role: 'CEO' })
+            body: JSON.stringify({ ...completeApplicationPayload, email: 'jane@x.co' })
         });
-        const memInsert = calls.find(c => /INSERT INTO members/i.test(c.text));
-        assert.ok(/ON CONFLICT .*DO NOTHING/is.test(memInsert.text), 'must not clobber an existing member');
+        const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
+        assert.ok(/ON CONFLICT \(event_id, LOWER\(email\)\)/i.test(appInsert.text));
     });
 
     // -----------------------------------------------------------------
@@ -143,7 +168,9 @@ async function test(name, fn) {
     await test('accept-application approves member + sets bcrypt hash + returns temp password', async () => {
         appRow = {
             id: 'app1', email: 'jane@x.co', first_name: 'Jane', last_name: 'Doe',
-            company: 'Acme', role: 'CEO', industry: 'saas', status: 'pending'
+            company: 'Acme', role: 'CEO', industry: 'saas', status: 'pending',
+            event_id: 'evt1', event_slug: 'danang-jul-2026', event_name: 'FoundersVN Da Nang',
+            event_date: '2026-07-31', dinner_price: 150
         };
         const res = await accept.handler({
             httpMethod: 'POST',
@@ -170,6 +197,31 @@ async function test(name, fn) {
         assert.ok(hash.startsWith('$2'), 'stored value must be a bcrypt hash');
         assert.strictEqual(await auth.checkPassword(out.tempPassword, hash), true, 'temp password round-trips');
         assert.notStrictEqual(hash, out.tempPassword, 'must never store plaintext');
+    });
+
+    await test('accept-application in SePay-only mode never calls Airwallex', async () => {
+        process.env.PAYMENT_PROVIDERS = 'sepay';
+        let airwallexCalls = 0;
+        const sepayOnlyAccept = loadAccept(async () => {
+            airwallexCalls += 1;
+            throw new Error('Airwallex must not be called');
+        });
+        appRow = {
+            id: 'app1', email: 'jane@x.co', first_name: 'Jane', last_name: 'Doe',
+            company: 'Acme', role: 'CEO', industry: 'saas', status: 'pending',
+            event_id: 'evt1', event_slug: 'danang-jul-2026', event_name: 'FoundersVN Da Nang',
+            event_date: '2026-07-31', dinner_price: 150
+        };
+        const res = await sepayOnlyAccept.handler({
+            httpMethod: 'POST',
+            headers: { 'x-admin-token': 'secret-token' },
+            body: JSON.stringify({ id: 'app1' })
+        });
+        process.env.PAYMENT_PROVIDERS = 'airwallex,sepay';
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.strictEqual(airwallexCalls, 0);
+        const out = JSON.parse(res.body);
+        assert.strictEqual(out.airwallexAvailable, false);
     });
 
     // -----------------------------------------------------------------

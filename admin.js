@@ -27,11 +27,11 @@ const Admin = {
     async init() {
         // Guard: require a valid session AND admin privileges (server-issued JWT).
         if (!Auth.isLoggedIn()) {
-            window.location.href = 'login.html';
+            window.location.href = '/login';
             return;
         }
         if (!Auth.isAdmin()) {
-            window.location.href = 'index.html';
+            window.location.href = '/';
             return;
         }
         const user = Auth.getCurrentUser();
@@ -41,15 +41,10 @@ const Admin = {
         if (Auth.validateSession) {
             Auth.validateSession().then(u => {
                 if (!u || u.is_admin !== true) {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                 }
             });
         }
-
-        // Update nav
-        document.getElementById('navAvatar').textContent =
-            ((user.firstName || '?')[0] + (user.lastName || '')[0]);
-        document.getElementById('navProfile').href = 'profile.html';
 
         // Check for masquerade
         this.checkMasquerade();
@@ -366,16 +361,20 @@ const Admin = {
         if (!app) return;
         if (!confirm(`Accept ${app.firstName} ${app.lastName} and email them a $150 payment link?\n\nTheir seat will be held for 7 days.`)) return;
 
-        const token = this.getAdminToken();
-        if (!token) { alert('Admin token required.'); return; }
+        const jwt = (typeof Auth !== 'undefined' && Auth.getToken) ? Auth.getToken() : null;
+        const token = jwt ? null : this.getAdminToken();
+        if (!jwt && !token) { alert('Admin login or admin token required.'); return; }
 
         const btn = document.querySelector(`[onclick*="acceptAndSendPayment('${id}')"]`);
         if (btn) { btn.disabled = true; btn.textContent = 'Processing...'; }
 
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwt) headers.Authorization = 'Bearer ' + jwt;
+            else headers['x-admin-token'] = token;
             const res = await fetch('/.netlify/functions/accept-application', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+                headers,
                 body: JSON.stringify({ id })
             });
             const result = await res.json();
@@ -394,7 +393,10 @@ const Admin = {
             if (result.emailMock) notes.push('(email logged only — Resend not configured yet)');
             else if (!result.emailSent) notes.push('(email could not be sent — send the link manually)');
 
-            alert(`Accepted ${app.firstName} ${app.lastName}.\n\nPayment link:\n${result.paymentLink}\n\nSeat held until ${new Date(result.expiresAt).toLocaleDateString()}.\n${notes.join('\n')}`);
+            const credentialFallback = (!result.emailSent || result.emailMock)
+                ? `\n\nCredential fallback:\nLogin: ${result.loginUrl}\nEmail: ${app.email}\nTemporary password: ${result.tempPassword}`
+                : '';
+            alert(`Accepted ${app.firstName} ${app.lastName}.\n\nPayment link:\n${result.paymentLink || 'Not created — send one manually'}\n\nSeat held until ${new Date(result.expiresAt).toLocaleDateString()}.\n${notes.join('\n')}${credentialFallback}`);
             await this.loadApplications();
             this.loadStats();
         } catch (e) {
@@ -1875,7 +1877,7 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
         }));
 
         this.closeModal('actionsModal');
-        window.location.href = 'members.html';
+        window.location.href = '/members';
     },
 
     checkMasquerade() {
@@ -1902,7 +1904,7 @@ ${tx.error_message ? 'Error: ' + tx.error_message : ''}
             localStorage.removeItem('founders_vietnam_original_admin');
         }
 
-        window.location.href = 'admin.html';
+        window.location.href = '/admin';
     },
 
     // ========================================
@@ -1952,7 +1954,7 @@ function checkMasqueradeOnOtherPages() {
         document.body.insertBefore(banner, document.body.firstChild);
 
         // Adjust nav position
-        const nav = document.querySelector('.nav');
+        const nav = document.querySelector('.site-nav');
         if (nav) nav.style.top = '44px';
     }
 }
@@ -1968,10 +1970,10 @@ function endMasqueradeGlobal() {
         localStorage.removeItem('founders_vietnam_original_admin');
     }
 
-    window.location.href = 'admin.html';
+    window.location.href = '/admin';
 }
 
 // Check masquerade on non-admin pages
-if (!window.location.pathname.includes('admin.html')) {
+if (!window.location.pathname.replace(/\/$/, '').endsWith('/admin')) {
     document.addEventListener('DOMContentLoaded', checkMasqueradeOnOtherPages);
 }

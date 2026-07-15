@@ -9,22 +9,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="members.css">
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
     
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html#about">About</a>
-            <a href="events.html">Events</a>
-            <a href="members.html" class="active">Members</a>
-            <a href="sponsor.html">Sponsor</a>
-            <a href="speak.html">Speak</a>
-            <a href="messages.html" class="nav-messages" id="navMessages" style="display: none;">
+            <a href="/#about">About</a>
+            <a href="/events">Events</a>
+            <a href="/members" class="active">Members</a>
+            <a href="/sponsor">Sponsor</a>
+            <a href="/speak">Speak</a>
+            <a href="/messages" class="nav-messages" id="navMessages" style="display: none;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
@@ -33,7 +35,7 @@
             <a href="#" class="nav-profile" id="navProfile" style="display: none;">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
-            <a href="login.html" class="nav-cta" id="navLogin">Login</a>
+            <a href="/login" class="nav-cta" id="navLogin">Login</a>
         </div>
     </nav>
 
@@ -51,8 +53,8 @@
             <h2>Members Only</h2>
             <p>The member directory is exclusively available to approved Founders Vietnam members.</p>
             <div class="login-required-actions">
-                <a href="login.html" class="btn-primary">Login to Access</a>
-                <a href="index.html#apply" class="btn-secondary">Apply for Membership</a>
+                <a href="/login" class="btn-primary">Login to Access</a>
+                <a href="/#apply" class="btn-secondary">Apply for Membership</a>
             </div>
         </div>
     </div>
@@ -65,7 +67,7 @@
                 <p>Connect with fellow founders. No business cards needed.</p>
             </div>
             <div class="directory-actions">
-                <a href="profile.html" class="edit-profile-btn">
+                <a href="/profile" class="edit-profile-btn">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                         <path d="M13.5 2.25L15.75 4.5M1.5 16.5L2.25 13.5L12.75 3L15 5.25L4.5 15.75L1.5 16.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>

@@ -14,10 +14,28 @@
 // SQL injection is prevented by construction.
 
 const { neon } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 
 const DATABASE_URL = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || '';
 
 let _sql = null;
+let _pool = null;
+
+function useLocalPostgres() {
+    if (process.env.DB_DRIVER === 'pg') return true;
+    try {
+        const host = new URL(DATABASE_URL).hostname;
+        return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === 'postgres';
+    } catch (_e) {
+        return false;
+    }
+}
+
+function compileTemplate(strings, values) {
+    let text = strings[0];
+    for (let i = 0; i < values.length; i++) text += `$${i + 1}${strings[i + 1]}`;
+    return { text, values };
+}
 
 function isConfigured() {
     return Boolean(DATABASE_URL);
@@ -31,7 +49,17 @@ function getSql() {
         throw new Error('DATABASE_URL is not set — cannot reach Neon.');
     }
     if (!_sql) {
-        _sql = neon(DATABASE_URL);
+        if (useLocalPostgres()) {
+            _pool = new Pool({ connectionString: DATABASE_URL });
+            _sql = async (strings, ...values) => {
+                const compiled = compileTemplate(strings, values);
+                const result = await _pool.query(compiled.text, compiled.values);
+                return result.rows;
+            };
+            _sql.query = async (text, params = []) => (await _pool.query(text, params)).rows;
+        } else {
+            _sql = neon(DATABASE_URL);
+        }
     }
     return _sql;
 }
@@ -51,4 +79,4 @@ async function query(text, params = []) {
     return client.query(text, params);
 }
 
-module.exports = { sql, query, getSql, isConfigured, DATABASE_URL };
+module.exports = { sql, query, getSql, isConfigured, useLocalPostgres, DATABASE_URL };

@@ -1,11 +1,9 @@
 // Airwallex Refund Processing
 // Documentation: https://www.airwallex.com/docs/api
 
-const AIRWALLEX_API_KEY = process.env.AIRWALLEX_API_KEY;
-const AIRWALLEX_CLIENT_ID = process.env.AIRWALLEX_CLIENT_ID;
-const AIRWALLEX_BASE_URL = process.env.AIRWALLEX_ENV === 'production'
-    ? 'https://api.airwallex.com'
-    : 'https://api-demo.airwallex.com';
+const { isAdminRequest } = require('./lib/auth');
+const { config: airwallexConfig, getAccessToken } = require('./lib/airwallex');
+const { isMockPayments } = require('./lib/payment-environment');
 
 exports.handler = async (event, context) => {
     // Handle CORS preflight
@@ -14,7 +12,7 @@ exports.handler = async (event, context) => {
             statusCode: 200,
             headers: {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-token',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS'
             },
             body: ''
@@ -27,6 +25,13 @@ exports.handler = async (event, context) => {
             statusCode: 405,
             headers: { 'Access-Control-Allow-Origin': '*' },
             body: JSON.stringify({ error: 'Method not allowed' })
+        };
+    }
+    if (!isAdminRequest(event)) {
+        return {
+            statusCode: 401,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify({ error: 'Unauthorized' })
         };
     }
 
@@ -49,9 +54,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Check if Airwallex is configured
-        if (!AIRWALLEX_API_KEY || !AIRWALLEX_CLIENT_ID) {
-            console.log('Airwallex not configured, returning mock refund response');
+        if (isMockPayments()) {
             return {
                 statusCode: 200,
                 headers: {
@@ -70,28 +73,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Step 1: Get access token from Airwallex
-        const authResponse = await fetch(`${AIRWALLEX_BASE_URL}/api/v1/authentication/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': AIRWALLEX_API_KEY,
-                'x-client-id': AIRWALLEX_CLIENT_ID
-            }
-        });
-
-        if (!authResponse.ok) {
-            const authError = await authResponse.text();
-            console.error('Airwallex auth error:', authError);
-            return {
-                statusCode: 401,
-                headers: { 'Access-Control-Allow-Origin': '*' },
-                body: JSON.stringify({ error: 'Payment authentication failed', details: authError })
-            };
-        }
-
-        const authData = await authResponse.json();
-        const accessToken = authData.token;
+        const accessToken = await getAccessToken();
 
         // Step 2: Create refund
         const refundRequest = {
@@ -111,7 +93,7 @@ exports.handler = async (event, context) => {
             refundRequest.amount = parseFloat(amount);
         }
 
-        const refundResponse = await fetch(`${AIRWALLEX_BASE_URL}/api/v1/pa/refunds/create`, {
+        const refundResponse = await fetch(`${airwallexConfig().baseUrl}/api/v1/pa/refunds/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

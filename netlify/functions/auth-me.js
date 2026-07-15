@@ -47,6 +47,9 @@ exports.handler = async (event) => {
             // Member was deleted after the token was issued.
             return json(401, { error: 'Account no longer exists', valid: false });
         }
+        if (row.account_status === 'locked') {
+            return json(423, { error: 'Account locked', valid: false, accountStatus: 'locked' });
+        }
         return json(200, { valid: true, user: publicUser(row) });
     } catch (e) {
         console.error('[auth-me] lookup failed:', e);

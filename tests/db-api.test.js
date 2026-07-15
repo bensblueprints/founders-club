@@ -14,6 +14,7 @@ const assert = require('assert');
 
 const neonPath = path.resolve(__dirname, '../netlify/functions/lib/neon.js');
 const dbApiPath = path.resolve(__dirname, '../netlify/functions/db-api.js');
+const authPath = path.resolve(__dirname, '../netlify/functions/lib/auth.js');
 
 let calls = [];
 let nextRows = [];
@@ -63,28 +64,85 @@ async function test(name, fn) {
 
 (async () => {
     process.env.ADMIN_TOKEN = 'secret-token';
+    process.env.SESSION_SECRET = 'test-session-secret-that-is-long-enough';
+    const { signToken } = require(authPath);
+    const memberToken = signToken({ sub: 'm-current', email: 'me@x.co', is_admin: false });
+    const memberHeaders = { authorization: `Bearer ${memberToken}` };
 
     // ---- routing + parameter binding ------------------------------------
     let api = loadDbApi();
 
     await test('members.get binds id as a parameter, not interpolated', async () => {
         nextRows = [{ id: 'm1', email: 'a@b.co' }];
-        const res = await invoke(api, { action: 'members.get', payload: { id: "x'; DROP TABLE members; --" } });
+        const res = await invoke(api, { action: 'members.get', payload: { id: "x'; DROP TABLE members; --" }, headers: memberHeaders });
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(calls.length, 1);
         // The malicious string must appear ONLY in values, never in the SQL text.
         const sqlText = calls[0].strings.join('?');
         assert.ok(!sqlText.includes('DROP TABLE'), 'injection leaked into SQL text');
-        assert.deepStrictEqual(calls[0].values, ["x'; DROP TABLE members; --"]);
+        assert.ok(calls[0].values.includes("x'; DROP TABLE members; --"));
         assert.deepStrictEqual(JSON.parse(res.body).data, { id: 'm1', email: 'a@b.co' });
     });
 
     await test('members.list returns array under data', async () => {
         nextRows = [{ id: 1 }, { id: 2 }];
-        const res = await invoke(api, { action: 'members.list', payload: {} });
+        const res = await invoke(api, { action: 'members.list', payload: {}, headers: memberHeaders });
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(JSON.parse(res.body).data.length, 2);
-        assert.ok(calls[0].strings.join(' ').includes('FROM members'));
+        assert.ok(calls[0].strings.join(' ').includes('JOIN members'));
+    });
+
+    await test('member directory is unavailable without a valid session', async () => {
+        const res = await invoke(api, { action: 'members.list', payload: {} });
+        assert.strictEqual(res.statusCode, 401);
+        assert.strictEqual(calls.length, 0);
+    });
+
+    await test('members.update can clear profile photo and websites intentionally', async () => {
+        nextRows = [{ id: 'm-current', profile_photo: null, websites: [] }];
+        const res = await invoke(api, {
+            action: 'members.update',
+            payload: { profile: { websites: [], profilePhoto: null } },
+            headers: memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200);
+        const sqlText = calls[0].strings.join('?');
+        assert.ok(sqlText.includes('CASE WHEN'), 'intentional clear should be guarded by CASE WHEN');
+        assert.ok(calls[0].values.includes('[]'), 'empty website array must be bound for sync');
+        assert.ok(calls[0].values.includes(true), 'profilePhoto presence flag must be bound');
+        assert.ok(calls[0].values.includes('m-current'), 'member update must target the JWT subject');
+    });
+
+    await test('attendance.register is member-gated and derives member from JWT', async () => {
+        let res = await invoke(api, {
+            action: 'attendance.register',
+            payload: { memberId: 'spoofed-member', eventId: 'event-1', ticketType: 'dinner', paymentStatus: 'paid' }
+        });
+        assert.strictEqual(res.statusCode, 401);
+        assert.strictEqual(calls.length, 0);
+
+        nextRows = [{ id: 'attendance-1', member_id: 'm-current' }];
+        res = await invoke(api, {
+            action: 'attendance.register',
+            payload: { memberId: 'spoofed-member', eventId: 'event-1', ticketType: 'dinner', paymentStatus: 'paid' },
+            headers: memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200);
+        assert.ok(calls[0].values.includes('m-current'), 'attendance must use JWT member id');
+        assert.ok(!calls[0].values.includes('spoofed-member'), 'client-supplied member id must be ignored');
+    });
+
+    await test('bookings.create stores booking under the JWT member', async () => {
+        nextRows = [{ id: 'bkg-1', user_id: 'm-current' }];
+        const res = await invoke(api, {
+            action: 'bookings.create',
+            payload: { id: 'bkg-1', user_id: 'spoofed-member', user_email: 'spoof@example.com', event_id: 'event-1', ticket_type: 'dinner' },
+            headers: memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200);
+        assert.ok(calls[0].values.includes('m-current'), 'booking must use JWT member id');
+        assert.ok(calls[0].values.includes('me@x.co'), 'booking must use JWT email');
+        assert.ok(!calls[0].values.includes('spoofed-member'), 'client-supplied user_id must be ignored');
     });
 
     await test('applications.create binds every field as a parameter', async () => {
@@ -107,13 +165,26 @@ async function test(name, fn) {
 
     await test('bookings.stats aggregates ticket types in JS', async () => {
         nextRows = [{ ticket_type: 'dinner' }, { ticket_type: 'full' }, { ticket_type: 'dinner' }];
-        const res = await invoke(api, { action: 'bookings.stats', payload: { eventId: 'e1' } });
+        const res = await invoke(api, { action: 'bookings.stats', payload: { eventId: 'e1' }, headers: { 'x-admin-token': 'secret-token' } });
         assert.deepStrictEqual(JSON.parse(res.body).data, { dinner: 2, cruise: 1, total: 3 });
+    });
+
+    await test('payments.list returns every payment order for the logged-in member', async () => {
+        nextRows = [
+            { id:'paid-order', member_id:'m-current', status:'paid', ticket_count:1, event_name:'Paid event' },
+            { id:'pending-order', member_id:'m-current', status:'pending', ticket_count:1, event_name:'Pending event' }
+        ];
+        const res = await invoke(api, { action:'payments.list', payload:{}, headers:memberHeaders });
+        assert.strictEqual(res.statusCode, 200);
+        const data = JSON.parse(res.body).data;
+        assert.strictEqual(data.length, 2);
+        assert.deepStrictEqual(data.map(row=>row.status), ['paid', 'pending']);
+        assert.ok(calls[0].values.includes('m-current'));
     });
 
     await test('transactions.all clamps limit and binds it', async () => {
         nextRows = [];
-        await invoke(api, { action: 'transactions.all', payload: { limit: 999999 } });
+        await invoke(api, { action: 'transactions.all', payload: { limit: 999999 }, headers: { 'x-admin-token': 'secret-token' } });
         assert.deepStrictEqual(calls[0].values, [1000]); // clamped to max 1000
     });
 
@@ -134,12 +205,67 @@ async function test(name, fn) {
         assert.strictEqual(JSON.parse(res.body).data.length, 1);
     });
 
+    await test('attendance.adminCheckinList is admin-only and returns paid event tickets', async () => {
+        let res = await invoke(api, { action: 'attendance.adminCheckinList', payload: { eventId: 'event-1' } });
+        assert.strictEqual(res.statusCode, 401);
+        assert.strictEqual(calls.length, 0);
+
+        nextRows = [{ attendance_id: 'a1', seat_count: 2, meal_option: 'steak', guest_meal_option: 'vegan' }];
+        res = await invoke(api, {
+            action: 'attendance.adminCheckinList', payload: { eventId: 'event-1' },
+            headers: { 'x-admin-token': 'secret-token' }
+        });
+        assert.strictEqual(res.statusCode, 200);
+        assert.ok(calls[0].values.includes('event-1'));
+        const sqlText = calls[0].strings.join('?');
+        assert.ok(sqlText.includes("ea.payment_status = 'paid'"));
+        assert.strictEqual(JSON.parse(res.body).data[0].seat_count, 2);
+    });
+
+    await test('attendance.checkIn resolves an event ticket reference and is admin-only', async () => {
+        assert.ok(api._ADMIN_ACTIONS.has('attendance.checkIn'));
+        let res = await invoke(api, { action: 'attendance.checkIn', payload: { eventId: 'e1', reference: 'FVN:order-1' } });
+        assert.strictEqual(res.statusCode, 401);
+        nextRows = [{ attendance_id: 'a1', checked_in: true, booking_reference: 'order-1' }];
+        res = await invoke(api, { action: 'attendance.checkIn', payload: { eventId: 'e1', reference: 'FVN:order-1' }, headers: { 'x-admin-token': 'secret-token' } });
+        assert.strictEqual(res.statusCode, 200);
+        assert.ok(calls.at(-1).values.includes('order-1'));
+        assert.ok(calls.at(-1).strings.join('?').includes("ea.payment_status = 'paid'"));
+    });
+
     await test('events.create with wrong token -> 401', async () => {
         const res = await invoke(api, {
             action: 'events.create', payload: { slug: 's', name: 'n', date: '2026-01-01' },
             headers: { 'x-admin-token': 'nope' }
         });
         assert.strictEqual(res.statusCode, 401);
+    });
+
+    await test('events CRUD mutations are admin-gated and bind event values', async () => {
+        assert.ok(api._ADMIN_ACTIONS.has('events.create'));
+        assert.ok(api._ADMIN_ACTIONS.has('events.update'));
+        assert.ok(api._ADMIN_ACTIONS.has('events.delete'));
+        const adminHeaders = { 'x-admin-token': 'secret-token' };
+
+        nextRows = [{ id: 'event-1', slug: 'new-event' }];
+        let res = await invoke(api, { action: 'events.create', headers: adminHeaders, payload: {
+            slug: 'new-event', name: 'New Event', date: '2026-09-01', capacity: 25, price: 150
+        }});
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.ok(calls[0].values.includes('new-event'));
+
+        reset(); nextRows = [{ id: 'event-1', slug: 'updated-event' }];
+        res = await invoke(api, { action: 'events.update', headers: adminHeaders, payload: {
+            id: 'event-1', slug: 'updated-event', name: 'Updated Event', date: '2026-09-02', capacity: 30, price: 160
+        }});
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.ok(calls[0].values.includes('event-1'));
+        assert.ok(calls[0].values.includes('updated-event'));
+
+        reset(); nextRows = [{ applications: 0, attendance: 0, id: 'event-1' }];
+        res = await invoke(api, { action: 'events.delete', headers: adminHeaders, payload: { id: 'event-1' } });
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.strictEqual(calls.length, 2);
     });
 
     await test('event_photos.add is admin-gated', async () => {

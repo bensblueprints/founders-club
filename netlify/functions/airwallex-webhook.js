@@ -1,105 +1,61 @@
-// Airwallex webhook receiver — marks an application's seat as paid.
-// Configure this URL in the Airwallex dashboard (Webhooks) and set AIRWALLEX_WEBHOOK_SECRET.
-// On a successful payment event it sets payment_status='paid', paid_at=now — which the reminder
-// scheduler uses to skip the seat (no more reminders / expiry).
-//
-// Signature: Airwallex signs with HMAC-SHA256 over (timestamp + rawBody) using the webhook secret,
-// sent in the `x-signature` header with `x-timestamp`. Verification is enforced when the secret is set.
-
 const crypto = require('crypto');
-const { sql, isConfigured: dbConfigured } = require('./lib/neon');
+const { isConfigured } = require('./lib/neon');
+const { completePayment } = require('./lib/complete-payment');
+const { config: airwallexConfig } = require('./lib/airwallex');
 
-const PAID_EVENTS = new Set([
-    'payment_intent.succeeded',
-    'payment_link.paid',
-    'payment_attempt.authorized',
-    'payment_intent.captured'
-]);
+const PAID_EVENTS = new Set(['payment_intent.succeeded']);
 
-function verifySignature(rawBody, headers) {
-    const secret = process.env.AIRWALLEX_WEBHOOK_SECRET;
-    if (!secret) {
-        console.warn('[airwallex-webhook] AIRWALLEX_WEBHOOK_SECRET not set — skipping signature check.');
-        return true; // allow through so the flow works before the secret is configured
-    }
-    const sig = headers['x-signature'] || headers['X-Signature'];
-    const ts = headers['x-timestamp'] || headers['X-Timestamp'];
-    if (!sig || !ts) return false;
-    const expected = crypto.createHmac('sha256', secret).update(ts + rawBody).digest('hex');
-    try {
-        return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
-    } catch (e) {
-        return false;
-    }
+function verifySignature(rawBody, headers = {}) {
+    const secret = airwallexConfig().webhookSecret;
+    if (!secret) return false;
+    const signature = headers['x-signature'] || headers['X-Signature'] || '';
+    const timestamp = String(headers['x-timestamp'] || headers['X-Timestamp'] || '');
+    const timestampMs = Number(timestamp);
+    if (!timestampMs || Math.abs(Date.now() - timestampMs) > 5 * 60 * 1000) return false;
+    const expected = crypto.createHmac('sha256', secret).update(`${timestamp}${rawBody}`).digest('hex');
+    const left = Buffer.from(signature);
+    const right = Buffer.from(expected);
+    return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-// Try hard to find which application this payment belongs to.
-function extractApplicationId(obj) {
-    if (!obj) return null;
-    if (obj.metadata && obj.metadata.application_id) return obj.metadata.application_id;
-    // reference we set on the payment link was `app-<uuid>`
-    const ref = obj.reference || (obj.metadata && obj.metadata.reference);
-    if (ref && String(ref).startsWith('app-')) return String(ref).slice(4);
-    return null;
+function references(object = {}) {
+    const metadata = object.metadata || {};
+    const ref = String(object.reference || object.merchant_order_id || '');
+    const uuidReference = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ref) ? ref : null;
+    return {
+        orderId: metadata.payment_order_id || (ref.startsWith('order-') ? ref.slice(6) : uuidReference),
+        applicationId: metadata.application_id || (ref.startsWith('app-') ? ref.slice(4) : null)
+    };
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method not allowed' };
-    }
-
+    if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
     const rawBody = event.body || '';
-    if (!verifySignature(rawBody, event.headers || {})) {
-        return { statusCode: 401, body: 'Invalid signature' };
-    }
+    if (!verifySignature(rawBody, event.headers)) return { statusCode: 401, body: 'Invalid signature' };
+    if (!isConfigured()) return { statusCode: 503, body: 'Database not configured' };
 
     let payload;
-    try {
-        payload = JSON.parse(rawBody);
-    } catch (e) {
-        return { statusCode: 400, body: 'Invalid JSON' };
-    }
+    try { payload = JSON.parse(rawBody); } catch (_) { return { statusCode: 400, body: 'Invalid JSON' }; }
+    if (!PAID_EVENTS.has(payload.name || payload.type)) return { statusCode: 200, body: 'ignored' };
 
-    const eventName = payload.name || payload.type || '';
-    if (!PAID_EVENTS.has(eventName)) {
-        return { statusCode: 200, body: `ignored: ${eventName}` };
-    }
+    const object = payload.data?.object || payload.data || {};
+    const refs = references(object);
+    const result = await completePayment({
+        provider: 'airwallex',
+        providerEventId: payload.id || `${payload.name}:${object.id}`,
+        providerTransactionId: object.latest_successful_payment_intent_id || object.id,
+        orderId: refs.orderId,
+        applicationId: refs.applicationId,
+        airwallexLinkId: object.payment_link_id || object.payment_link?.id || null,
+        amount: object.amount,
+        currency: object.currency,
+        payload
+    });
 
-    const obj = (payload.data && (payload.data.object || payload.data)) || {};
-    const appId = extractApplicationId(obj);
-    const email = obj.metadata && obj.metadata.email;
-
-    if (!appId && !email) {
-        console.warn('[airwallex-webhook] could not resolve application from event', eventName);
-        return { statusCode: 200, body: 'no application match' };
-    }
-
-    if (!dbConfigured()) {
-        console.error('[airwallex-webhook] DATABASE_URL not set.');
-        return { statusCode: 200, body: 'not configured' };
-    }
-
-    const paidAt = new Date().toISOString();
-    let data;
-    try {
-        if (appId) {
-            data = await sql`
-                UPDATE applications
-                SET payment_status = 'paid', paid_at = ${paidAt}, status = 'approved'
-                WHERE id = ${appId}
-                RETURNING id`;
-        } else {
-            data = await sql`
-                UPDATE applications
-                SET payment_status = 'paid', paid_at = ${paidAt}, status = 'approved'
-                WHERE email = ${String(email).toLowerCase()}
-                RETURNING id`;
-        }
-    } catch (error) {
-        console.error('[airwallex-webhook] update error:', error);
-        return { statusCode: 500, body: 'update error' };
-    }
-
-    console.log(`[airwallex-webhook] marked paid: ${appId || email} (${(data || []).length} row(s))`);
+    if (!result.matched) return { statusCode: 200, body: 'no matching order' };
+    if (!result.paid) return { statusCode: 200, body: result.reason || 'not processed' };
+    if (!result.emailSent) return { statusCode: 500, body: 'payment saved; confirmation email retry required' };
     return { statusCode: 200, body: 'ok' };
 };
+
+exports._verifySignature = verifySignature;

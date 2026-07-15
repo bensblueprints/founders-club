@@ -45,20 +45,22 @@
             text-align: center;
         }
     </style>
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
     
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html#about">About</a>
-            <a href="index.html#events">Events</a>
-            <a href="members.html">Members</a>
-            <a href="index.html#apply" class="nav-cta">Apply Now</a>
+            <a href="/#about">About</a>
+            <a href="/#events">Events</a>
+            <a href="/members">Members</a>
+            <a href="/#apply" class="nav-cta">Apply Now</a>
         </div>
     </nav>
 
@@ -270,7 +272,7 @@
             await new Promise(r => setTimeout(r, 1000));
 
             if (await Auth.login(email, password)) {
-                window.location.href = 'members.html';
+                window.location.href = '/members';
             } else {
                 alert('Invalid email or password');
                 btn.disabled = false;
@@ -291,7 +293,7 @@
             await new Promise(r => setTimeout(r, 1500));
 
             if (await Auth.register(data)) {
-                window.location.href = 'profile.html?setup=true';
+                window.location.href = '/profile?setup=true';
             } else {
                 alert('Membership is by application only. Please apply to join — approved members receive login details by email.');
                 btn.disabled = false;
@@ -377,7 +379,7 @@
 
         // Redirect if already logged in
         if (Auth.isLoggedIn()) {
-            window.location.href = 'members.html';
+            window.location.href = '/members';
         }
     </script>
 </body>

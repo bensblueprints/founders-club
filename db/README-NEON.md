@@ -55,6 +55,11 @@ connection string in the `DATABASE_URL` environment variable.
    psql "$DATABASE_URL" -f db/neon-schema.sql
    ```
 
+   Existing databases must also apply the event-registration migration:
+   ```bash
+   psql "$DATABASE_URL" -f migrations/2026-07-13-event-registration-directory.sql
+   ```
+
 ### 5. Deploy
 
 Merge the `neon-migration` branch into `master`. Netlify auto-builds and the
@@ -64,9 +69,9 @@ functions pick up `DATABASE_URL`. The site is now live on Neon.
 
 ## Verifying it works
 
-- **With `DATABASE_URL` set:** applications submitted on the landing page persist in
-  the `applications` table; the admin panel (with the `ADMIN_TOKEN` entered) lists
-  them; accepting one writes `status='approved'` + a payment link.
+- **With `DATABASE_URL` set:** applications persist against a real `event_id`; the
+  admin panel lists them; acceptance creates the member login and event registration;
+  payment unlocks the same-event paid attendee directory.
 - **Without `DATABASE_URL`:** `db-api` returns HTTP 503 (`notConfigured`), and the
   browser (`database.js`) transparently falls back to `localStorage` — the UI still
   loads and works in a degraded/local mode, no uncaught errors.

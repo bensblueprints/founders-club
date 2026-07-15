@@ -16,19 +16,21 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <!-- jsPDF for PDF downloads -->
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
 
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="members.html">Members</a>
-            <a href="events.html">Events</a>
+            <a href="/">Home</a>
+            <a href="/members">Members</a>
+            <a href="/events">Events</a>
             <a href="#" class="nav-profile" id="navProfile">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
@@ -158,8 +160,8 @@
             </div>
 
             <div class="cta-buttons">
-                <a href="events.html" class="btn-secondary">View More Events</a>
-                <a href="members.html" class="btn-primary">Member Directory</a>
+                <a href="/events" class="btn-secondary">View More Events</a>
+                <a href="/members" class="btn-primary">Member Directory</a>
             </div>
         </div>
     </main>
@@ -178,22 +180,8 @@
         function initTicketPage() {
             // Check if logged in
             if (!Auth.isLoggedIn()) {
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
-            }
-
-            const user = Auth.getCurrentUser();
-            document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
-            document.getElementById('navProfile').href = 'profile.html';
-
-            // Show admin link for admin users
-            const adminRoles = ['owner', 'admin', 'organiser'];
-            if (adminRoles.includes(user.memberType)) {
-                const navLinks = document.querySelector('.nav-links');
-                const adminLink = document.createElement('a');
-                adminLink.href = 'admin.html';
-                adminLink.textContent = 'Admin';
-                navLinks.insertBefore(adminLink, document.getElementById('navProfile'));
             }
 
             // Get booking ID from URL
@@ -313,7 +301,7 @@
                     </svg>
                     <h2>${message}</h2>
                     <p>Please check your booking or try again.</p>
-                    <a href="events.html" class="btn-primary">View Events</a>
+                    <a href="/events" class="btn-primary">View Events</a>
                 </div>
             `;
         }

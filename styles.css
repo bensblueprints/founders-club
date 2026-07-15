@@ -133,11 +133,24 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 4rem;
+    height: 76px;
+    width: 100%;
+    padding: 0 max(28px, calc((100vw - 1320px) / 2 + 28px));
     background: rgba(6, 18, 13, 0.82);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(14px);
     transition: var(--transition-base);
+}
+
+.nav::before {
+    content: '';
+    position: fixed;
+    inset: 0 0 auto;
+    height: 76px;
+    z-index: -1;
+    background: rgba(6, 18, 13, 0.82);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(14px);
 }
 
 .nav-logo {
@@ -163,14 +176,14 @@ a {
 
 .nav-links {
     display: flex;
-    gap: 2.5rem;
+    gap: 30px;
     align-items: center;
 }
 
 .nav-links a {
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.92rem;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--color-text-muted);
     transition: var(--transition-fast);
     position: relative;
@@ -211,7 +224,7 @@ a {
     border-radius: var(--radius);
     font-family: var(--display);
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
+    padding: 10px 20px;
     transition: var(--transition-base);
 }
 
@@ -1848,7 +1861,7 @@ section {
 
 @media (max-width: 768px) {
     .nav {
-        padding: 1rem 2rem;
+        padding: 0 24px;
     }
     
     .nav-links {

@@ -129,19 +129,21 @@
             color: white;
         }
     </style>
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
     
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html#about">About</a>
-            <a href="index.html#events">Events</a>
-            <a href="members.html">Members</a>
+            <a href="/#about">About</a>
+            <a href="/#events">Events</a>
+            <a href="/members">Members</a>
             <a href="#" class="nav-profile" id="navProfile">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
@@ -351,7 +353,7 @@
                             <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <a href="members.html" class="cancel-btn">Cancel</a>
+                    <a href="/members" class="cancel-btn">Cancel</a>
                 </div>
             </form>
 
@@ -362,7 +364,7 @@
                     <!-- Populated by JS -->
                 </div>
                 <div class="quick-actions" style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
-                    <a href="events.html" class="submit-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <a href="/events" class="submit-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                             <line x1="16" y1="2" x2="16" y2="6"/>
@@ -371,7 +373,7 @@
                         </svg>
                         Book Events
                     </a>
-                    <a href="members.html" class="cancel-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <a href="/members" class="cancel-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                             <circle cx="9" cy="7" r="4"/>
@@ -430,14 +432,10 @@
     <script>
         // Check auth
         if (!Auth.isLoggedIn()) {
-            window.location.href = 'login.html';
+            window.location.href = '/login';
         }
 
         const user = Auth.getCurrentUser();
-
-        // Update nav avatar and link
-        document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
-        document.getElementById('navProfile').href = 'profile.html';
 
         // Update avatar preview
         document.getElementById('avatarInitials').textContent = user.firstName[0] + user.lastName[0];
@@ -650,7 +648,7 @@
                 }
 
                 setTimeout(() => {
-                    window.location.href = 'members.html';
+                    window.location.href = '/members';
                 }, 1500);
 
             } catch (error) {
@@ -707,10 +705,7 @@
                 removePhotoBtn.style.display = 'inline-block';
 
                 // Save to user profile
-                Auth.updateProfile({ profilePhoto: resizedImage });
-
-                // Update nav avatar too
-                document.getElementById('navAvatar').innerHTML = `<img src="${resizedImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                await Auth.updateProfile({ profilePhoto: resizedImage });
 
             } catch (error) {
                 console.error('Error processing image:', error);
@@ -718,7 +713,7 @@
             }
         });
 
-        removePhotoBtn.addEventListener('click', () => {
+        removePhotoBtn.addEventListener('click', async () => {
             avatarImage.src = '';
             avatarImage.style.display = 'none';
             avatarInitials.style.display = 'flex';
@@ -726,10 +721,7 @@
             photoInput.value = '';
 
             // Remove from profile
-            Auth.updateProfile({ profilePhoto: null });
-
-            // Reset nav avatar
-            document.getElementById('navAvatar').textContent = user.firstName[0] + user.lastName[0];
+            await Auth.updateProfile({ profilePhoto: null });
         });
 
         // Resize image to 400x400 pixels
@@ -817,7 +809,7 @@
                     <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(138, 154, 91, 0.1), transparent); border: 1px solid rgba(138, 154, 91, 0.3); border-radius: 8px;">
                         <p style="color: var(--moss); font-weight: 500; margin-bottom: 8px;">Upgrade to Platinum</p>
                         <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 12px;">Get VIP access and exclusive experiences at every event.</p>
-                        <a href="events.html" style="color: var(--moss); text-decoration: none; font-size: 0.9rem;">Book a Platinum event to upgrade →</a>
+                        <a href="/events" style="color: var(--moss); text-decoration: none; font-size: 0.9rem;">Book a Platinum event to upgrade →</a>
                     </div>
                 `;
             }
@@ -830,7 +822,7 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             Auth.logout();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         });
 
         // Invite Form Handler

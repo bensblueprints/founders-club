@@ -5,7 +5,7 @@
 // The browser NEVER talks to Postgres directly. Every DB operation goes through
 // the consolidated Netlify Function `/.netlify/functions/db-api`, which runs the
 // parameterized SQL against Neon. This file keeps the SAME public method names
-// and signatures the rest of the app (admin.js, auth.js, events.html, ...) uses,
+// and signatures the rest of the app (admin.js, auth.js, events, ...) uses,
 // so nothing else had to change.
 //
 // If db-api is unreachable / not configured (no DATABASE_URL), reads return

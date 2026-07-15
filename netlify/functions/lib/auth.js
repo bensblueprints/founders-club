@@ -222,7 +222,9 @@ function publicUser(row) {
         member_type: memberType,
         is_admin: row.is_admin === true,
         mustResetPassword: row.must_reset_password === true,
-        must_reset_password: row.must_reset_password === true
+        must_reset_password: row.must_reset_password === true,
+        accountStatus: row.account_status || 'active',
+        account_status: row.account_status || 'active'
     };
 }
 

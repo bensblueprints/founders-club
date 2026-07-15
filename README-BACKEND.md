@@ -1,7 +1,9 @@
 # FoundersVN — Application → Payment Backend
 
-End-to-end flow: apply → organiser notified → admin accepts → applicant gets a $150
-Airwallex payment link → day 2/5 reminders → day 7 expire (seat released) → webhook marks paid.
+End-to-end flow: apply for a specific event → organiser reviews → admin accepts →
+member account + temporary credentials are created → seats are held for 48 hours →
+the applicant chooses Airwallex card (+5%) or fee-free SePay QR → a verified webhook
+marks the registration paid → meal selection and the paid attendee directory unlock.
 
 ## What was built
 
@@ -16,14 +18,19 @@ Airwallex payment link → day 2/5 reminders → day 7 expire (seat released) �
 | Admin/sample account seeder | `db/seed-admins.js` |
 | Auth go-live guide | `db/README-AUTH.md` |
 | Apply-form endpoint | `netlify/functions/submit-application.js` |
-| Admin accept + payment link | `netlify/functions/accept-application.js` |
-| Daily reminder / expiry scheduler | `netlify/functions/payment-reminders.js` |
-| Payment webhook (mark paid) | `netlify/functions/airwallex-webhook.js` |
+| Admin approval + atomic capacity reservation | `netlify/functions/accept-application.js` |
+| 24-hour reminder / 48-hour expiry scheduler | `netlify/functions/payment-reminders.js` |
+| Airwallex webhook | `netlify/functions/airwallex-webhook.js` |
+| SePay HMAC webhook | `netlify/functions/sepay-webhook.js` |
+| Shared idempotent payment completion | `netlify/functions/lib/complete-payment.js` |
+| AES-256-GCM field encryption | `netlify/functions/lib/field-crypto.js` |
 | Shared Airwallex helper | `netlify/functions/lib/airwallex.js` |
 | Shared Neon Postgres client | `netlify/functions/lib/neon.js` |
 | Shared Resend email helper + templates | `netlify/functions/lib/emailer.js` |
 | Pure reminder day-math (unit-tested) | `netlify/functions/lib/reminders.js` |
 | Neon schema (run once) | `db/neon-schema.sql` |
+| Event-registration migration | `migrations/2026-07-13-event-registration-directory.sql` |
+| Reservation/payment migration | `migrations/2026-07-14-reservation-payments.sql` |
 | Neon setup / go-live guide | `db/README-NEON.md` |
 
 **Data layer: Neon Postgres, server-side only.** The browser never touches the
@@ -31,17 +38,59 @@ database. `database.js` calls the consolidated `/.netlify/functions/db-api`
 function, which runs parameterized SQL against Neon (`DATABASE_URL`). Supabase has
 been fully removed (no `@supabase/supabase-js`, no anon key in the browser).
 
-The apply form in **`index.html`** and **`landing.html`** POSTs to
-`/.netlify/functions/submit-application` (via `CONFIG.FORM_ENDPOINT`).
+The Next.js landing form POSTs to `/api/function/submit-application`.
 
-The admin panel (`admin.js`) loads applications via `db-api` (`applications.list`,
-admin-token gated) and shows an **"Accept & send payment email"** button on pending ones.
+The admin page loads applications via `db-api` (`applications.list`, admin-JWT gated)
+and exposes **"Approve & hold 48h"** for pending applications.
 
 ## 1. Create the Neon DB + run the schema (once)
 
 See **`db/README-NEON.md`** for the full walkthrough: create a Neon project, copy the
 pooled connection string into `DATABASE_URL`, then paste and run `db/neon-schema.sql`
 in the Neon SQL editor. It's idempotent (`IF NOT EXISTS`).
+
+For an existing database, run both migrations in order. The first links applications
+to `events.id`, permits one application per email per event, and extends
+`event_attendance`; the second adds payment orders, dual-provider references,
+seat quantities, account locks, audit events, and meal selections. `npm run db:migrate`
+applies them idempotently.
+
+## Local database development
+
+Development uses local Postgres; deployed functions continue to use Neon:
+
+```bash
+npm run stack:dev
+```
+
+`stack:dev` loads `.env.local`, starts Docker Postgres, applies the schema and
+migrations, seeds the admin/sample accounts, then starts Next.js. The local
+admin account is:
+
+```txt
+admin@advancedmarketing.co
+LocalAdmin123!
+```
+
+For automated verification, run the full local test stack:
+
+```bash
+npm run stack:test
+```
+
+Useful stack commands:
+
+| Command | What it does |
+|---|---|
+| `npm run stack:setup` | Start Postgres, migrate, and seed from `.env.local`. |
+| `npm run stack:dev` | Setup plus Next.js on `http://localhost:3000`. |
+| `npm run stack:test` | Setup from `.env.test`, then unit + integration tests. |
+| `npm run stack:integration` | Setup from `.env.test`, then only the DB flow test. |
+| `npm run stack:down` | Stop the Docker Postgres stack. |
+
+The DB adapter selects `pg` for localhost and the Neon serverless driver for the
+deployed Neon URL. Local development uses provider sandboxes; only `.env.test`
+uses mock settlement.
 
 ## 2. Set these environment variables in Netlify
 
@@ -51,14 +100,24 @@ Site → Settings → Environment variables:
 |---|---|---|
 | `DATABASE_URL` | **all DB access** | Neon → your project → Connection string (use the **pooled** `-pooler` string). This is the only DB credential now. |
 | `RESEND_API_KEY` | sending email | From resend.com. Without it, emails are logged, not sent (flow still works). |
-| `FROM_EMAIL` | sending email | e.g. `Founders Vietnam <noreply@foundersvn.com>` (verified domain). |
+| `RESEND_WEBHOOK_SECRET` | delivery tracking | Signing secret for the Resend webhook endpoint `/api/function/resend-webhook`. |
+| `RESEND_WEBHOOK_URL` | local webhook testing | Set automatically by `npm run stack:dev:public`; paste this URL into the Resend dashboard while the tunnel is running. |
+| `FROM_EMAIL` | sending email | e.g. `Founders Vietnam <support@foundersvn.com>` (verified domain). |
 | `NOTIFY_EMAILS` | new-application alerts | Comma-separated. Defaults to `ben@advancedmarketing.co`. |
 | `SESSION_SECRET` | **login / all sessions** | **REQUIRED for auth.** Any long random secret (e.g. `openssl rand -hex 32`). Signs the HS256 session JWTs. If unset, `auth-login` returns 500. |
 | `ADMIN_TOKEN` | accept endpoint / db-api admin (fallback) | Any long random secret. Still accepted via the `x-admin-token` header for backward compat / server-to-server, but admins now authorize automatically with their JWT. |
-| `AIRWALLEX_API_KEY` | payment links | From Airwallex. Without it, a MOCK link is returned. |
-| `AIRWALLEX_CLIENT_ID` | payment links | From Airwallex. |
-| `AIRWALLEX_ENV` | payment links | `production` for live; anything else uses the demo API. |
-| `AIRWALLEX_WEBHOOK_SECRET` | webhook verification | From Airwallex webhook config. If unset, signature check is skipped (still functions). |
+| `PAYMENTS_ENV` | all payments | `sandbox` locally, `production` when live, `mock` only in automated tests. |
+| `PAYMENT_PROVIDERS` | payment method availability | Comma-separated `airwallex,sepay`, or `sepay` while Airwallex is unavailable. Disabled providers are not called or displayed. |
+| `AIRWALLEX_API_KEY` | payment links | API key from the current Airwallex sandbox or production account. |
+| `AIRWALLEX_CLIENT_ID` | payment links | Required by Airwallex alongside the API key. |
+| `AIRWALLEX_WEBHOOK_SECRET` | webhook verification | Secret from the webhook configuration; signature is HMAC-SHA256 over `x-timestamp + raw_body`. |
+| `AIRWALLEX_WEBHOOK_URL` | local webhook testing | Set automatically by `npm run stack:dev:public`; paste this URL into the Airwallex dashboard while the tunnel is running. |
+| `DATA_ENCRYPTION_KEY` | sensitive fields | Required in production. Generate with `openssl rand -base64 32`; Airwallex URLs are AES-256-GCM encrypted at the application layer. |
+| `SEPAY_BANK` | SePay QR | Current sandbox or production bank short code. |
+| `SEPAY_ACCOUNT_NUMBER` | SePay QR/webhook | Receiving account; incoming webhooks must match it. |
+| `SEPAY_USD_TO_VND_RATE` | SePay pricing | Fixed rate captured when the reservation is approved. Default `26000`; set this deliberately in production. |
+| `SEPAY_WEBHOOK_SECRET` | SePay webhook | SePay HMAC uses `timestamp.raw_body` and rejects timestamps older than five minutes. |
+| `SEPAY_WEBHOOK_URL` | local webhook testing | Set automatically by `npm run stack:dev:public`; paste this URL into the SePay dashboard while the tunnel is running. |
 | `URL` | links in emails | Netlify sets this automatically to the site URL. |
 
 ## 3. Configure the Airwallex webhook
@@ -66,12 +125,39 @@ Site → Settings → Environment variables:
 In the Airwallex dashboard add a webhook pointing to:
 
 ```
-https://foundersvn.com/.netlify/functions/airwallex-webhook
+https://foundersvn.com/api/function/airwallex-webhook
 ```
 
-Subscribe to payment success events (`payment_intent.succeeded` / `payment_link.paid`).
+Subscribe to `payment_intent.succeeded`.
 Copy the signing secret into `AIRWALLEX_WEBHOOK_SECRET`. When a seat is paid the webhook
-sets `payment_status='paid'`, `paid_at=now`, and the reminder scheduler then skips it.
+atomically marks the application and its `event_attendance` row paid. Only members
+with a paid registration can browse other paid attendees of the same event.
+
+## 4. Configure the Resend webhook
+
+In the Resend dashboard add a webhook pointing to:
+
+```
+https://foundersvn.com/api/function/resend-webhook
+```
+
+For local testing, run `npm run stack:dev:public` and use the printed
+`Resend webhook` URL instead. Subscribe to delivery status events such as
+`email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`,
+`email.failed`, and `email.complained`; `email.opened` and `email.clicked` are
+also supported for the admin email tracker. Copy the Resend signing secret into
+`RESEND_WEBHOOK_SECRET`.
+
+Configure SePay to POST incoming transactions to:
+
+```
+https://foundersvn.com/api/function/sepay-webhook
+```
+
+Choose HMAC-SHA256 authentication, copy the same secret to `SEPAY_WEBHOOK_SECRET`,
+and configure the `FVN` payment-code prefix. The handler validates signature,
+five-minute replay window, account number, incoming direction, exact VND amount,
+payment code, and SePay transaction ID deduplication.
 
 ## Auth model (important) — server-verified login
 
@@ -119,15 +205,15 @@ email, and prints the plaintext passwords ONCE (never the bcrypt hash). See
 
 ## Reminder schedule
 
-`payment-reminders.js` runs daily at **14:00 UTC** (`exports.config.schedule = "0 14 * * *"`).
-Each run, for every `approved` + unpaid application:
+`payment-reminders.js` runs every 15 minutes. For each pending payment order:
 
-- **Day 2** and **Day 5** after `accepted_at` → send a reminder (once each).
-- **Day 7+** → send "seat released" email, set `status='expired'`, `payment_status='expired'`.
+- **24 hours** after approval → send one payment reminder.
+- **48 hours** after approval → deactivate the Airwallex link, expire the order,
+  lock a newly-created unpaid account, release all reserved seats, and send the expiry email.
 
-Dedup is tracked in the `reminders_sent` INT[] column (holds the day-numbers already
-actioned), so no email double-fires even if a run is missed. `payment_status='paid'`
-rows are skipped entirely.
+Paid orders are skipped. Provider event IDs are unique in `payment_events`, so
+webhook retries are idempotent. SePay QR transfers cannot be revoked at the bank;
+after expiry the server refuses to apply them to an expired reservation.
 
 ## Local logic tests
 

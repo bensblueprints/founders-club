@@ -13,7 +13,7 @@
 //   fvn_user     -> cached public user object (no hash) for synchronous reads
 //
 // The SAME method names the pages already call are preserved:
-//   Auth.login(email,password)  (login.html)         -> boolean
+//   Auth.login(email,password)  (login)         -> boolean
 //   Auth.signIn(email,password)                       -> { error }
 //   Auth.getCurrentUser()  / getCurrentUserSync()     -> user | null   (sync)
 //   Auth.isLoggedIn() / isLoggedInSync()              -> boolean       (sync)
@@ -101,11 +101,19 @@ const Auth = {
     _storeSession(token, user) {
         localStorage.setItem(this.SESSION_KEY, token);
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        this._emitSessionChange();
     },
 
     _clearSession() {
         localStorage.removeItem(this.SESSION_KEY);
         localStorage.removeItem(this.USER_KEY);
+        this._emitSessionChange();
+    },
+
+    _emitSessionChange() {
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new Event('fvn:session-changed'));
+        }
     },
 
     // ---- login / logout -----------------------------------------------------
@@ -129,7 +137,7 @@ const Auth = {
         }
     },
 
-    // Boolean-returning wrapper kept for login.html.
+    // Boolean-returning wrapper kept for login.
     async login(email, password) {
         const { error } = await this.signIn(email, password);
         return !error;
@@ -161,7 +169,10 @@ const Auth = {
             });
             if (!res.ok) { this._clearSession(); return null; }
             const body = await res.json();
-            if (body.user) localStorage.setItem(this.USER_KEY, JSON.stringify(body.user));
+            if (body.user) {
+                localStorage.setItem(this.USER_KEY, JSON.stringify(body.user));
+                this._emitSessionChange();
+            }
             return body.user || null;
         } catch (_e) {
             // Network hiccup — keep the local session rather than logging out.
@@ -170,7 +181,7 @@ const Auth = {
     },
 
     // Registration is by APPLICATION (server-side, with a hashed password), not
-    // self-serve here. Kept so login.html doesn't throw.
+    // self-serve here. Kept so login doesn't throw.
     async register() {
         return false;
     },
@@ -178,11 +189,11 @@ const Auth = {
     // ---- members ------------------------------------------------------------
     //
     // These are kept SYNCHRONOUS (many callers use them without await, e.g.
-    // events.html / events-data.js / past-events.js / admin.js). There is no
+    // events / events-data.js / past-events.js / admin.js). There is no
     // client-side member cache anymore, so they return empty. Pages that need
     // the real member list load it asynchronously straight from Neon via
     // `Database.getMembers()` / `Database.getMemberById()` (see members.js,
-    // messages.html). Provided as a safe no-op to avoid breaking sync callers.
+    // messages). Provided as a safe no-op to avoid breaking sync callers.
     getMembers() {
         return [];
     },
@@ -210,6 +221,7 @@ const Auth = {
                 // Refresh the cached user with the new fields.
                 const merged = { ...user, ...data };
                 localStorage.setItem(this.USER_KEY, JSON.stringify(merged));
+                this._emitSessionChange();
                 return true;
             }
             return false;

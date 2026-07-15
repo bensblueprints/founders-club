@@ -318,24 +318,26 @@
             text-decoration: underline;
         }
     </style>
+    <link rel="stylesheet" href="/site-nav.css">
+    <script src="/site-nav.js" defer></script>
 </head>
 <body>
     <div class="noise"></div>
 
     <!-- Navigation -->
     <nav class="nav">
-        <a href="index.html" class="nav-logo">
+        <a href="/" class="nav-logo">
             <img class="brand-logo" src="assets/brand/founders-vn-logo.svg" alt="FoundersVN">
         </a>
         <div class="nav-links">
-            <a href="index.html#about">About</a>
-            <a href="events.html">Events</a>
-            <a href="members.html">Members</a>
-            <a href="messages.html" class="active">Messages</a>
+            <a href="/#about">About</a>
+            <a href="/events">Events</a>
+            <a href="/members">Members</a>
+            <a href="/messages" class="active">Messages</a>
             <a href="#" class="nav-profile" id="navProfile" style="display: none;">
                 <span class="profile-avatar" id="navAvatar">JD</span>
             </a>
-            <a href="login.html" class="nav-cta" id="navLogin">Login</a>
+            <a href="/login" class="nav-cta" id="navLogin">Login</a>
         </div>
     </nav>
 
@@ -411,18 +413,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Check authentication
             if (!Auth.isLoggedIn()) {
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
             }
 
-            // Update nav
             const user = Auth.getCurrentUser();
-            if (user) {
-                document.getElementById('navLogin').style.display = 'none';
-                document.getElementById('navProfile').style.display = 'flex';
-                document.getElementById('navAvatar').textContent = initials(user.firstName, user.lastName);
-                document.getElementById('navProfile').href = 'profile.html';
-            }
 
             // Load conversations
             loadConversations();
@@ -446,7 +441,7 @@
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                         <p>No messages yet</p>
-                        <p style="margin-top: 8px;"><a href="members.html">Browse members</a> and start a conversation</p>
+                        <p style="margin-top: 8px;"><a href="/members">Browse members</a> and start a conversation</p>
                     </div>
                 `;
                 return;
