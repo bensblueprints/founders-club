@@ -3,3 +3,11 @@
   publish = ".next"
 
 # Next.js routes are deployed through the official Netlify Next runtime.
+# Keep this explicit so Git deploys do not fall back to serving raw `.next`
+# assets after the migration from the static HTML site to Next.js.
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
