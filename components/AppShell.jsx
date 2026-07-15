@@ -7,6 +7,7 @@ import { CalendarDays, LogOut, Menu, ShieldCheck, Ticket, UserRound, X } from 'l
 import Logo from './Logo';
 import { useAuth } from './AuthProvider';
 import { initials } from '@/lib/api';
+import { useLanguage } from './LanguageProvider';
 
 const memberLinks = [
     ['Events', '/events'],
@@ -19,6 +20,7 @@ export default function AppShell({ children }) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, logout } = useAuth();
+    const { language, setLanguage } = useLanguage();
     const [open, setOpen] = useState(false);
     const [aboutOpen, setAboutOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -62,6 +64,25 @@ export default function AppShell({ children }) {
     const visibleMemberLinks = mustResetPassword ? [['Security', '/change-password']] : paymentPending ? [['Payment', '/payment'], ['Profile', '/profile']] : memberLinks;
     const hashPrefix = isLanding ? '' : '/';
     const applyHref = isLanding ? '#apply' : '/#apply';
+    const navCopy = language === 'vi' ? {
+        how: 'Trải nghiệm',
+        about: 'Về FoundersVN',
+        events: 'Sự kiện FoundersVN',
+        team: 'Đội ngũ tổ chức',
+        faq: 'FAQ',
+        members: 'Thành viên',
+        login: 'Đăng nhập',
+        apply: 'Tôi muốn tham gia'
+    } : {
+        how: 'How it works',
+        about: 'About',
+        events: 'FoundersVN events',
+        team: 'The team behind',
+        faq: 'FAQ',
+        members: 'Members',
+        login: 'Login',
+        apply: 'Apply'
+    };
 
     return (
         <div className={`app-shell ${isLegacyMarketingPage ? 'legacy-marketing-shell' : ''} ${isMemberArea ? 'member-legacy-shell' : ''}`}>
@@ -70,19 +91,19 @@ export default function AppShell({ children }) {
                     <Logo />
                     {!user ? <div className="landing-nav-cluster">
                         <nav className="desktop-nav landing-public-nav" aria-label="Landing navigation">
-                            <Link href={`${hashPrefix}#how`}>How it works</Link>
+                            <Link href={`${hashPrefix}#how`}>{navCopy.how}</Link>
                             <div className="landing-drop">
-                                <button type="button" className="landing-drop-trigger" aria-expanded={aboutOpen} onClick={() => setAboutOpen(value => !value)}>About</button>
+                                <button type="button" className="landing-drop-trigger" aria-expanded={aboutOpen} onClick={() => setAboutOpen(value => !value)}>{navCopy.about}</button>
                                 <div className={`landing-drop-menu ${aboutOpen ? 'open' : ''}`}>
-                                    <Link href="/foundersvn-events">FoundersVN events</Link>
-                                    <Link href="/team-behind">The team behind</Link>
+                                    <Link href="/foundersvn-events">{navCopy.events}</Link>
+                                    <Link href="/team-behind">{navCopy.team}</Link>
                                 </div>
                             </div>
-                            <Link href={`${hashPrefix}#faq`}>FAQ</Link>
-                            <Link href="/login">Members</Link>
+                            <Link href={`${hashPrefix}#faq`}>{navCopy.faq}</Link>
+                            <Link href="/login">{navCopy.members}</Link>
                         </nav>
                         <div className="landing-lang" role="group" aria-label="Language">
-                            <button type="button" aria-pressed="false">VI</button><span>/</span><button type="button" aria-pressed="true">EN</button>
+                            <button type="button" aria-pressed={language === 'vi'} onClick={() => setLanguage('vi')}>VI</button><span>/</span><button type="button" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
                         </div>
                     </div> : <nav className="desktop-nav" aria-label="Main navigation">
                         {visibleMemberLinks.map(([label, href]) => <Link key={href} className={pathname.startsWith(href) ? 'active' : ''} href={href}>{label}</Link>)}
@@ -104,13 +125,16 @@ export default function AppShell({ children }) {
                                 <button role="menuitem" type="button" onClick={signOut}><LogOut size={16} /> Sign out</button>
                             </div>}
                         </div> : null}
-                        {!user && <Link className="button ghost small login-nav-button" href="/login">Login</Link>}
-                        <Link className="button primary small" href={user ? (mustResetPassword ? '/change-password' : paymentPending ? '/payment' : '/events') : applyHref}>{user ? <CalendarDays size={17} /> : null} {user ? (mustResetPassword ? 'Set password' : paymentPending ? 'Pay now' : 'Register') : 'Apply'}{!user ? <span className="arr">→</span> : null}</Link>
+                        {!user && <Link className="button ghost small login-nav-button" href="/login">{navCopy.login}</Link>}
+                        <Link className="button primary small" href={user ? (mustResetPassword ? '/change-password' : paymentPending ? '/payment' : '/events') : applyHref}>{user ? <CalendarDays size={17} /> : null} {user ? (mustResetPassword ? 'Set password' : paymentPending ? 'Pay now' : 'Register') : navCopy.apply}{!user ? <span className="arr">→</span> : null}</Link>
                         <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X /> : <Menu />}</button>
                     </div>
                 </div>
                 {open && <div className="mobile-nav">
-                    {(!user ? [['How it works', `${hashPrefix}#how`], ['About', '/foundersvn-events'], ['FoundersVN events', '/foundersvn-events'], ['The team behind', '/team-behind'], ['FAQ', `${hashPrefix}#faq`], ['Members', '/login'], ['Login', '/login']] : visibleMemberLinks).map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+                    {(!user ? [[navCopy.how, `${hashPrefix}#how`], [navCopy.about, '/foundersvn-events'], [navCopy.events, '/foundersvn-events'], [navCopy.team, '/team-behind'], [navCopy.faq, `${hashPrefix}#faq`], [navCopy.members, '/login'], [navCopy.login, '/login']] : visibleMemberLinks).map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+                    {!user && <div className="landing-lang mobile-lang" role="group" aria-label="Language">
+                        <button type="button" aria-pressed={language === 'vi'} onClick={() => setLanguage('vi')}>VI</button><span>/</span><button type="button" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
+                    </div>}
                     {user ? <>
                         <Link href="/profile"><UserRound size={18} /> Profile</Link>
                         {user.is_admin && <Link href="/admin"><ShieldCheck size={18} /> Admin</Link>}

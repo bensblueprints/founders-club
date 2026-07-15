@@ -5,9 +5,14 @@ const { paymentEnvironment, isMockPayments } = require('./payment-environment');
 
 function config() {
     const environment = paymentEnvironment();
+    const legacyEnvValue = String(process.env.AIRWALLEX_ENV || '').trim();
+    const legacyEnvLooksLikeApiKey = legacyEnvValue && !['sandbox', 'demo', 'production', 'prod'].includes(legacyEnvValue.toLowerCase());
     return {
         environment,
-        apiKey: process.env.AIRWALLEX_API_KEY || '',
+        // Backward compatibility: the Netlify project previously stored the
+        // live Airwallex production API key in AIRWALLEX_ENV. Prefer it only
+        // when it is clearly not an environment label.
+        apiKey: legacyEnvLooksLikeApiKey ? legacyEnvValue : (process.env.AIRWALLEX_API_KEY || ''),
         clientId: process.env.AIRWALLEX_CLIENT_ID || '',
         webhookSecret: process.env.AIRWALLEX_WEBHOOK_SECRET || '',
         baseUrl: environment === 'production'

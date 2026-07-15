@@ -3,6 +3,7 @@ import './globals.css';
 import './landing-original.css';
 import { AuthProvider } from '@/components/AuthProvider';
 import AppShell from '@/components/AppShell';
+import { LanguageProvider } from '@/components/LanguageProvider';
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-body' });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['500', '600', '700', '800'], variable: '--font-display' });
@@ -19,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${plusJakarta.variable}`}>
-            <body><AuthProvider><AppShell>{children}</AppShell></AuthProvider></body>
+            <body><AuthProvider><LanguageProvider><AppShell>{children}</AppShell></LanguageProvider></AuthProvider></body>
         </html>
     );
 }

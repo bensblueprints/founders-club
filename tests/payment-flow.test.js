@@ -87,6 +87,18 @@ test('PAYMENTS_ENV switches Airwallex between sandbox and production hosts', () 
     process.env.PAYMENTS_ENV = 'mock';
 });
 
+test('Airwallex accepts legacy AIRWALLEX_ENV value as API key', () => {
+    const previousApiKey = process.env.AIRWALLEX_API_KEY;
+    const previousLegacy = process.env.AIRWALLEX_ENV;
+    process.env.AIRWALLEX_API_KEY = '';
+    process.env.AIRWALLEX_ENV = 'prod-live-api-key-from-netlify';
+    assert.strictEqual(airwallexConfig().apiKey, 'prod-live-api-key-from-netlify');
+    process.env.AIRWALLEX_ENV = 'production';
+    assert.strictEqual(airwallexConfig().apiKey, '');
+    process.env.AIRWALLEX_API_KEY = previousApiKey;
+    process.env.AIRWALLEX_ENV = previousLegacy;
+});
+
 test('Airwallex capability check does not reject Vietnamese accounts locally', () => {
     const source = fs.readFileSync(require.resolve('../netlify/functions/lib/airwallex'), 'utf8');
     assert.ok(!source.includes("country === 'VN'"));
