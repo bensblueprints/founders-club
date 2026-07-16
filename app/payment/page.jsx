@@ -84,6 +84,8 @@ function PaymentContent() {
 
     const paid = order.status === 'paid';
     const unavailable = ['expired', 'cancelled'].includes(order.status) || remaining === 0;
+    const supportMessage = encodeURIComponent(`Hi Matthew, I need help completing payment for my FoundersVN reservation. Order: ${order.id}`);
+    const supportUrl = `https://wa.me/4915754444113?text=${supportMessage}`;
 
     return <><section className="page-hero payment-hero"><div className="container"><span className="eyebrow">{order.providerEnvironment === 'sandbox' ? 'Sandbox · no real charge' : 'Seat reservation'}</span><h1 className="display medium">{paid ? 'Payment confirmed.' : unavailable ? 'Reservation expired.' : 'Complete your payment.'}</h1><p className="lead">{order.event.name} · {formatDate(order.event.date)} · {order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</p></div></section>
         <section className="section compact"><div className="container payment-page-grid">
@@ -106,6 +108,10 @@ function PaymentContent() {
                     {order.sepayQrUrl ? <img className="sepay-qr" src={order.sepayQrUrl} alt={`SePay QR for ${formatVnd(order.sepayAmountVnd)}`} /> : null}
                     <div className="sepay-details"><div><span>Amount</span><b>{formatVnd(order.sepayAmountVnd)}</b><button onClick={() => copy(order.sepayAmountVnd, 'amount')} aria-label="Copy amount"><Copy size={14}/></button></div><div><span>Bank</span><b>{order.sepayBank || '—'}</b></div><div><span>Account</span><b>{order.sepayAccount || '—'}</b><button onClick={() => copy(order.sepayAccount, 'account')} aria-label="Copy account"><Copy size={14}/></button></div>{order.sepayAccountName && <div><span>Name</span><b>{order.sepayAccountName}</b></div>}<div><span>Transfer content</span><b>{order.sepayCode}</b><button onClick={() => copy(order.sepayCode, 'code')} aria-label="Copy transfer content"><Copy size={14}/></button></div></div>
                     {copied && <div className="copy-toast">Copied {copied}</div>}
+                </article>
+                <article className="panel payment-support-card">
+                    <div><span className="eyebrow">Support</span><h2>Having Trouble with Payment?</h2><p className="muted">Message Matthew on WhatsApp and we’ll help you complete the reservation.</p></div>
+                    <a className="button ghost wide" href={supportUrl} target="_blank" rel="noopener noreferrer">Request Payment Support Here</a>
                 </article>
             </div>}
         </div></section></>;
