@@ -180,7 +180,12 @@ async function seedApplications() {
                    ${app.language || 'English'}, e.name, ${app.ticketCount || 1},
                    ${app.guestName || null}, 'pending'
             FROM events e WHERE e.slug = ${app.eventSlug}
-            ON CONFLICT (event_id, LOWER(email)) DO NOTHING
+              AND NOT EXISTS (
+                  SELECT 1 FROM applications existing
+                  WHERE existing.event_id = e.id
+                    AND LOWER(existing.email) = LOWER(${app.email})
+                    AND existing.status IN ('pending', 'approved')
+              )
             RETURNING id`;
         seeded += rows.length;
     }
