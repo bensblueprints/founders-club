@@ -94,24 +94,26 @@ function PaymentContent() {
                 {paid ? <><CheckCircle2 className="payment-state-icon" size={44}/><h2>Your seat{order.ticketCount === 2 ? 's are' : ' is'} confirmed</h2><p className="muted">Paid with {order.paidProvider === 'sepay' ? 'SePay bank transfer' : 'Airwallex card'}.</p><Link className="button primary" href="/meal">Choose meal option</Link><Link className="button ghost" href="/members">Browse attendees</Link></> : unavailable ? <><Clock3 className="payment-state-icon expired" size={44}/><h2>The 48-hour window ended</h2><p className="muted">The payment options are disabled and the seat reservation has been released.</p></> : <><div className="payment-countdown"><Clock3 size={18}/><span>Time remaining</span><strong>{countdown}</strong></div><p className="muted">We sent a reminder after 24 hours. The reservation releases automatically when this timer reaches zero.</p><button className="button ghost small" onClick={() => load()}><RefreshCw size={15}/> Refresh status</button></>}
             </aside>
 
-            {!paid && !unavailable && <div className="payment-methods">
-                <article className="panel payment-method-card">
-                    <div className="payment-method-heading"><CreditCard size={24}/><div><span className="eyebrow">International</span><h2>Pay by card</h2></div></div>
-                    <div className="payment-breakdown"><div><span>Ticket total</span><b>${order.baseAmountUsd.toFixed(2)} USD</b></div><div><span>Airwallex platform fee · 5%</span><b>${order.airwallexFeeUsd.toFixed(2)} USD</b></div><div className="total"><span>Total</span><strong>${order.airwallexTotalUsd.toFixed(2)} USD</strong></div></div>
-                    {cardError && <p className="form-status error">{cardError}</p>}
-                    <button className="button primary wide" onClick={startAirwallex} disabled={cardLoading}>{cardLoading ? 'Opening secure checkout…' : 'Continue to Airwallex'}</button>
-                </article>
+            {!paid && !unavailable && <div className="payment-options-stack">
+                <div className="payment-methods">
+                    <article className="panel payment-method-card">
+                        <div className="payment-method-heading"><CreditCard size={24}/><div><span className="eyebrow">International</span><h2>Pay by card</h2></div></div>
+                        <div className="payment-breakdown"><div><span>Ticket total</span><b>${order.baseAmountUsd.toFixed(2)} USD</b></div><div><span>Airwallex platform fee · 5%</span><b>${order.airwallexFeeUsd.toFixed(2)} USD</b></div><div className="total"><span>Total</span><strong>${order.airwallexTotalUsd.toFixed(2)} USD</strong></div></div>
+                        {cardError && <p className="form-status error">{cardError}</p>}
+                        <button className="button primary wide" onClick={startAirwallex} disabled={cardLoading}>{cardLoading ? 'Opening secure checkout…' : 'Continue to Airwallex'}</button>
+                    </article>
 
-                <article className="panel payment-method-card sepay-card">
-                    <div className="payment-method-heading"><QrCode size={24}/><div><span className="eyebrow">Vietnam</span><h2>SePay QR transfer</h2></div></div>
-                    <p className="muted">No platform fee. Transfer the exact amount with the exact payment code.</p>
-                    {order.sepayQrUrl ? <img className="sepay-qr" src={order.sepayQrUrl} alt={`SePay QR for ${formatVnd(order.sepayAmountVnd)}`} /> : null}
-                    <div className="sepay-details"><div><span>Amount</span><b>{formatVnd(order.sepayAmountVnd)}</b><button onClick={() => copy(order.sepayAmountVnd, 'amount')} aria-label="Copy amount"><Copy size={14}/></button></div><div><span>Bank</span><b>{order.sepayBank || '—'}</b></div><div><span>Account</span><b>{order.sepayAccount || '—'}</b><button onClick={() => copy(order.sepayAccount, 'account')} aria-label="Copy account"><Copy size={14}/></button></div>{order.sepayAccountName && <div><span>Name</span><b>{order.sepayAccountName}</b></div>}<div><span>Transfer content</span><b>{order.sepayCode}</b><button onClick={() => copy(order.sepayCode, 'code')} aria-label="Copy transfer content"><Copy size={14}/></button></div></div>
-                    {copied && <div className="copy-toast">Copied {copied}</div>}
-                </article>
+                    <article className="panel payment-method-card sepay-card">
+                        <div className="payment-method-heading"><QrCode size={24}/><div><span className="eyebrow">Vietnam</span><h2>SePay QR transfer</h2></div></div>
+                        <p className="muted">No platform fee. Transfer the exact amount with the exact payment code.</p>
+                        {order.sepayQrUrl ? <img className="sepay-qr" src={order.sepayQrUrl} alt={`SePay QR for ${formatVnd(order.sepayAmountVnd)}`} /> : null}
+                        <div className="sepay-details"><div><span>Amount</span><b>{formatVnd(order.sepayAmountVnd)}</b><button onClick={() => copy(order.sepayAmountVnd, 'amount')} aria-label="Copy amount"><Copy size={14}/></button></div><div><span>Bank</span><b>{order.sepayBank || '—'}</b></div><div><span>Account</span><b>{order.sepayAccount || '—'}</b><button onClick={() => copy(order.sepayAccount, 'account')} aria-label="Copy account"><Copy size={14}/></button></div>{order.sepayAccountName && <div><span>Name</span><b>{order.sepayAccountName}</b></div>}<div><span>Transfer content</span><b>{order.sepayCode}</b><button onClick={() => copy(order.sepayCode, 'code')} aria-label="Copy transfer content"><Copy size={14}/></button></div></div>
+                        {copied && <div className="copy-toast">Copied {copied}</div>}
+                    </article>
+                </div>
                 <article className="panel payment-support-card">
-                    <div><span className="eyebrow">Support</span><h2>Having Trouble with Payment?</h2><p className="muted">Message Matthew on WhatsApp and we’ll help you complete the reservation.</p></div>
-                    <a className="button ghost wide" href={supportUrl} target="_blank" rel="noopener noreferrer">Request Payment Support Here</a>
+                    <div className="payment-support-copy"><span className="eyebrow">Support</span><h2>Having Trouble with Payment?</h2><p className="muted">Message Matthew on WhatsApp at +49 1575 4444113 and we’ll help you complete the reservation.</p></div>
+                    <a className="button ghost payment-support-button" href={supportUrl} target="_blank" rel="noopener noreferrer">Request Payment Support Here</a>
                 </article>
             </div>}
         </div></section></>;
