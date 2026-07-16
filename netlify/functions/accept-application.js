@@ -3,7 +3,12 @@
 
 const crypto = require('crypto');
 const { sql, isConfigured: dbConfigured } = require('./lib/neon');
-const { deactivatePaymentLink, isConfigured: airwallexConfigured, diagnostics: airwallexDiagnostics } = require('./lib/airwallex');
+const {
+    deactivatePaymentLink,
+    getAccessToken: getAirwallexAccessToken,
+    isConfigured: airwallexConfigured,
+    diagnostics: airwallexDiagnostics
+} = require('./lib/airwallex');
 const { createPaymentCode, config: sepayConfig, isConfigured: sepayConfigured } = require('./lib/sepay');
 const { paymentEnvironment, isMockPayments, paymentProviderEnabled } = require('./lib/payment-environment');
 const { encrypt, decrypt } = require('./lib/field-crypto');
@@ -114,6 +119,19 @@ exports.handler = async (event) => {
             ].filter(Boolean).join(', ')}.`
         });
     }
+    if (!mockPayments && useAirwallex) {
+        try {
+            await getAirwallexAccessToken();
+        } catch (error) {
+            console.error('[accept-application] airwallex auth failed before reservation', JSON.stringify({
+                message: error.message,
+                airwallex: airwallexDiagnostics()
+            }));
+            return json(503, {
+                error: 'Airwallex production credentials are invalid. Check AIRWALLEX_API_KEY and AIRWALLEX_CLIENT_ID.'
+            });
+        }
+    }
 
     const ticketCount = Number(app.ticket_count || 1);
     if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
@@ -215,7 +233,18 @@ exports.handler = async (event) => {
             FROM new_order no JOIN upsert_member um ON um.id = no.member_id`;
         reserved = rows[0];
     } catch (error) {
-        console.error('[accept-application] reservation failed:', error.message);
+        console.error('[accept-application] reservation failed', JSON.stringify({
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            hint: error.hint,
+            table: error.table,
+            column: error.column,
+            constraint: error.constraint,
+            applicationId: id,
+            eventId: app.event_id,
+            ticketCount
+        }));
         try { if (airwallexLink?.id) await deactivatePaymentLink(airwallexLink.id); } catch (cleanupError) {
             console.error('[accept-application] orphan payment-link cleanup failed:', cleanupError.message);
         }
