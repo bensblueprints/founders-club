@@ -197,7 +197,7 @@ function CheckinView({ events, selectedEventId, setSelectedEventId, registration
     </div>;
 }
 
-const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', description:'', price:150, cruisePrice:297, capacity:25, cruiseCapacity:0, status:'open' };
+const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', description:'', price:150, capacity:25, status:'open' };
 
 function EventManager({ events, reload, notify }) {
     const [editing, setEditing] = useState(null);
@@ -205,8 +205,8 @@ function EventManager({ events, reload, notify }) {
     const beginEdit = event => setEditing({
         id:event.id, slug:event.slug || '', name:event.name || '', date:String(event.event_date || '').slice(0,10),
         time:String(event.event_time || '18:00').slice(0,5), location:event.location || '', description:event.description || '',
-        price:Number(event.dinner_price || 150), cruisePrice:Number(event.cruise_price || 297),
-        capacity:Number(event.max_attendees || 25), cruiseCapacity:Number(event.max_cruise_spots || 0), status:event.status || 'open'
+        price:Number(event.dinner_price || 150),
+        capacity:Number(event.max_attendees || 25), status:event.status || 'open'
     });
     async function save(eventObject) {
         eventObject.preventDefault(); setSaving(true);
@@ -233,12 +233,10 @@ function EventManager({ events, reload, notify }) {
             <div className="field wide"><label htmlFor="event-location">Location</label><input id="event-location" value={editing.location} onChange={e=>update('location',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-price">Dinner ticket (USD)</label><input id="event-price" type="number" min="0" step="0.01" value={editing.price} onChange={e=>update('price',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-capacity">Total capacity</label><input id="event-capacity" type="number" min="1" value={editing.capacity} onChange={e=>update('capacity',e.target.value)} required/></div>
-            <div className="field"><label htmlFor="event-cruise-price">Full/cruise ticket (USD)</label><input id="event-cruise-price" type="number" min="0" step="0.01" value={editing.cruisePrice} onChange={e=>update('cruisePrice',e.target.value)}/></div>
-            <div className="field"><label htmlFor="event-cruise-capacity">Full/cruise capacity</label><input id="event-cruise-capacity" type="number" min="0" value={editing.cruiseCapacity} onChange={e=>update('cruiseCapacity',e.target.value)}/></div>
             <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
             <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
         </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
-        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner<br/><span className="muted">${Number(event.cruise_price || 0).toFixed(2)} full</span></td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="icon-button" aria-label={`Edit ${event.name}`} onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="icon-button danger" aria-label={`Delete ${event.name}`} onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
+        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="icon-button" aria-label={`Edit ${event.name}`} onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="icon-button danger" aria-label={`Delete ${event.name}`} onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
     </div>;
 }
 

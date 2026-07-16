@@ -37,7 +37,6 @@ const people = [
         body: 'Ben is an entrepreneur and growth builder with more than $25 million in ecommerce sales. Through Advanced Marketing, he helps founders take digital products, physical brands, and live-event ideas from concept to market. His work has been featured by Forbes, The Wall Street Journal, LA Weekly, Slate, Hacker Noon, and Yahoo. He is currently building 100 apps in 100 days through OneTimeSuite, a practical challenge to create useful software without recurring subscription fees.',
         image: '/images/landing/team-benji.png',
         websites: [
-            ['AdvancedMarketing.co', 'https://advancedmarketing.co'],
             ['OneTimeSuite.com', 'https://onetimesuite.com']
         ]
     }

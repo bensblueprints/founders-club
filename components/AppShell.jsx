@@ -145,7 +145,7 @@ export default function AppShell({ children }) {
             <main>{children}</main>
             {pathname !== '/' && <footer className="site-footer">
                 <div><Logo /><p>Curated rooms for founders building meaningful companies in Vietnam.</p></div>
-                <div className="footer-links"><Link href="/team-behind">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/refund">Refunds</Link></div>
+                <div className="footer-links"><Link href="/team-behind">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms & Refund Policy</Link></div>
                 <small>© {new Date().getFullYear()} Founders Vietnam</small>
             </footer>}
         </div>

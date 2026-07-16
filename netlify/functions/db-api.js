@@ -339,11 +339,11 @@ const handlers = {
         const rows = await sql`
             INSERT INTO events
                 (slug, name, event_date, event_time, location, description,
-                 dinner_price, cruise_price, max_attendees, max_cruise_spots, status)
+                 dinner_price, max_attendees, status)
             VALUES
                 (${p.slug}, ${p.name}, ${p.date}, ${p.time || '18:00'}, ${p.location || null},
-                 ${p.description || null}, ${Number(p.price || 150)}, ${Number(p.cruisePrice || 297)},
-                 ${Number(p.capacity)}, ${Number(p.cruiseCapacity || 0)}, ${p.status || 'open'})
+                 ${p.description || null}, ${Number(p.price || 150)},
+                 ${Number(p.capacity)}, ${p.status || 'open'})
             RETURNING *`;
         return rows[0] || null;
     },
@@ -357,8 +357,7 @@ const handlers = {
             UPDATE events SET slug = ${p.slug}, name = ${p.name}, event_date = ${p.date},
                 event_time = ${p.time || '18:00'}, location = ${p.location || null},
                 description = ${p.description || null}, dinner_price = ${Number(p.price || 150)},
-                cruise_price = ${Number(p.cruisePrice || 297)}, max_attendees = ${Number(p.capacity)},
-                max_cruise_spots = ${Number(p.cruiseCapacity || 0)}, status = ${p.status || 'open'}
+                max_attendees = ${Number(p.capacity)}, status = ${p.status || 'open'}
             WHERE id = ${p.id} RETURNING *`;
         if (!rows[0]) throw new Error('Event not found');
         return rows[0];

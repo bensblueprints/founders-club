@@ -145,7 +145,7 @@ export default function HomePage() {
                 </div></div>
                 <div className="foot-col"><h3>{copy.footer.next[0]}</h3><p><b>{copy.footer.next[1]}</b><span>{copy.footer.next[2]}</span><span>{copy.footer.next[3]}</span></p></div>
                 <div className="foot-col"><h3>{copy.footer.explore}</h3><Link href="/events">Events</Link><Link href="/members">Members</Link><Link href="/sponsor">Sponsor</Link><Link href="/speak">Speak</Link></div>
-                <div className="foot-col"><h3>{copy.footer.account}</h3><Link href="/login">{copy.footer.login}</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/refund">Refund policy</Link></div>
+                <div className="foot-col"><h3>{copy.footer.account}</h3><Link href="/login">{copy.footer.login}</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms & Refund Policy</Link></div>
             </div><div className="wrap foot-bottom"><p>{copy.footer.bottomLeft}</p><p>{copy.footer.bottomRight}</p></div></footer>
         </div>
     </>;
