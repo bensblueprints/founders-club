@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { CalendarDays, CheckCircle2, Clock3, CreditCard, MapPin, ShieldCheck, Ticket, UsersRound } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { callFunction, db, formatDate } from '@/lib/api';
 
 export default function EventRegisterPage() {
     const { slug } = useParams();
+    const router = useRouter();
     const { user, ready } = useAuth();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -47,7 +48,12 @@ export default function EventRegisterPage() {
         setBusy(true);
         setStatus(null);
         try {
-            await callFunction('register-event', { eventSlug: slug, ticketCount: Number(ticketCount), guestName });
+            const result = await callFunction('register-event', { eventSlug: slug, ticketCount: Number(ticketCount), guestName });
+            if (result?.paymentUrl) {
+                setStatus({ type: 'success', message: 'Additional ticket reserved. Redirecting to payment…' });
+                router.push(result.paymentUrl);
+                return;
+            }
             setStatus({ type: 'success', message: 'Registration request sent. An admin will review it before a 48-hour payment reservation is created.' });
             await refreshRegistration();
         } catch (error) { setStatus({ type: 'error', message: error.message }); }
@@ -85,7 +91,7 @@ export default function EventRegisterPage() {
             </article>}
             {paidTickets > 0 && <div className="form-status success"><CheckCircle2 size={17}/>You already have {paidTickets} paid ticket{paidTickets === 1 ? '' : 's'} for this event.</div>}
             {pendingReviewTickets > 0 && <div className="form-status"><Clock3 size={17}/>Your additional ticket request is waiting for admin review.</div>}
-            {canRequest ? <form className="panel register-section" onSubmit={submit}><h2>{requestingAdditional ? 'Request one more ticket' : 'Request your seat'}</h2><p className="muted">{requestingAdditional ? 'You can add one co-founder / partner ticket to this account. Admin approval is still required.' : 'Your existing profile information will be attached for admin review.'}</p><div className="ticket-count-options"><label className={ticketCount === '1' ? 'selected' : ''}><input type="radio" value="1" checked={ticketCount === '1'} onChange={() => setTicketCount('1')}/>{requestingAdditional ? '1 additional ticket' : '1 ticket'}<span>{requestingAdditional ? 'For partner / co-founder' : 'For me'}</span></label>{remainingTickets >= 2 && <label className={ticketCount === '2' ? 'selected' : ''}><input type="radio" value="2" checked={ticketCount === '2'} onChange={() => setTicketCount('2')}/>2 tickets<span>Me + partner / co-founder</span></label>}</div>{needsGuestName && <div className="field"><label htmlFor="guestName">Partner / co-founder full name</label><input id="guestName" value={guestName} onChange={e => setGuestName(e.target.value)} required/></div>}{status && <div className={`form-status ${status.type}`}>{status.message}</div>}<button className="button primary" disabled={busy}>{busy ? 'Sending…' : 'Send for admin review'}</button></form> : <article className="panel register-section"><h2>Maximum tickets reached</h2><p className="muted">Each member account can hold up to 2 tickets for this event.</p>{status && <div className={`form-status ${status.type}`}>{status.message}</div>}</article>}
+            {canRequest ? <form className="panel register-section" onSubmit={submit}><h2>{requestingAdditional ? 'Add one more ticket' : 'Request your seat'}</h2><p className="muted">{requestingAdditional ? 'Your founder seat is already approved, so this co-founder / partner ticket skips admin review and goes straight to payment.' : 'Your existing profile information will be attached for admin review.'}</p><div className="ticket-count-options"><label className={ticketCount === '1' ? 'selected' : ''}><input type="radio" value="1" checked={ticketCount === '1'} onChange={() => setTicketCount('1')}/>{requestingAdditional ? '1 additional ticket' : '1 ticket'}<span>{requestingAdditional ? 'For partner / co-founder' : 'For me'}</span></label>{remainingTickets >= 2 && <label className={ticketCount === '2' ? 'selected' : ''}><input type="radio" value="2" checked={ticketCount === '2'} onChange={() => setTicketCount('2')}/>2 tickets<span>Me + partner / co-founder</span></label>}</div>{needsGuestName && <div className="field"><label htmlFor="guestName">Partner / co-founder full name</label><input id="guestName" value={guestName} onChange={e => setGuestName(e.target.value)} required/></div>}{status && <div className={`form-status ${status.type}`}>{status.message}</div>}<button className="button primary" disabled={busy}>{busy ? 'Sending…' : requestingAdditional ? 'Reserve and pay' : 'Send for admin review'}</button></form> : <article className="panel register-section"><h2>Maximum tickets reached</h2><p className="muted">Each member account can hold up to 2 tickets for this event.</p>{status && <div className={`form-status ${status.type}`}>{status.message}</div>}</article>}
         </div>
     </div></section></>;
 }
