@@ -64,6 +64,7 @@ const MEMBER_ACTIONS = new Set([
     'attendance.byEvent',
     'attendance.check',
     'attendance.register',
+    'eventRegistration.status',
     'transactions.create',
     'transactions.byUser',
     'transactions.byEmail',
@@ -325,6 +326,58 @@ const handlers = {
         if (!slug) return null;
         const rows = await sql`SELECT * FROM events WHERE slug = ${slug} LIMIT 1`;
         return rows[0] || null;
+    },
+
+    async 'eventRegistration.status'({ slug }, ctx) {
+        if (!ctx.memberId) throw new Error('Not authenticated');
+        if (!slug) throw new Error('Missing event');
+        const eventRows = await sql`
+            SELECT e.*, m.email
+            FROM events e CROSS JOIN members m
+            WHERE e.slug = ${slug} AND m.id = ${ctx.memberId}
+            LIMIT 1`;
+        const event = eventRows[0];
+        if (!event) return null;
+
+        const orderRows = await sql`
+            SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                   e.event_date, e.event_time, e.location AS event_location
+            FROM payment_orders po
+            JOIN applications a ON a.id = po.application_id
+            JOIN events e ON e.id = po.event_id
+            WHERE po.member_id = ${ctx.memberId}
+              AND po.event_id = ${event.id}
+              AND (po.status = 'paid' OR (po.status IN ('pending', 'preparing') AND po.expires_at > NOW()))
+            ORDER BY CASE WHEN po.status = 'pending' THEN 0 WHEN po.status = 'preparing' THEN 1 ELSE 2 END,
+                     po.created_at DESC`;
+        const pendingApplicationRows = await sql`
+            SELECT id, ticket_count, guest_name, created_at
+            FROM applications a
+            WHERE a.event_id = ${event.id}
+              AND LOWER(a.email) = LOWER(${event.email})
+              AND a.status = 'pending'
+              AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.application_id = a.id)
+            ORDER BY a.created_at DESC`;
+
+        const activeOrders = orderRows.map(publicPaymentOrder);
+        const orderTickets = activeOrders.reduce((sum, order) => sum + Number(order.ticketCount || 0), 0);
+        const pendingReviewTickets = pendingApplicationRows.reduce((sum, app) => sum + Number(app.ticket_count || 0), 0);
+        const totalTickets = Math.min(2, orderTickets + pendingReviewTickets);
+        return {
+            eventId: event.id,
+            activeOrders,
+            pendingApplications: pendingApplicationRows.map(app => ({
+                id: app.id,
+                ticketCount: Number(app.ticket_count || 0),
+                guestName: app.guest_name,
+                createdAt: app.created_at
+            })),
+            paidTickets: activeOrders.filter(order => order.status === 'paid').reduce((sum, order) => sum + Number(order.ticketCount || 0), 0),
+            pendingPaymentTickets: activeOrders.filter(order => ['pending', 'preparing'].includes(order.status)).reduce((sum, order) => sum + Number(order.ticketCount || 0), 0),
+            pendingReviewTickets,
+            totalTickets,
+            remainingTickets: Math.max(0, 2 - totalTickets)
+        };
     },
 
     async 'events.past'() {

@@ -105,39 +105,41 @@ exports.handler = async (event) => {
     }
     if (!selectedEvent) return json(400, { error: 'The selected event is not open for applications.' });
 
-    // A person may apply to several events, but only once per event. Re-submitting
-    // updates an existing pending application without changing reviewed records.
+    // A person may apply to several events. Re-submitting from the public
+    // landing page updates an existing pending public application without
+    // changing reviewed/payment records. We avoid ON CONFLICT here because
+    // logged-in members may later request one additional ticket as a separate
+    // application for the same event.
     let data;
     try {
-        const rows = await sql`
-            INSERT INTO applications
-                (first_name, last_name, email, event_id, company, role, company_link, industry,
-                 looking_for, can_offer, what_you_do, social_link, page_language,
-                 event, event_interest, ticket_count, guest_name, status, payment_status, reminders_sent)
-            VALUES
-                (${first}, ${last}, ${email}, ${selectedEvent.id}, ${body.company || null}, ${body.role || null},
-                 ${body.company_link || null}, ${body.industry || null}, ${body.looking_for || null},
-                 ${body.can_offer || null}, ${body.what_you_do || null}, ${body.links || null},
-                 ${body.page_language || null}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, ${guestName || null},
-                 'pending', NULL, '{}')
-            ON CONFLICT (event_id, LOWER(email)) DO UPDATE SET
-                first_name    = EXCLUDED.first_name,
-                last_name     = EXCLUDED.last_name,
-                company       = EXCLUDED.company,
-                role          = EXCLUDED.role,
-                company_link  = EXCLUDED.company_link,
-                industry      = EXCLUDED.industry,
-                looking_for   = EXCLUDED.looking_for,
-                can_offer     = EXCLUDED.can_offer,
-                what_you_do   = EXCLUDED.what_you_do,
-                social_link   = EXCLUDED.social_link,
-                page_language = EXCLUDED.page_language,
-                event         = EXCLUDED.event,
-                event_interest = EXCLUDED.event_interest,
-                ticket_count   = EXCLUDED.ticket_count,
-                guest_name     = EXCLUDED.guest_name
-            WHERE applications.status = 'pending'
+        let rows = await sql`
+            UPDATE applications SET
+                first_name = ${first}, last_name = ${last}, company = ${body.company || null},
+                role = ${body.role || null}, company_link = ${body.company_link || null},
+                industry = ${body.industry || null}, looking_for = ${body.looking_for || null},
+                can_offer = ${body.can_offer || null}, what_you_do = ${body.what_you_do || null},
+                social_link = ${body.links || null}, page_language = ${body.page_language || null},
+                event = ${selectedEvent.name}, event_interest = ${selectedEvent.slug},
+                ticket_count = ${ticketCount}, guest_name = ${guestName || null}
+            WHERE event_id = ${selectedEvent.id}
+              AND LOWER(email) = LOWER(${email})
+              AND status = 'pending'
+              AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.application_id = applications.id)
             RETURNING *`;
+        if (!rows[0]) {
+            rows = await sql`
+                INSERT INTO applications
+                    (first_name, last_name, email, event_id, company, role, company_link, industry,
+                     looking_for, can_offer, what_you_do, social_link, page_language,
+                     event, event_interest, ticket_count, guest_name, status, payment_status, reminders_sent)
+                VALUES
+                    (${first}, ${last}, ${email}, ${selectedEvent.id}, ${body.company || null}, ${body.role || null},
+                     ${body.company_link || null}, ${body.industry || null}, ${body.looking_for || null},
+                     ${body.can_offer || null}, ${body.what_you_do || null}, ${body.links || null},
+                     ${body.page_language || null}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, ${guestName || null},
+                     'pending', NULL, '{}')
+                RETURNING *`;
+        }
         data = rows[0];
     } catch (error) {
         console.error('[submit-application] insert error:', error);

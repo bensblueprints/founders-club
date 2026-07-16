@@ -153,6 +153,19 @@ exports.handler = async (event) => {
     const passwordHash = await hashPassword(tempPassword);
     const email = String(app.email).trim().toLowerCase();
 
+    const existingTicketRows = await sql`
+        SELECT COALESCE(SUM(po.ticket_count), 0)::int AS seats
+        FROM payment_orders po
+        JOIN members m ON m.id = po.member_id
+        WHERE po.event_id = ${app.event_id}
+          AND po.application_id <> ${id}
+          AND LOWER(m.email) = ${email}
+          AND (po.status = 'paid' OR (po.status IN ('pending', 'preparing') AND po.expires_at > NOW()))`;
+    const existingTickets = Number(existingTicketRows[0]?.seats || 0);
+    if (existingTickets + ticketCount > 2) {
+        return json(409, { error: `This member already has ${existingTickets} active ticket${existingTickets === 1 ? '' : 's'} for this event. The maximum is 2.` });
+    }
+
     // Airwallex Hosted Payment Page client secrets last 60 minutes, so the
     // PaymentIntent is created on demand when the member opens /payment.
     // The 48-hour reservation itself is provider-neutral.
@@ -164,10 +177,11 @@ exports.handler = async (event) => {
             WITH locked_event AS (
                 SELECT id, max_attendees FROM events WHERE id = ${app.event_id} FOR UPDATE
             ), occupied AS (
-                SELECT COALESCE(SUM(ea.seat_count), 0)::int AS seats
-                FROM event_attendance ea
-                JOIN locked_event le ON le.id = ea.event_id
-                WHERE ea.payment_status IN ('preparing', 'awaiting', 'paid')
+                SELECT COALESCE(SUM(po.ticket_count), 0)::int AS seats
+                FROM payment_orders po
+                JOIN locked_event le ON le.id = po.event_id
+                WHERE po.status = 'paid'
+                   OR (po.status IN ('pending', 'preparing') AND po.expires_at > NOW())
             ), eligible AS (
                 SELECT le.* FROM locked_event le, occupied o
                 WHERE o.seats + ${ticketCount} <= le.max_attendees
@@ -224,9 +238,21 @@ exports.handler = async (event) => {
                        ${now.toISOString()}, ${ticketCount}, ${app.guest_name || null}
                 FROM new_order no
                 ON CONFLICT (event_id, member_id) DO UPDATE SET
-                    application_id = EXCLUDED.application_id, payment_status = 'awaiting',
-                    approved_at = EXCLUDED.approved_at, seat_count = EXCLUDED.seat_count,
-                    guest_name = EXCLUDED.guest_name
+                    application_id = CASE
+                        WHEN event_attendance.payment_status = 'paid' THEN event_attendance.application_id
+                        ELSE EXCLUDED.application_id
+                    END,
+                    payment_status = CASE
+                        WHEN event_attendance.payment_status = 'paid' THEN 'paid'
+                        ELSE 'awaiting'
+                    END,
+                    approved_at = EXCLUDED.approved_at,
+                    seat_count = CASE
+                        WHEN event_attendance.application_id = EXCLUDED.application_id THEN GREATEST(event_attendance.seat_count, EXCLUDED.seat_count)
+                        WHEN event_attendance.payment_status = 'paid' THEN event_attendance.seat_count
+                        ELSE LEAST(2, event_attendance.seat_count + EXCLUDED.seat_count)
+                    END,
+                    guest_name = COALESCE(event_attendance.guest_name, EXCLUDED.guest_name)
                 RETURNING id
             )
             SELECT no.*, um.email, um.first_name, um.last_name, um.is_approved, um.account_status

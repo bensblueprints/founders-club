@@ -149,8 +149,22 @@ async function completePayment({
             UPDATE applications a SET payment_status = 'paid', paid_at = ${paidAt}, status = 'approved'
             FROM paid_order po WHERE a.id = po.application_id RETURNING a.id
         ), paid_attendance AS (
-            UPDATE event_attendance ea SET payment_status = 'paid', paid_at = ${paidAt}
-            FROM paid_order po WHERE ea.application_id = po.application_id RETURNING ea.id
+            INSERT INTO event_attendance
+                (event_id, member_id, application_id, ticket_type, payment_status,
+                 approved_at, paid_at, seat_count, guest_name)
+            SELECT po.event_id, po.member_id, po.application_id, 'dinner', 'paid',
+                   ${paidAt}, ${paidAt}, po.ticket_count, a.guest_name
+            FROM paid_order po
+            JOIN applications a ON a.id = po.application_id
+            ON CONFLICT (event_id, member_id) DO UPDATE SET
+                payment_status = 'paid',
+                paid_at = ${paidAt},
+                seat_count = CASE
+                    WHEN event_attendance.application_id = EXCLUDED.application_id THEN GREATEST(event_attendance.seat_count, EXCLUDED.seat_count)
+                    ELSE LEAST(2, event_attendance.seat_count + EXCLUDED.seat_count)
+                END,
+                guest_name = COALESCE(event_attendance.guest_name, EXCLUDED.guest_name)
+            RETURNING id
         ), activated_member AS (
             UPDATE members m SET account_status = 'active', is_approved = true,
                 payment_access_expires_at = NULL, updated_at = NOW()

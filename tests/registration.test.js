@@ -145,13 +145,17 @@ async function test(name, fn) {
         assert.strictEqual(calls.length, 0, 'no SQL for incomplete application');
     });
 
-    await test('submit-application upserts only within the same event', async () => {
+    await test('submit-application updates pending applications before inserting a new one', async () => {
         await submit.handler({
             httpMethod: 'POST', headers: {},
             body: JSON.stringify({ ...completeApplicationPayload, email: 'jane@x.co' })
         });
+        const appUpdate = calls.find(c => /UPDATE applications SET/i.test(c.text));
         const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
-        assert.ok(/ON CONFLICT \(event_id, LOWER\(email\)\)/i.test(appInsert.text));
+        assert.ok(appUpdate, 'must check for an existing pending application first');
+        assert.ok(appInsert, 'must insert when no pending application is returned');
+        assert.ok(/LOWER\(email\) = LOWER/i.test(appUpdate.text));
+        assert.ok(/NOT EXISTS \(SELECT 1 FROM payment_orders/i.test(appUpdate.text));
     });
 
     // -----------------------------------------------------------------

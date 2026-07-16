@@ -134,8 +134,8 @@ ALTER TABLE applications
 ALTER TABLE applications
     ADD CONSTRAINT applications_event_id_fkey
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE RESTRICT;
-CREATE UNIQUE INDEX IF NOT EXISTS applications_event_email_unique
-    ON applications(event_id, LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_applications_event_email_status
+    ON applications(event_id, LOWER(email), status);
 
 -- ========================================
 -- EVENT ATTENDANCE

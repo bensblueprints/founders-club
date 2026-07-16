@@ -24,7 +24,6 @@ exports.handler = async (event) => {
     const ticketCount = Number(body.ticketCount || 1);
     const guestName = String(body.guestName || '').trim();
     if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
-    if (ticketCount === 2 && !guestName) return json(400, { error: 'Enter your partner / co-founder name.' });
 
     const rows = await sql`
         SELECT m.*, e.id AS event_id, e.slug AS event_slug, e.name AS event_name
@@ -34,6 +33,29 @@ exports.handler = async (event) => {
     const member = rows[0];
     if (!member) return json(404, { error: 'Member or open event not found.' });
     if (member.account_status !== 'active') return json(403, { error: 'Complete your current payment before registering for another event.' });
+
+    const existingOrderRows = await sql`
+        SELECT COALESCE(SUM(ticket_count), 0)::int AS seats
+        FROM payment_orders
+        WHERE member_id = ${claims.sub}
+          AND event_id = ${member.event_id}
+          AND (status = 'paid' OR (status IN ('pending', 'preparing') AND expires_at > NOW()))`;
+    const pendingApplicationRows = await sql`
+        SELECT COALESCE(SUM(ticket_count), 0)::int AS seats
+        FROM applications a
+        WHERE a.event_id = ${member.event_id}
+          AND LOWER(a.email) = LOWER(${member.email})
+          AND a.status = 'pending'
+          AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.application_id = a.id)`;
+    const existingTickets = Number(existingOrderRows[0]?.seats || 0) + Number(pendingApplicationRows[0]?.seats || 0);
+    const remainingTickets = Math.max(0, 2 - existingTickets);
+    if (remainingTickets <= 0) return json(409, { error: 'You already have the maximum 2 tickets for this event.' });
+    if (ticketCount > remainingTickets) {
+        return json(409, { error: `You can request ${remainingTickets} more ticket${remainingTickets === 1 ? '' : 's'} for this event.` });
+    }
+    if ((ticketCount === 2 || existingTickets >= 1) && !guestName) {
+        return json(400, { error: 'Enter your partner / co-founder name.' });
+    }
 
     let application;
     try {
@@ -46,13 +68,18 @@ exports.handler = async (event) => {
                  ${member.event_id}, ${member.company || null}, ${member.role || null},
                  ${member.industry || null}, ${member.social_link || member.linkedin || null},
                  ${member.event_name}, ${member.event_slug}, ${ticketCount}, ${guestName || null}, 'pending')
-            ON CONFLICT (event_id, LOWER(email)) DO NOTHING
             RETURNING *`;
         application = inserted[0];
     } catch (error) {
+        console.error('[register-event] insert failed', JSON.stringify({
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            constraint: error.constraint
+        }));
         return json(500, { error: 'Could not submit event registration.' });
     }
-    if (!application) return json(409, { error: 'You already have an application or reservation for this event.' });
+    if (!application) return json(409, { error: 'Could not submit event registration.' });
 
     const adminUrl = `${process.env.URL || 'https://foundersvn.com'}/admin`;
     const recipients = (process.env.NOTIFY_EMAILS || '').split(',').map(v => v.trim()).filter(Boolean);
