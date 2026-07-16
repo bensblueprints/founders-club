@@ -11,7 +11,12 @@ const { encrypt, decrypt } = require('../netlify/functions/lib/field-crypto');
 const { verifyWebhook, extractPaymentCode, matchesConfiguredAccount } = require('../netlify/functions/lib/sepay');
 const { _verifySignature: verifyAirwallexWebhook } = require('../netlify/functions/airwallex-webhook');
 const { config: airwallexConfig } = require('../netlify/functions/lib/airwallex');
-const { approvedWithLoginEmail, paymentConfirmedEmail } = require('../netlify/functions/lib/emailer');
+const {
+    approvedWithLoginEmail,
+    reminderEmail,
+    expiredEmail,
+    paymentConfirmedEmail
+} = require('../netlify/functions/lib/emailer');
 const fs = require('fs');
 const { decide } = require('../netlify/functions/lib/reminders');
 
@@ -123,13 +128,73 @@ test('approval email uses the V1 bilingual seat-held template', () => {
             price: '$150.00 USD for 1 ticket'
         }
     });
-    assert.match(email.subject, /You have a seat at FoundersVN, Jane/);
-    assert.match(email.subject, /Bạn đã có một chỗ tại FoundersVN, Jane/);
+    assert.match(email.subject, /Your FoundersVN seat is reserved, Jane/);
+    assert.match(email.subject, /Bạn đã đặt chỗ thành công tại FoundersVN, Jane/);
     assert.ok(email.html.includes('(Tiếng Việt bên dưới)'));
     assert.ok(email.html.includes('We have reserved a seat for you for the next 48 hours.'));
     assert.ok(email.html.includes('FoundersVN đã giữ riêng một chỗ cho bạn trong 48 giờ.'));
+    assert.ok(email.html.includes('Bạn đã đặt chỗ thành công tại FoundersVN'));
+    assert.ok(email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
     assert.ok(email.html.includes('Temporary password'));
-    assert.ok(email.html.includes('https://foundersvn.com/payment?order=order-1'));
+    assert.ok(email.html.includes('next=%2Fpayment%3Forder%3Dorder-1'));
+    assert.ok(email.html.includes('src="cid:foundersvn-logo"'));
+    assert.ok(email.html.includes('src="cid:foundersvn-facebook"'));
+    assert.ok(email.html.includes('src="cid:foundersvn-instagram"'));
+    assert.ok(email.html.includes('src="cid:foundersvn-whatsapp"'));
+    assert.equal((email.html.match(/Sign in and confirm your seat/g) || []).length, 2);
+    assert.ok(email.html.includes('@media only screen and (max-width:620px)'));
+    assert.ok(email.html.includes('class="email-card"'));
+    assert.ok(email.html.includes('class="email-button"'));
+    assert.ok(email.html.includes('width:100%!important'));
+    assert.ok(email.html.includes('aria-label="Join the FoundersVN WhatsApp community"'));
+    assert.ok(email.html.includes('href="https://foundersvn.com"'));
+    assert.ok(email.html.includes('href="mailto:support@foundersvn.com"'));
+    assert.ok(!email.html.includes('Join the FoundersVN WhatsApp community</a>'));
+    assert.ok(!email.html.includes('text-decoration:underline'));
+    assert.ok(!email.html.includes('Transfer content'));
+    assert.ok(!email.html.includes('Bank:'));
+});
+
+test('expired seat email is bilingual', () => {
+    const email = expiredEmail({
+        firstName: 'Jane',
+        existingAccount: false,
+        event: {
+            date: 'Friday, July 31, 2026',
+            location: 'Da Nang'
+        }
+    });
+    assert.match(email.subject, /Your FoundersVN seat has been released/);
+    assert.match(email.subject, /Chỗ của bạn tại FoundersVN đã được nhường cho khách khác/);
+    assert.ok(email.html.includes('(Tiếng Việt bên dưới)'));
+    assert.ok(email.html.includes('Chỗ của bạn tại FoundersVN đã được nhường cho khách khác'));
+    assert.ok(email.html.includes('FoundersVN chưa nhận được thanh toán trong thời hạn 48 giờ'));
+    assert.ok(email.html.includes('Re-apply for a seat / Đăng ký lại'));
+});
+
+test('24-hour reminder email is bilingual', () => {
+    const email = reminderEmail({
+        firstName: 'Jane',
+        paymentUrl: 'https://foundersvn.com/payment?order=order-1',
+        hoursLeft: 24,
+        event: {
+            date: 'Friday, July 31, 2026',
+            time: '18:00',
+            location: 'Da Nang',
+            price: '$150.00 USD for 1 ticket'
+        }
+    });
+    assert.match(email.subject, /One day left to complete your FoundersVN reservation/);
+    assert.match(email.subject, /Chỉ còn 1 ngày để hoàn tất việc đặt chỗ tại FoundersVN/);
+    assert.ok(email.html.includes('(Tiếng Việt bên dưới)'));
+    assert.ok(email.html.includes('One day left to complete your FoundersVN reservation, Jane'));
+    assert.ok(email.html.includes('Chỉ còn 1 ngày để hoàn tất việc đặt chỗ, Jane'));
+    assert.ok(email.html.includes('hold your FoundersVN seat for one more day'));
+    assert.ok(email.html.includes('giữ chỗ cho bạn thêm 1 ngày'));
+    assert.ok(email.html.includes('THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN'));
+    assert.equal((email.html.match(/Sign in and confirm your seat/g) || []).length, 2);
+    assert.ok(email.html.includes('next=%2Fpayment%3Forder%3Dorder-1'));
+    assert.ok(!email.html.includes('Payment page:'));
 });
 
 test('payment confirmation email links to meal selection', () => {
@@ -155,8 +220,19 @@ test('payment confirmation email links to meal selection', () => {
     assert.ok(email.html.includes('(Tiếng Việt bên dưới)'));
     assert.ok(email.html.includes('Your payment has been received and your seat is confirmed.'));
     assert.ok(email.html.includes('FoundersVN đã nhận được thanh toán'));
+    assert.ok(email.html.includes('THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN'));
+    assert.ok(email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
     assert.ok(email.html.includes('https://foundersvn.com/meal'));
     assert.ok(email.html.includes('Choose meal options'));
+    assert.ok(email.html.includes('1. Set up your profile in the app'));
+    assert.ok(email.html.includes('1. Thiết lập hồ sơ trên app'));
+    assert.ok(!email.html.includes('Join the FoundersVN WhatsApp community</a>'));
+    assert.ok(!email.html.includes('Tham gia cộng đồng WhatsApp FoundersVN'));
+    assert.ok(!email.html.includes('text-decoration:underline'));
+    assert.ok(!email.html.includes('Meal selection:'));
+    assert.ok(!email.html.includes('Link chọn món:'));
+    assert.ok(!email.html.includes('Log in here:'));
+    assert.ok(!email.html.includes('Profile link:'));
 });
 
 console.log(`\nAll ${passed} payment-flow tests passed.`);
