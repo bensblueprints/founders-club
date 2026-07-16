@@ -14,6 +14,7 @@
     "db:down": "docker compose down",
     "db:migrate": "node db/migrate.js",
     "payments:check": "node --env-file=.env.local tools/check-payment-config.js",
+    "emails:preview": "node tools/preview-emails.js",
     "admin:create": "node tools/create-admin.js",
     "stack:setup": "node tools/dev-stack.js setup",
     "stack:dev": "node tools/dev-stack.js dev",

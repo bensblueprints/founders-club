@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     paid_at TIMESTAMP WITH TIME ZONE,
     reminder_sent_at TIMESTAMP WITH TIME ZONE,
+    final_reminder_sent_at TIMESTAMP WITH TIME ZONE,
     confirmation_email_sent_at TIMESTAMP WITH TIME ZONE,
     account_was_existing BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

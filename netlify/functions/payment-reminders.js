@@ -1,5 +1,5 @@
-// Runs every 15 minutes: one reminder at 24h; expiry, account lock, seat release,
-// and Airwallex deactivation at 48h.
+// Runs every 15 minutes: one reminder at 24h, one final reminder when 6h remain;
+// expiry, account lock, seat release, and Airwallex deactivation at 48h.
 
 const { sql, isConfigured } = require('./lib/neon');
 const { deactivatePaymentLink } = require('./lib/airwallex');
@@ -11,7 +11,7 @@ exports.handler = async () => {
 
     const orders = await sql`
         SELECT po.*, a.first_name, a.email, a.payment_link,
-               e.name AS event_name, e.event_date, e.location AS event_location
+               e.name AS event_name, e.event_date, e.event_time, e.location AS event_location
         FROM payment_orders po
         JOIN applications a ON a.id = po.application_id
         JOIN events e ON e.id = po.event_id
@@ -32,22 +32,31 @@ exports.handler = async () => {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
             }),
             location: order.event_location,
+            time: order.event_time,
             price: `${order.ticket_count} ticket${Number(order.ticket_count) === 1 ? '' : 's'}`
         };
 
-        if (decision.action === 'remind') {
+        if (decision.action === 'remind_initial' || decision.action === 'remind_final') {
             const tmpl = reminderEmail({
                 firstName: order.first_name,
                 paymentUrl: order.payment_link,
                 hoursLeft: decision.hoursLeft,
+                reminderKind: decision.action === 'remind_final' ? 'final' : 'initial',
                 event: eventDetails
             });
             const sent = await sendEmail({ to: order.email, subject: tmpl.subject, html: tmpl.html, tracking: {
-                type: 'payment_reminder', applicationId: order.application_id,
-                memberId: order.member_id, eventId: order.event_id
+                type: decision.action === 'remind_final' ? 'payment_reminder_6h' : 'payment_reminder_24h',
+                applicationId: order.application_id,
+                memberId: order.member_id,
+                eventId: order.event_id,
+                metadata: { hoursLeft: decision.hoursLeft }
             } });
             if (sent.success) {
-                await sql`UPDATE payment_orders SET reminder_sent_at = NOW(), updated_at = NOW() WHERE id = ${order.id} AND reminder_sent_at IS NULL`;
+                if (decision.action === 'remind_final') {
+                    await sql`UPDATE payment_orders SET final_reminder_sent_at = NOW(), updated_at = NOW() WHERE id = ${order.id} AND final_reminder_sent_at IS NULL`;
+                } else {
+                    await sql`UPDATE payment_orders SET reminder_sent_at = NOW(), updated_at = NOW() WHERE id = ${order.id} AND reminder_sent_at IS NULL`;
+                }
                 reminded++;
             } else failed++;
             continue;

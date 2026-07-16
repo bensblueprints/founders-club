@@ -7,3 +7,4 @@ prod.env
 .DS_Store
 npm-debug.log*
 coverage/
+tmp/
