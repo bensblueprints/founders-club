@@ -3,7 +3,7 @@
 
 const crypto = require('crypto');
 const { sql, isConfigured: dbConfigured } = require('./lib/neon');
-const { deactivatePaymentLink, isConfigured: airwallexConfigured } = require('./lib/airwallex');
+const { deactivatePaymentLink, isConfigured: airwallexConfigured, diagnostics: airwallexDiagnostics } = require('./lib/airwallex');
 const { createPaymentCode, config: sepayConfig, isConfigured: sepayConfigured } = require('./lib/sepay');
 const { paymentEnvironment, isMockPayments, paymentProviderEnabled } = require('./lib/payment-environment');
 const { encrypt, decrypt } = require('./lib/field-crypto');
@@ -95,6 +95,18 @@ exports.handler = async (event) => {
     const airwallexMissing = !mockPayments && useAirwallex && !airwallexConfigured();
     const sepayMissing = !mockPayments && useSepay && !sepayConfigured();
     if (airwallexMissing || sepayMissing) {
+        console.error('[accept-application] payment config incomplete', JSON.stringify({
+            environment: paymentEnvironment(),
+            providers: { airwallex: useAirwallex, sepay: useSepay },
+            airwallex: airwallexDiagnostics(),
+            sepay: {
+                configured: sepayConfigured(),
+                bankPresent: Boolean(sepayConfig().bank),
+                accountPresent: Boolean(sepayConfig().account),
+                accountNamePresent: Boolean(sepayConfig().accountName),
+                webhookSecretPresent: Boolean(sepayConfig().webhookSecret)
+            }
+        }));
         return json(503, {
             error: `${paymentEnvironment()} payment configuration is incomplete for: ${[
                 airwallexMissing ? 'Airwallex' : null,

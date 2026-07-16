@@ -23,6 +23,7 @@ const sepay = require('../netlify/functions/lib/sepay');
 
     if (providers.has('airwallex')) {
         if (!airwallex.isConfigured()) {
+            console.error('Airwallex diagnostics:', JSON.stringify(airwallex.diagnostics(), null, 2));
             throw new Error(`Airwallex ${environment} credentials or webhook secret are missing`);
         }
         await airwallex.getAccessToken();

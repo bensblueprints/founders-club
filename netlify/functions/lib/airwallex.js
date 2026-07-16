@@ -21,6 +21,45 @@ function config() {
     };
 }
 
+function describeSecret(value) {
+    const text = String(value || '');
+    if (!text) return { present: false, length: 0 };
+    return {
+        present: true,
+        length: text.length,
+        prefix: text.slice(0, 4),
+        suffix: text.slice(-4)
+    };
+}
+
+function diagnostics() {
+    const c = config();
+    const legacyEnvValue = String(process.env.AIRWALLEX_ENV || '').trim();
+    const legacyEnvLooksLikeApiKey = legacyEnvValue && !['sandbox', 'demo', 'production', 'prod'].includes(legacyEnvValue.toLowerCase());
+    return {
+        environment: c.environment,
+        baseUrl: c.baseUrl,
+        configured: isConfigured(),
+        source: legacyEnvLooksLikeApiKey ? 'AIRWALLEX_ENV_LEGACY_API_KEY' : 'AIRWALLEX_API_KEY',
+        envKeys: {
+            AIRWALLEX_API_KEY: describeSecret(process.env.AIRWALLEX_API_KEY),
+            AIRWALLEX_CLIENT_ID: describeSecret(process.env.AIRWALLEX_CLIENT_ID),
+            AIRWALLEX_WEBHOOK_SECRET: describeSecret(process.env.AIRWALLEX_WEBHOOK_SECRET),
+            AIRWALLEX_ENV: describeSecret(process.env.AIRWALLEX_ENV)
+        },
+        resolved: {
+            apiKey: describeSecret(c.apiKey),
+            clientId: describeSecret(c.clientId),
+            webhookSecret: describeSecret(c.webhookSecret)
+        },
+        missing: [
+            c.apiKey ? null : 'AIRWALLEX_API_KEY',
+            c.clientId ? null : 'AIRWALLEX_CLIENT_ID',
+            c.webhookSecret ? null : 'AIRWALLEX_WEBHOOK_SECRET'
+        ].filter(Boolean)
+    };
+}
+
 function isConfigured() {
     if (isMockPayments()) return true;
     const c = config();
@@ -156,6 +195,7 @@ async function getAccountCapability(id) {
 
 module.exports = {
     config,
+    diagnostics,
     isConfigured,
     getAccessToken,
     checkPaymentLinkCapability,
