@@ -5,7 +5,7 @@ ALTER TABLE members ADD COLUMN IF NOT EXISTS member_type TEXT DEFAULT 'member';
 ALTER TABLE members ADD COLUMN IF NOT EXISTS must_reset_password BOOLEAN DEFAULT false;
 
 INSERT INTO events (slug, name, event_date, day_of_week, location, status, description) VALUES
-    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'Da Nang', 'open', 'Curated FoundersVN networking dinner at 4U Lounge.'),
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'Da Nang', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
     ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO UPDATE SET
     name = EXCLUDED.name,
