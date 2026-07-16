@@ -6,13 +6,32 @@ import Link from 'next/link';
 import { ArrowRight, LockKeyhole } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
+function safeNext(value) {
+    if (!value) return '';
+    try {
+        const url = new URL(value, window.location.origin);
+        if (url.origin !== window.location.origin) return '';
+        return `${url.pathname}${url.search}${url.hash}`;
+    } catch (_) {
+        return value.startsWith('/') && !value.startsWith('//') ? value : '';
+    }
+}
+
+function changePasswordPath(next) {
+    return next ? `/change-password?next=${encodeURIComponent(next)}` : '/change-password';
+}
+
 function LoginContent() {
     const router = useRouter();
     const params = useSearchParams();
     const { user, login, ready } = useAuth();
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
-    useEffect(() => { if (ready && user) router.replace(user.must_reset_password || user.mustResetPassword ? '/change-password' : params.get('next') || (user.is_admin ? '/admin' : '/members')); }, [ready, user, router, params]);
+    useEffect(() => {
+        if (!ready || !user) return;
+        const next = safeNext(params.get('next'));
+        router.replace(user.must_reset_password || user.mustResetPassword ? changePasswordPath(next) : next || (user.is_admin ? '/admin' : '/members'));
+    }, [ready, user, router, params]);
 
     async function submit(event) {
         event.preventDefault();
@@ -20,7 +39,8 @@ function LoginContent() {
         const form = new FormData(event.currentTarget);
         try {
             const nextUser = await login(form.get('email'), form.get('password'));
-            router.replace(nextUser.must_reset_password || nextUser.mustResetPassword ? '/change-password' : params.get('next') || (nextUser.is_admin ? '/admin' : '/members'));
+            const next = safeNext(params.get('next'));
+            router.replace(nextUser.must_reset_password || nextUser.mustResetPassword ? changePasswordPath(next) : next || (nextUser.is_admin ? '/admin' : '/members'));
         } catch (e) { setError(e.message); } finally { setBusy(false); }
     }
 

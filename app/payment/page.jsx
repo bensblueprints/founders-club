@@ -36,7 +36,14 @@ function PaymentContent() {
         finally { if (!silent) setLoading(false); }
     }
 
-    useEffect(() => { if (ready && user) load(); }, [ready, user]);
+    useEffect(() => {
+        if (!ready) return;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+        load();
+    }, [ready, user]);
     useEffect(() => {
         const tick = setInterval(() => setNow(Date.now()), 1000);
         const poll = setInterval(() => load(true), 10000);
@@ -69,8 +76,10 @@ function PaymentContent() {
         } catch (error) { setCardError(error.message); setCardLoading(false); }
     }
 
-    if (!ready || loading) return <div className="loading">Loading payment status…</div>;
-    if (!user) return <section className="auth-page"><div className="auth-card center"><ShieldCheck size={40}/><h1>Sign in to pay.</h1><p className="muted">Use the credentials from your approval email.</p><Link className="button primary" href={`/login?next=/payment${params.get('order') ? `?order=${params.get('order')}` : ''}`}>Sign in</Link></div></section>;
+    const paymentPath = `/payment${params.get('order') ? `?order=${encodeURIComponent(params.get('order'))}` : ''}`;
+    if (!ready) return <div className="loading">Loading payment status…</div>;
+    if (!user) return <section className="auth-page"><div className="auth-card center"><ShieldCheck size={40}/><h1>Sign in to pay.</h1><p className="muted">Use the credentials from your approval email. After sign-in, we’ll bring you back to this payment reservation.</p><Link className="button primary" href={`/login?next=${encodeURIComponent(paymentPath)}`}>Sign in and continue</Link></div></section>;
+    if (loading) return <div className="loading">Loading payment status…</div>;
     if (error || !order) return <section className="auth-page"><div className="auth-card center"><h1>Payment unavailable.</h1><p className="muted">{error}</p><Link className="button ghost" href="/events">View events</Link></div></section>;
 
     const paid = order.status === 'paid';

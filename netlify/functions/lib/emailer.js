@@ -58,6 +58,30 @@ function venueFor(event = {}) {
     return { name: event.location || EVENT_DETAILS.location, address: event.location || EVENT_DETAILS.location };
 }
 
+function publicBaseUrl() {
+    return String(process.env.URL || 'https://foundersvn.com').replace(/\/+$/, '');
+}
+
+function absoluteUrl(path) {
+    if (/^https?:\/\//i.test(String(path || ''))) return String(path);
+    return `${publicBaseUrl()}${String(path || '').startsWith('/') ? '' : '/'}${path || ''}`;
+}
+
+function sameSitePath(value, fallback = '/') {
+    try {
+        const url = new URL(value, publicBaseUrl());
+        return `${url.pathname}${url.search}${url.hash}`;
+    } catch (_) {
+        return fallback;
+    }
+}
+
+function loginWithNextUrl(loginUrl, nextUrl) {
+    const login = new URL(loginUrl || `${publicBaseUrl()}/login`, publicBaseUrl());
+    login.searchParams.set('next', sameSitePath(nextUrl, '/payment'));
+    return login.toString();
+}
+
 // Low-level send. Returns { success, mock?, id?, error? }. Never throws.
 async function recordDelivery({ providerEmailId = null, to, subject, tracking = {}, status, error = null, mock = false }) {
     if (!isConfigured()) return;
@@ -108,22 +132,23 @@ async function sendEmail({ to, subject, html, tracking = {} }) {
     }
 }
 
-// Shared branded shell (matches send-welcome-email.js styling).
+// Shared branded shell matching the public landing page brand.
 function shell(innerHtml, footerNote = '') {
+    const logoUrl = `${publicBaseUrl()}/assets/brand/founders-vn-logo.svg`;
     return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0a;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#071a14;font-family:Inter,'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#071a14;padding:40px 20px;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:12px;overflow:hidden;">
-        <tr><td style="padding:40px 40px 20px;text-align:center;border-bottom:1px solid rgba(201,162,39,0.2);">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:300;letter-spacing:4px;">FOUNDERS</h1>
-          <p style="margin:5px 0 0;color:#c9a227;font-size:14px;letter-spacing:2px;">VIETNAM</p>
+      <table width="600" cellpadding="0" cellspacing="0" style="background-color:#0b2018;border:1px solid rgba(169,187,182,0.16);border-radius:18px;overflow:hidden;">
+        <tr><td style="padding:34px 40px 22px;text-align:left;border-bottom:1px solid rgba(169,187,182,0.16);background:linear-gradient(135deg,#071a14 0%,#0e2a20 58%,rgba(255,117,73,0.18) 100%);">
+          <img src="${logoUrl}" width="220" alt="Founders Vietnam" style="display:block;width:220px;max-width:78%;height:auto;margin:0 0 14px;filter:brightness(0) invert(1);">
+          <p style="margin:0;color:#a9bbb6;font-size:13px;letter-spacing:0.08em;">Phone-free networking for founders</p>
         </td></tr>
         <tr><td style="padding:40px;">${innerHtml}</td></tr>
-        <tr><td style="padding:30px 40px;background-color:rgba(0,0,0,0.3);text-align:center;">
-          <p style="color:rgba(255,255,255,0.5);font-size:13px;margin:0;">Founders Vietnam — Phone-free networking for founders</p>
+        <tr><td style="padding:30px 40px;background-color:rgba(0,0,0,0.22);text-align:center;">
+          <p style="color:rgba(242,240,232,0.58);font-size:13px;margin:0;">Founders Vietnam — curated dinners for operators and founders</p>
           ${footerNote ? `<p style="color:rgba(255,255,255,0.3);font-size:12px;margin:10px 0 0;">${footerNote}</p>` : ''}
         </td></tr>
       </table>
@@ -133,7 +158,7 @@ function shell(innerHtml, footerNote = '') {
 }
 
 function btn(href, label) {
-    return `<a href="${href}" style="display:inline-block;background:linear-gradient(135deg,#c9a227,#e5c464);color:#1a1a1a;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:500;font-size:16px;">${label}</a>`;
+    return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#ff7549;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:12px;font-weight:700;font-size:16px;">${label}</a>`;
 }
 
 function textBlock(value) {
@@ -141,8 +166,8 @@ function textBlock(value) {
 }
 
 function eventBox(details = EVENT_DETAILS) {
-    return `<div style="background-color:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.3);border-radius:8px;padding:20px;margin:24px 0;">
-      <p style="color:#c9a227;font-size:14px;margin:0 0 12px;font-weight:500;letter-spacing:1px;">EVENT DETAILS</p>
+    return `<div style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
+      <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">EVENT DETAILS</p>
       ${details.name ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Event:</strong> ${details.name}</p>` : ''}
       <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>When:</strong> ${details.date}</p>
       <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Where:</strong> ${details.location}</p>
@@ -171,7 +196,9 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
     const safeFirstName = escapeHtml(firstName || 'there');
     const safeEmail = escapeHtml(email);
     const safePassword = escapeHtml(tempPassword);
-    const safePaymentUrl = escapeHtml(paymentUrl);
+    const paymentAccessUrl = loginWithNextUrl(loginUrl, paymentUrl);
+    const safePaymentUrl = escapeHtml(paymentAccessUrl);
+    const safeDirectPaymentUrl = escapeHtml(paymentUrl);
     const safeLoginUrl = escapeHtml(loginUrl);
     const venue = venueFor(event);
     const deadline = formatHoldDeadline(expiresAt);
@@ -183,8 +210,8 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         ? `Your existing member account has access to this reservation. Sign in with ${safeEmail} to view payment status and your ticket.`
         : `We also created your member account so you can view your payment status, ticket, and event access.`;
     const credBox = `
-      <div style="background-color:rgba(255,255,255,0.06);border:1px solid rgba(201,162,39,0.3);border-radius:8px;padding:20px;margin:24px 0;">
-        <p style="color:#c9a227;font-size:14px;margin:0 0 12px;font-weight:500;letter-spacing:1px;">YOUR MEMBER LOGIN</p>
+      <div style="background-color:rgba(255,255,255,0.06);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
+        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">YOUR MEMBER LOGIN</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Email:</strong> ${safeEmail}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Temporary password:</strong> <code style="color:#e5c464;font-size:15px;">${safePassword}</code></p>
         <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:12px 0 0;">Use this temporary password to sign in. Keep it private and change it after login.</p>
@@ -194,12 +221,12 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${sepay ? `<p style="color:rgba(255,255,255,.72);font-size:14px;line-height:1.6;margin:0 0 18px;">You can also pay by SePay/VietQR with no fee.<br>Bank: ${escapeHtml(sepay.bank)}<br>Account: ${escapeHtml(sepay.account)} ${sepay.accountName ? `· ${escapeHtml(sepay.accountName)}` : ''}<br>Amount: ${formatVnd(sepay.amountVnd)}<br>Transfer content: <strong style="color:#e5c464;">${escapeHtml(sepay.code)}</strong></p>` : ''}`;
     const inner = `
       <p style="color:#c9a227;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
-      <h2 style="color:#c9a227;font-size:24px;margin:0 0 20px;font-weight:500;">You have a seat at FoundersVN, ${safeFirstName}</h2>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">You have a seat at FoundersVN, ${safeFirstName}</h2>
       ${textBlock(`Hi ${safeFirstName},`)}
       ${textBlock(`Thank you for applying to FoundersVN. We reviewed your application and would be honored to welcome you to our first dinner in Da Nang.`)}
       ${textBlock(`We have reserved ${seatText} for you for the next 48 hours.`)}
-      <div style="background-color:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.3);border-radius:8px;padding:20px;margin:24px 0;">
-        <p style="color:#c9a227;font-size:14px;margin:0 0 12px;font-weight:500;letter-spacing:1px;">DETAILS</p>
+      <div style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
+        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">DETAILS</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Time:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Place:</strong> ${escapeHtml(venue.name)}</p>
@@ -207,9 +234,10 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Dress code:</strong> suit and tie</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Ticket:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
-      ${textBlock(`To confirm your seat, please complete payment here:`)}
-      <div style="margin:0 0 20px;">${btn(paymentUrl, 'Confirm your seat')}</div>
+      ${textBlock(`To confirm your seat, sign in and complete payment here:`)}
+      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Sign in and confirm your seat')}</div>
       <p style="color:rgba(255,255,255,0.5);font-size:13px;margin:0 0 20px;word-break:break-all;">${safePaymentUrl}</p>
+      <p style="color:rgba(255,255,255,0.42);font-size:12px;margin:0 0 20px;word-break:break-all;">Direct payment page after login:<br>${safeDirectPaymentUrl}</p>
       ${paymentOptions}
       ${textBlock(ticketCount === 2 ? 'Your reservation includes two tickets. Maximum two tickets per company.' : 'If you would like to bring a co-founder, partner, or spouse, you can request one extra ticket from the payment page or reply to this email. Maximum two tickets per company.')}
       ${textBlock(`Your seat is held until ${escapeHtml(deadline)}. After that, it may open to the next guest in line.`)}
@@ -219,13 +247,13 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock('For any questions or assistance, please reply to this email or contact +49 1575 4444113 so FoundersVN can support you promptly.')}
       ${textBlock('We look forward to welcoming you at the table,')}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0 0 28px;">FoundersVN</p>
-      <hr style="border:none;border-top:1px solid rgba(201,162,39,0.24);margin:28px 0;">
-      <h2 style="color:#c9a227;font-size:22px;margin:0 0 20px;font-weight:500;">Bạn đã có một chỗ tại FoundersVN, ${safeFirstName}</h2>
+      <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Bạn đã có một chỗ tại FoundersVN, ${safeFirstName}</h2>
       ${textBlock(`Chào ${safeFirstName},`)}
       ${textBlock('Cảm ơn bạn đã đăng ký FoundersVN. Hồ sơ của bạn đã được duyệt, và FoundersVN rất hân hạnh gửi đến bạn lời mời tham gia bữa tối đầu tiên tại Đà Nẵng.')}
       ${textBlock(`FoundersVN đã giữ riêng ${ticketCount === 2 ? 'hai chỗ' : 'một chỗ'} cho bạn trong 48 giờ.`)}
-      <div style="background-color:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.3);border-radius:8px;padding:20px;margin:24px 0;">
-        <p style="color:#c9a227;font-size:14px;margin:0 0 12px;font-weight:500;letter-spacing:1px;">THÔNG TIN BUỔI TỐI</p>
+      <div style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
+        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">THÔNG TIN BUỔI TỐI</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Ngày:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Giờ:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa điểm:</strong> ${escapeHtml(venue.name)}</p>
@@ -233,8 +261,8 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Trang phục:</strong> suit and tie</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Vé:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
-      ${textBlock('Để xác nhận chỗ, vui lòng hoàn tất thanh toán tại đây:')}
-      <div style="margin:0 0 20px;">${btn(paymentUrl, 'Xác nhận chỗ')}</div>
+      ${textBlock('Để xác nhận chỗ, vui lòng đăng nhập và hoàn tất thanh toán tại đây:')}
+      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Đăng nhập và xác nhận chỗ')}</div>
       <p style="color:rgba(255,255,255,0.5);font-size:13px;margin:0 0 20px;word-break:break-all;">${safePaymentUrl}</p>
       ${textBlock('Đối với hình thức thanh toán quốc tế qua Airwallex, FoundersVN sẽ có phụ thu 5% phí giao dịch. Bạn cũng có thể thanh toán bằng SePay/VietQR không mất phí.')}
       ${textBlock(ticketCount === 2 ? 'Đơn đăng ký của bạn hiện bao gồm hai vé. Tối đa hai vé cho một công ty.' : 'Trong trường hợp bạn muốn đi cùng co-founder, partner, hoặc vợ/chồng, bạn có thể yêu cầu thêm một vé tại trang thanh toán hoặc phản hồi email này. Tối đa hai vé cho một công ty.')}

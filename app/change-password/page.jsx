@@ -7,6 +7,19 @@ import { KeyRound } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { callFunction } from '@/lib/api';
 
+function safeNextFromLocation() {
+    if (typeof window === 'undefined') return '';
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (!raw) return '';
+    try {
+        const url = new URL(raw, window.location.origin);
+        if (url.origin !== window.location.origin) return '';
+        return `${url.pathname}${url.search}${url.hash}`;
+    } catch (_) {
+        return raw.startsWith('/') && !raw.startsWith('//') ? raw : '';
+    }
+}
+
 export default function ChangePasswordPage() {
     const router = useRouter();
     const { user, ready, updateUser } = useAuth();
@@ -23,7 +36,8 @@ export default function ChangePasswordPage() {
             const result = await callFunction('auth-change-password', { password });
             localStorage.setItem('fvn_session_token', result.token);
             updateUser(result.user);
-            router.replace(result.user.account_status === 'payment_pending' ? '/payment' : '/profile');
+            const next = safeNextFromLocation();
+            router.replace(next || (result.user.account_status === 'payment_pending' ? '/payment' : '/profile'));
         } catch (e) { setError(e.message); } finally { setBusy(false); }
     }
     if (!ready) return <div className="loading">Checking account…</div>;
