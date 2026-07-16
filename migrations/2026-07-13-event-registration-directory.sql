@@ -31,8 +31,10 @@ ALTER TABLE applications
     ADD CONSTRAINT applications_event_id_fkey
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE RESTRICT;
 
-CREATE UNIQUE INDEX IF NOT EXISTS applications_event_email_unique
-    ON applications(event_id, LOWER(email));
+-- This used to be unique, but members can now request one additional ticket
+-- for the same event as a separate application/payment flow.
+CREATE INDEX IF NOT EXISTS idx_applications_event_email_status
+    ON applications(event_id, LOWER(email), status);
 CREATE INDEX IF NOT EXISTS idx_applications_event ON applications(event_id);
 
 ALTER TABLE event_attendance ADD COLUMN IF NOT EXISTS application_id UUID;
