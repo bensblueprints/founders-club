@@ -40,6 +40,10 @@ const FORM_COPY = {
         submit: 'Submit',
         sending: 'Sending application…',
         privacy: 'Your answers are only used to curate the room and are never shared publicly without your consent.',
+        requiredFieldError: 'Please fill in this required field.',
+        emailFormatError: 'Please enter a valid email address, for example name@company.com.',
+        linkFormatError: 'Please enter a valid company website or LinkedIn URL starting with https:// or http://.',
+        phoneFormatError: 'Please enter your WhatsApp or Zalo number with country code if possible, for example +84 901 234 567.',
         chooseEventError: 'Please choose an event.',
         chipError: group => `Please select at least one option for ${group}.`,
         chipLabels: { industry: 'your industry', looking: 'what you are looking for', offer: 'what you can offer' },
@@ -73,6 +77,10 @@ const FORM_COPY = {
         submit: 'Gửi đăng ký',
         sending: 'Đang gửi đăng ký…',
         privacy: 'Thông tin của bạn chỉ được dùng để lựa chọn và kết nối người tham dự, không chia sẻ công khai khi chưa có sự đồng ý.',
+        requiredFieldError: 'Vui lòng điền thông tin bắt buộc này.',
+        emailFormatError: 'Vui lòng nhập email hợp lệ, ví dụ name@company.com.',
+        linkFormatError: 'Vui lòng nhập website công ty hoặc LinkedIn hợp lệ, bắt đầu bằng https:// hoặc http://.',
+        phoneFormatError: 'Vui lòng nhập số WhatsApp hoặc Zalo, nên kèm mã quốc gia, ví dụ +84 901 234 567.',
         chooseEventError: 'Vui lòng chọn sự kiện.',
         chipError: group => `Vui lòng chọn ít nhất một mục cho ${group}.`,
         chipLabels: { industry: 'ngành của bạn', looking: 'nhu cầu kết nối của bạn', offer: 'giá trị bạn có thể đóng góp' },
@@ -109,10 +117,42 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
         }).catch(() => {});
     }, []);
 
+    function validationMessage(input) {
+        if (input.validity.valueMissing) return copy.requiredFieldError;
+        if (input.name === 'email' && input.validity.typeMismatch) return copy.emailFormatError;
+        if (input.name === 'company_link' && (input.validity.typeMismatch || input.validity.patternMismatch)) return copy.linkFormatError;
+        if (input.name === 'links' && input.validity.patternMismatch) return copy.phoneFormatError;
+        return input.validationMessage || copy.requiredFieldError;
+    }
+
+    function handleInvalid(event) {
+        event.preventDefault();
+        const input = event.target;
+        const message = validationMessage(input);
+        input.setCustomValidity(message);
+        setStatus({ type: 'error', message });
+        requestAnimationFrame(() => input.reportValidity());
+    }
+
+    function clearValidity(event) {
+        event.currentTarget.setCustomValidity('');
+    }
+
     async function submit(event) {
         event.preventDefault();
         const formElement = event.currentTarget;
         setStatus(null);
+        if (!formElement.checkValidity()) {
+            const firstInvalid = formElement.querySelector(':invalid');
+            if (firstInvalid) {
+                const message = validationMessage(firstInvalid);
+                firstInvalid.setCustomValidity(message);
+                setStatus({ type: 'error', message });
+                firstInvalid.reportValidity();
+                firstInvalid.focus();
+            }
+            return;
+        }
         const form = new FormData(formElement);
         if (!form.get('event_slug')) {
             setStatus({ type: 'error', message: copy.chooseEventError });
@@ -149,11 +189,11 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
     }
 
     return (
-        <form className="panel form-grid" onSubmit={submit}>
-            <div className="field"><label htmlFor="name">{copy.name}</label><input id="name" name="name" autoComplete="name" required /></div>
-            <div className="field"><label htmlFor="email">{copy.email}</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
-            <div className="field"><label htmlFor="company">{copy.company}</label><input id="company" name="company" autoComplete="organization" required /></div>
-            <div className="field"><label htmlFor="role">{copy.role}</label><input id="role" name="role" placeholder={copy.rolePlaceholder} required /></div>
+        <form className="panel form-grid" onSubmit={submit} onInvalid={handleInvalid}>
+            <div className="field"><label htmlFor="name">{copy.name}</label><input id="name" name="name" autoComplete="name" onInput={clearValidity} required /></div>
+            <div className="field"><label htmlFor="email">{copy.email}</label><input id="email" name="email" type="email" autoComplete="email" onInput={clearValidity} required /></div>
+            <div className="field"><label htmlFor="company">{copy.company}</label><input id="company" name="company" autoComplete="organization" onInput={clearValidity} required /></div>
+            <div className="field"><label htmlFor="role">{copy.role}</label><input id="role" name="role" placeholder={copy.rolePlaceholder} onInput={clearValidity} required /></div>
             <div className="field full">
                 {hideEventPicker ? <input type="hidden" id="event_slug" name="event_slug" value={selectedEvent} /> : <>
                     <label htmlFor="event_slug">{copy.chooseEvent}</label>
@@ -168,22 +208,22 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
                 </select>}
                 </>}
             </div>
-            <div className="field full"><label htmlFor="company_link">{copy.companyLink}</label><input id="company_link" name="company_link" type="url" inputMode="url" placeholder="https://…" pattern="https?://.+" title="Please enter a valid link starting with http:// or https://" required /></div>
+            <div className="field full"><label htmlFor="company_link">{copy.companyLink}</label><input id="company_link" name="company_link" type="url" inputMode="url" placeholder="https://…" pattern="https?://.+" title={copy.linkFormatError} onInput={clearValidity} required /><span className="field-hint">{copy.linkFormatError}</span></div>
             <div className="field full ticket-count-field">
                 <label>{copy.tickets}</label>
                 <div className="ticket-count-options" role="radiogroup" aria-label="Ticket quantity">
                     <label className={ticketCount === '1' ? 'selected' : ''}><input type="radio" name="ticket_count" value="1" checked={ticketCount === '1'} onChange={event => setTicketCount(event.target.value)} required />{copy.ticketOne} <span>{copy.ticketOneHint}</span></label>
                     <label className={ticketCount === '2' ? 'selected' : ''}><input type="radio" name="ticket_count" value="2" checked={ticketCount === '2'} onChange={event => setTicketCount(event.target.value)} required />{copy.ticketTwo} <span>{copy.ticketTwoHint}</span></label>
                 </div>
-                {ticketCount === '2' && <input name="guest_name" placeholder={copy.guestName} required />}
+                {ticketCount === '2' && <input name="guest_name" placeholder={copy.guestName} onInput={clearValidity} required />}
             </div>
             {Object.entries(CHIP_GROUPS).map(([group, values]) => <div className="field full chip-field" key={group}>
                 <label>{copy.groups[group]} <span className="chip-hint">{copy.hint}</span></label>
                 <div className="legacy-answer-chips" role="group" aria-required="true">{values.map(([value, en, vi]) => <button type="button" key={value} aria-pressed={chips[group].includes(value)} onClick={() => toggleChip(group, value)}>{language === 'vi' ? vi : en}</button>)}</div>
-                {chips[group].includes('other') && <input name={`${group === 'offer' ? 'offer' : group}_other`} placeholder={group === 'industry' ? copy.otherIndustry : copy.other} required />}
+                {chips[group].includes('other') && <input name={`${group === 'offer' ? 'offer' : group}_other`} placeholder={group === 'industry' ? copy.otherIndustry : copy.other} onInput={clearValidity} required />}
             </div>)}
-            <div className="field full"><label htmlFor="what_you_do">{copy.what}</label><input id="what_you_do" name="what_you_do" required /></div>
-            <div className="field"><label htmlFor="links">{copy.links}</label><input id="links" name="links" type="tel" inputMode="tel" autoComplete="tel" placeholder={copy.linksPlaceholder} pattern="\\+?[0-9][0-9\\s().-]{7,18}" title="Please enter a valid phone number for WhatsApp or Zalo." required /></div>
+            <div className="field full"><label htmlFor="what_you_do">{copy.what}</label><input id="what_you_do" name="what_you_do" onInput={clearValidity} required /></div>
+            <div className="field"><label htmlFor="links">{copy.links}</label><input id="links" name="links" type="tel" inputMode="tel" autoComplete="tel" placeholder={copy.linksPlaceholder} pattern="\\+?[0-9][0-9\\s().-]{7,18}" title={copy.phoneFormatError} onInput={clearValidity} required /><span className="field-hint">{copy.phoneFormatError}</span></div>
             <div className="field"><label htmlFor="language">{copy.language}</label><select id="language" name="language" defaultValue="vi" required><option value="vi">{copy.vi}</option><option value="en">{copy.en}</option><option value="both">{copy.both}</option></select></div>
             {status && <div className={`form-status ${status.type} field full`}>{status.type === 'success' && <CheckCircle2 size={17} />} {status.message}</div>}
             <div className="field full"><button className="button primary submit-application" disabled={busy}>{busy ? copy.sending : <>{copy.submit} <ArrowRight size={18} /></>}</button></div>

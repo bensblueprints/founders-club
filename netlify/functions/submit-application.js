@@ -64,13 +64,13 @@ exports.handler = async (event) => {
         return json(400, { error: `Missing required field(s): ${missing.join(', ')}` });
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) {
-        return json(400, { error: 'Invalid email address' });
+        return json(400, { error: 'Please enter a valid email address, for example name@company.com.' });
     }
     if (!isHttpUrl(body.company_link)) {
-        return json(400, { error: 'Invalid company website or LinkedIn URL. Please include http:// or https://.' });
+        return json(400, { error: 'Please enter a valid company website or LinkedIn URL starting with https:// or http://.' });
     }
     if (!isContactNumber(body.links)) {
-        return json(400, { error: 'Invalid WhatsApp/Zalo number.' });
+        return json(400, { error: 'Please enter a valid WhatsApp/Zalo number, for example +84 901 234 567.' });
     }
 
     const { first, last } = splitName(body.name);
