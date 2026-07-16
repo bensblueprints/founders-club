@@ -790,6 +790,9 @@ main { flex: 1; }
     font-size: .88rem;
     font-weight: 600;
 }
+.legacy-profile-links { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 16px; }
+.legacy-profile-links a { color: var(--coral); font-size: .86rem; font-weight: 650; text-decoration: none; }
+.legacy-profile-links a:hover { color: var(--bone); }
 .legacy-social-row {
     display: flex;
     gap: 10px;

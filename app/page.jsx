@@ -41,7 +41,13 @@ export default function HomePage() {
 
             <section className="pos" id="about"><div className="wrap"><div className="pos-grid">
                 <div className="pos-copy" data-reveal><p className="kicker">{copy.pos.kicker}</p><h2>{copy.pos.title}</h2>{copy.pos.body.map(item => <p key={item}>{item}</p>)}</div>
-                <figure className="pos-fig" data-reveal="right"><img src="/images/landing/networking-1.jpg" alt={copy.pos.alt} /><figcaption>{copy.pos.caption}</figcaption></figure>
+                <div className="pos-fig-wrap" data-reveal="right">
+                    <figure className="pos-fig"><img src="/images/landing/networking-1.jpg" alt={copy.pos.alt} /><figcaption>{copy.pos.caption}</figcaption></figure>
+                    <video className="pos-cube" autoPlay muted loop playsInline preload="metadata" poster="/tools/hero-video/out/cube-spin-poster.png" aria-hidden="true">
+                        <source src="/tools/hero-video/out/cube-spin.webm" type="video/webm" />
+                        <source src="/tools/hero-video/out/cube-spin.mp4" type="video/mp4" />
+                    </video>
+                </div>
             </div></div></section>
 
             <section className="how" id="how"><div className="wrap"><div className="sec-head" data-reveal="down"><h2>{copy.how.title}</h2></div><div className="how-grid">
