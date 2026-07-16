@@ -148,7 +148,8 @@ test('approval email uses the V1 bilingual seat-held template', () => {
     assert.ok(email.html.includes('src="cid:foundersvn-facebook"'));
     assert.ok(email.html.includes('src="cid:foundersvn-instagram"'));
     assert.ok(email.html.includes('src="cid:foundersvn-whatsapp"'));
-    assert.equal((email.html.match(/Sign in and finish payment to confirm your seat/g) || []).length, 2);
+    assert.equal((email.html.match(/Sign in and finish payment to confirm your seat/g) || []).length, 1);
+    assert.equal((email.html.match(/Đăng nhập và hoàn tất thanh toán để xác nhận chỗ/g) || []).length, 1);
     assert.ok(email.html.includes('@media only screen and (max-width:620px)'));
     assert.ok(email.html.includes('class="email-card"'));
     assert.ok(email.html.includes('class="email-button"'));
@@ -199,7 +200,8 @@ test('24-hour reminder email is bilingual', () => {
     assert.ok(email.html.includes('hold your FoundersVN seat for one more day'));
     assert.ok(email.html.includes('giữ chỗ cho bạn thêm 1 ngày'));
     assert.ok(email.html.includes('THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN'));
-    assert.equal((email.html.match(/Sign in and finish payment to confirm your seat/g) || []).length, 2);
+    assert.equal((email.html.match(/Sign in and finish payment to confirm your seat/g) || []).length, 1);
+    assert.equal((email.html.match(/Đăng nhập và hoàn tất thanh toán để xác nhận chỗ/g) || []).length, 1);
     assert.ok(email.html.includes('next=%2Fpayment%3Forder%3Dorder-1'));
     assert.ok(!email.html.includes('Payment page:'));
 });
