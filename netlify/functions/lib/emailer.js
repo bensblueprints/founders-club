@@ -340,9 +340,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Mật khẩu tạm thời:</strong> <code style="color:#e5c464;font-size:15px;">${safePassword}</code></p>
         <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:12px 0 0;">Dùng mật khẩu tạm thời này để đăng nhập. Vui lòng giữ riêng tư và đổi mật khẩu sau khi đăng nhập.</p>
       </div>`;
-    const paymentOptions = airwallexUrl || sepay
-        ? `<p style="color:rgba(255,255,255,.72);font-size:14px;line-height:1.6;margin:0 0 18px;">Payment is available by international card through Airwallex with a 5% card fee, or by e-wallet / VietQR / SePay with no fee. The payment page will show the correct option for you.</p>`
-        : '';
+    const paymentOptions = `<p style="color:rgba(255,255,255,.72);font-size:14px;line-height:1.6;margin:0 0 18px;">You can pay by international card through Airwallex with a 5% card fee, or by e-wallet / VietQR / SePay with no fee. The payment page will show the correct option for you.</p>`;
     const inner = `
       <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
       <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">Your FoundersVN seat is reserved, ${safeFirstName}</h2>
@@ -361,7 +359,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock(accountCopy)}
       ${existingAccount ? '' : credBox}
       ${textBlock(`To confirm your seat, sign in and complete payment here:`)}
-      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Sign in and confirm your seat')}</div>
+      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Sign in and finish payment to confirm your seat')}</div>
       ${paymentOptions}
       ${textBlock(ticketCount === 2 ? 'Your reservation includes two tickets. Maximum two tickets per company.' : 'If you would like to <strong style="color:#d9ff63;">bring a co-founder, partner, or spouse</strong>, you can request one extra ticket from the payment page or reply to this email. Maximum two tickets per company.')}
       ${textBlock(`Your seat is held until ${escapeHtml(deadline)}. After that, it may open to the next guest in line.`)}
@@ -385,7 +383,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock(accountCopyVietnamese)}
       ${existingAccount ? '' : credBoxVietnamese}
       ${textBlock('Để xác nhận chỗ, vui lòng đăng nhập và hoàn tất thanh toán tại đây:')}
-      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Sign in and confirm your seat')}</div>
+      <div style="margin:0 0 20px;">${btn(paymentAccessUrl, 'Sign in and finish payment to confirm your seat')}</div>
       ${textBlock('Bạn có thể thanh toán bằng thẻ quốc tế qua Airwallex với 5% phí thẻ, hoặc bằng ví điện tử / VietQR / SePay không mất phí. Trang thanh toán sẽ hiển thị lựa chọn phù hợp cho bạn.')}
       ${textBlock(ticketCount === 2 ? 'Đơn đăng ký của bạn hiện bao gồm hai vé. Tối đa hai vé cho một công ty.' : 'Trong trường hợp bạn muốn <strong style="color:#d9ff63;">đi cùng co-founder, partner, hoặc vợ/chồng</strong>, bạn có thể yêu cầu thêm một vé tại trang thanh toán hoặc phản hồi email này. Tối đa hai vé cho một công ty.')}
       ${textBlock(`Chỗ của bạn được giữ đến ${escapeHtml(deadline)}. Sau thời gian này, chỗ có thể được nhường cho vị khách kế tiếp trong danh sách.`)}
@@ -436,7 +434,7 @@ function reminderEmail({ firstName, paymentUrl, hoursLeft = 24, reminderKind = '
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Ticket:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
-      <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Sign in and confirm your seat')}</div>
+      <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Sign in and finish payment to confirm your seat')}</div>
       ${textBlock(contactLineEnglish())}
       <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
       <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">${escapeHtml(vietnameseTitle)}${safeFirstName ? `, ${safeFirstName}` : ''}</h2>
@@ -450,7 +448,7 @@ function reminderEmail({ firstName, paymentUrl, hoursLeft = 24, reminderKind = '
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Vé:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
-      <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Sign in and confirm your seat')}</div>
+      <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Sign in and finish payment to confirm your seat')}</div>
       ${textBlock(contactLineVietnamese())}`;
     return {
         subject,
