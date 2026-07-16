@@ -302,16 +302,16 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- ========================================
 -- SAMPLE EVENTS (same seed as the old schema)
 -- ========================================
-INSERT INTO events (slug, name, event_date, day_of_week, status, description) VALUES
-    ('jan-2026', 'January Gathering', '2026-01-24', 'Saturday', 'completed', 'Our inaugural gathering brought together Vietnam''s most ambitious founders.'),
-    ('feb-2026', 'February Gathering', '2026-02-10', 'Tuesday', 'open', 'Monthly gathering for founders.'),
-    ('mar-2026', 'March Gathering', '2026-03-11', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('apr-2026', 'April Gathering', '2026-04-14', 'Tuesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
-    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
+INSERT INTO events (slug, name, event_date, day_of_week, location, status, description) VALUES
+    ('jan-2026', 'January Gathering', '2026-01-24', 'Saturday', 'Ho Chi Minh City', 'completed', 'Our inaugural gathering brought together Vietnam''s most ambitious founders.'),
+    ('feb-2026', 'February Gathering', '2026-02-10', 'Tuesday', 'Ho Chi Minh City', 'open', 'Monthly gathering for founders.'),
+    ('mar-2026', 'March Gathering', '2026-03-11', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
+    ('apr-2026', 'April Gathering', '2026-04-14', 'Tuesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
+    ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
+    ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
+    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'FOR YOU SteakHouse, Da Nang', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
+    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ========================================
