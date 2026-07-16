@@ -132,7 +132,7 @@
 
 .landing-original .gallery { padding: 14px 0 92px; overflow: hidden; }
 .landing-original .marq { display: flex; overflow: hidden; mask-image: linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-.landing-original .marq-track { display: flex; width: max-content; will-change: transform; transform: translate3d(0,0,0); animation: legacyMarquee 48s linear infinite; }
+.landing-original .marq-track { --marq-duration: 48s; display: flex; width: max-content; will-change: transform; transform: translate3d(0,0,0); animation: legacyMarquee var(--marq-duration) linear infinite; }
 .landing-original .marq-group { display: flex; flex: none; gap: 16px; padding-right: 16px; }
 .landing-original .marq-track:hover { animation-play-state: paused; }
 .landing-original .marq-item { width: 348px; height: 232px; flex: none; padding: 0; overflow: hidden; cursor: zoom-in; background: var(--pine-raise); border: 1px solid var(--legacy-border); border-radius: 14px; }
@@ -286,6 +286,7 @@
     .landing-original .ic:nth-child(4) { border-top: 1px solid var(--legacy-border); }
     .landing-original .ic:nth-child(5) { flex-basis: 100%; border-top: 1px solid var(--legacy-border); border-left: 0; }
     .landing-original .gallery { padding-top: 14px; }
+    .landing-original .marq-track { --marq-duration: 28s; }
     .landing-original .marq-group { gap: 12px; padding-right: 12px; }
     .landing-original .marq-item { width: 252px; height: 168px; }
     .landing-original .gallery-lightbox { grid-template-columns: 44px minmax(0,1fr) 44px; gap: 6px; padding: 24px 10px; }
@@ -301,6 +302,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .landing-original .app-watermark, .landing-original .app-badge { animation: none; }
-    .landing-original .marq-track { animation: legacyMarquee 48s linear infinite !important; }
+    .landing-original .marq-track { animation: legacyMarquee var(--marq-duration) linear infinite !important; }
     .landing-original.reveal-ready [data-reveal] { opacity: 1; transform: none; transition: none; }
 }

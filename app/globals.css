@@ -702,9 +702,12 @@ main { flex: 1; }
     mask-image: linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
 }
 .legacy-marq-track {
+    --legacy-marq-duration: 42s;
     display: flex;
     width: max-content;
-    animation: legacy-marq 42s linear infinite;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+    animation: legacy-marq var(--legacy-marq-duration) linear infinite;
 }
 .legacy-marq:hover .legacy-marq-track { animation-play-state: paused; }
 .legacy-marq img {
@@ -716,7 +719,7 @@ main { flex: 1; }
     object-fit: cover;
     display: block;
 }
-@keyframes legacy-marq { to { transform: translateX(-50%); } }
+@keyframes legacy-marq { to { transform: translate3d(-50%,0,0); } }
 
 .legacy-team-hero {
     display: grid;
@@ -750,6 +753,9 @@ main { flex: 1; }
     transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform;
+}
+.legacy-cube-poster {
+    object-fit: contain;
 }
 @keyframes legacy-cube-float {
     0%, 100% { transform: translateY(0) rotate(-1.2deg); }
@@ -2029,8 +2035,9 @@ main { flex: 1; }
     }
     .legacy-info-page > .legacy-event-hero {
         width: 100%;
-        min-height: 760px;
-        padding: 118px 0 76px;
+        min-height: 0;
+        padding: 96px 0 62px;
+        background: var(--pine) url('/video/poster.jpg') center 42%/cover no-repeat;
     }
     .legacy-event-hero-wrap {
         width: min(100% - 34px, 1120px);
@@ -2040,12 +2047,13 @@ main { flex: 1; }
         gap: 26px;
     }
     .legacy-event-cube-wrap {
-        min-height: 340px;
+        min-height: 230px;
         order: -1;
     }
     .legacy-event-cube-img {
-        width: 245%;
-        max-width: 700px;
+        width: min(78vw, 310px);
+        max-width: 310px;
+        filter: drop-shadow(0 20px 32px rgba(0,0,0,.45));
     }
     .legacy-model-grid,
     .legacy-team-grid,
@@ -2055,10 +2063,19 @@ main { flex: 1; }
     }
     .legacy-team-hero { gap: 26px; }
     .legacy-cube-wrap {
-        min-height: 240px;
+        min-height: 220px;
         order: -1;
     }
+    .legacy-team-hero .legacy-cube-img {
+        width: min(74vw, 300px);
+        max-width: 300px;
+        filter: drop-shadow(0 20px 32px rgba(0,0,0,.45));
+    }
+    .legacy-marq-track {
+        --legacy-marq-duration: 26s;
+    }
     .legacy-marq img {
+        width: 230px;
         height: 150px;
         margin-right: 10px;
     }
@@ -2072,5 +2089,5 @@ main { flex: 1; }
         transform: none;
         transition: none;
     }
-    .legacy-marq-track { animation: legacy-marq 42s linear infinite !important; }
+    .legacy-marq-track { animation: legacy-marq var(--legacy-marq-duration) linear infinite !important; }
 }

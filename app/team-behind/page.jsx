@@ -1,4 +1,5 @@
 import LandingAnimations from '@/components/LandingAnimations';
+import { RotatingCube } from '@/components/ResponsiveEventMedia';
 
 export const metadata = { title: 'The team behind · FoundersVN' };
 
@@ -75,10 +76,7 @@ export default function TeamBehindPage() {
                 <p className="legacy-lead">Built by operators who care about better rooms, better introductions, and conversations that continue after the event.</p>
             </div>
             <div className="legacy-cube-wrap reveal">
-                <video className="legacy-cube-img" autoPlay muted loop playsInline preload="metadata" poster="/tools/hero-video/out/cube-spin-poster.png" aria-label="FoundersVN mark on a 3D cube">
-                    <source src="/tools/hero-video/out/cube-spin.webm" type="video/webm" />
-                    <source src="/tools/hero-video/out/cube-spin.mp4" type="video/mp4" />
-                </video>
+                <RotatingCube label="FoundersVN mark on a 3D cube" />
             </div>
         </section>
 

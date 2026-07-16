@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import ApplicationForm from '@/components/ApplicationForm';
 import LandingAnimations from '@/components/LandingAnimations';
 import { useLanguage } from '@/components/LanguageProvider';
+import { RotatingCube } from '@/components/ResponsiveEventMedia';
 import { LANDING_COPY } from '@/lib/landing-copy';
 
 const gallery = [
@@ -88,10 +89,7 @@ export default function HomePage() {
                 <div className="pos-copy" data-reveal><p className="kicker">{copy.pos.kicker}</p><h2>{copy.pos.title}</h2>{copy.pos.body.map(item => <p key={item}>{item}</p>)}</div>
                 <div className="pos-fig-wrap" data-reveal="right">
                     <figure className="pos-fig"><img src="/images/landing/networking-1.jpg" alt={copy.pos.alt} /><figcaption>{copy.pos.caption}</figcaption></figure>
-                    <video className="pos-cube" autoPlay muted loop playsInline preload="metadata" poster="/tools/hero-video/out/cube-spin-poster.png" aria-hidden="true">
-                        <source src="/tools/hero-video/out/cube-spin.webm" type="video/webm" />
-                        <source src="/tools/hero-video/out/cube-spin.mp4" type="video/mp4" />
-                    </video>
+                    <RotatingCube className="pos-cube" label="" />
                 </div>
             </div></div></section>
 
