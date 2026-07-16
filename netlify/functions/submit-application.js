@@ -24,6 +24,21 @@ function splitName(name) {
     return { first, last };
 }
 
+function isHttpUrl(value) {
+    try {
+        const url = new URL(String(value || '').trim());
+        return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname);
+    } catch (_) {
+        return false;
+    }
+}
+
+function isContactNumber(value) {
+    const raw = String(value || '').trim();
+    const digits = raw.replace(/\D/g, '');
+    return /^\+?[0-9][0-9\s().-]{7,18}$/.test(raw) && digits.length >= 8 && digits.length <= 15;
+}
+
 function json(statusCode, obj) {
     return { statusCode, headers: { 'Content-Type': 'application/json', ...CORS }, body: JSON.stringify(obj) };
 }
@@ -50,6 +65,12 @@ exports.handler = async (event) => {
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) {
         return json(400, { error: 'Invalid email address' });
+    }
+    if (!isHttpUrl(body.company_link)) {
+        return json(400, { error: 'Invalid company website or LinkedIn URL. Please include http:// or https://.' });
+    }
+    if (!isContactNumber(body.links)) {
+        return json(400, { error: 'Invalid WhatsApp/Zalo number.' });
     }
 
     const { first, last } = splitName(body.name);

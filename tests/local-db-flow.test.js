@@ -38,7 +38,7 @@ function applicationPayload(overrides = {}) {
         looking_for: 'Customers / Clients',
         can_offer: 'Expertise / Advice',
         what_you_do: 'Building better founder operations',
-        links: 'https://linkedin.com/in/integration-founder',
+        links: '+84 901 234 567',
         language: 'en',
         ...overrides
     };
@@ -187,7 +187,7 @@ async function invokeSepay(body) {
         name: 'Expiry Founder', email: expiredEmail, company: 'Expiry Co', role: 'Founder',
         event_slug: 'hcmc-aug-2026', ticket_count: 1,
         company_link: 'https://expiry.example',
-        links: 'https://linkedin.com/in/expiry-founder'
+        links: '+84 902 345 678'
     }));
     assert.strictEqual(submittedExpiry.statusCode, 200, submittedExpiry.body);
     const expiryApplicationId = JSON.parse(submittedExpiry.body).id;

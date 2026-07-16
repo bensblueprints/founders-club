@@ -31,7 +31,8 @@ const FORM_COPY = {
         otherIndustry: 'Which industry?',
         other: 'Tell us more',
         what: 'In one line, what are you building?',
-        links: 'Your links (LinkedIn / Zalo / portfolio)',
+        links: 'Your WhatsApp / Zalo number',
+        linksPlaceholder: '+84 901 234 567',
         language: 'Which language are you most comfortable using at the event?',
         vi: 'Vietnamese',
         en: 'English',
@@ -63,7 +64,8 @@ const FORM_COPY = {
         otherIndustry: 'Ngành nào?',
         other: 'Cho chúng tôi biết thêm',
         what: 'Một câu: bạn đang xây gì?',
-        links: 'Link của bạn (LinkedIn / Zalo / portfolio)',
+        links: 'Số WhatsApp / Zalo của bạn',
+        linksPlaceholder: '+84 901 234 567',
         language: 'Bạn muốn dùng ngôn ngữ nào trong sự kiện?',
         vi: 'Tiếng Việt',
         en: 'Tiếng Anh',
@@ -166,7 +168,7 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
                 </select>}
                 </>}
             </div>
-            <div className="field full"><label htmlFor="company_link">{copy.companyLink}</label><input id="company_link" name="company_link" type="text" inputMode="url" placeholder="https://…" required /></div>
+            <div className="field full"><label htmlFor="company_link">{copy.companyLink}</label><input id="company_link" name="company_link" type="url" inputMode="url" placeholder="https://…" pattern="https?://.+" title="Please enter a valid link starting with http:// or https://" required /></div>
             <div className="field full ticket-count-field">
                 <label>{copy.tickets}</label>
                 <div className="ticket-count-options" role="radiogroup" aria-label="Ticket quantity">
@@ -181,7 +183,7 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
                 {chips[group].includes('other') && <input name={`${group === 'offer' ? 'offer' : group}_other`} placeholder={group === 'industry' ? copy.otherIndustry : copy.other} required />}
             </div>)}
             <div className="field full"><label htmlFor="what_you_do">{copy.what}</label><input id="what_you_do" name="what_you_do" required /></div>
-            <div className="field"><label htmlFor="links">{copy.links}</label><input id="links" name="links" type="text" placeholder="https://…" required /></div>
+            <div className="field"><label htmlFor="links">{copy.links}</label><input id="links" name="links" type="tel" inputMode="tel" autoComplete="tel" placeholder={copy.linksPlaceholder} pattern="\\+?[0-9][0-9\\s().-]{7,18}" title="Please enter a valid phone number for WhatsApp or Zalo." required /></div>
             <div className="field"><label htmlFor="language">{copy.language}</label><select id="language" name="language" defaultValue="vi" required><option value="vi">{copy.vi}</option><option value="en">{copy.en}</option><option value="both">{copy.both}</option></select></div>
             {status && <div className={`form-status ${status.type} field full`}>{status.type === 'success' && <CheckCircle2 size={17} />} {status.message}</div>}
             <div className="field full"><button className="button primary submit-application" disabled={busy}>{busy ? copy.sending : <>{copy.submit} <ArrowRight size={18} /></>}</button></div>

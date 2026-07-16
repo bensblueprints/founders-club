@@ -114,7 +114,7 @@ async function test(name, fn) {
         looking_for: 'Customers / Clients',
         can_offer: 'Expertise / Advice',
         what_you_do: 'Building founder workflow software',
-        links: 'https://linkedin.com/in/jane',
+        links: '+84 901 234 567',
         language: 'en'
     };
 
