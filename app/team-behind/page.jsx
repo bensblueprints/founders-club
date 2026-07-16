@@ -1,4 +1,5 @@
 import LandingAnimations from '@/components/LandingAnimations';
+import { RotatingCube } from '@/components/ResponsiveEventMedia';
 
 export const metadata = { title: 'The team behind · FoundersVN' };
 
@@ -31,9 +32,14 @@ const people = [
     },
     {
         initial: 'B',
-        name: 'Benji',
+        name: 'Ben Boyce',
         role: 'Co-Founder, Ads & Growth',
-        body: 'Benji runs paid acquisition end to end: targeting, creative testing, and funnel tracking, plus secondary technical support for the app.'
+        body: 'Ben is an entrepreneur and growth builder with more than $25 million in ecommerce sales. Through Advanced Marketing, he helps founders take digital products, physical brands, and live-event ideas from concept to market. His work has been featured by Forbes, The Wall Street Journal, LA Weekly, Slate, Hacker Noon, and Yahoo. He is currently building 100 apps in 100 days through OneTimeSuite, a practical challenge to create useful software without recurring subscription fees.',
+        image: '/images/landing/team-benji.png',
+        websites: [
+            ['AdvancedMarketing.co', 'https://advancedmarketing.co'],
+            ['OneTimeSuite.com', 'https://onetimesuite.com']
+        ]
     }
 ];
 
@@ -70,10 +76,7 @@ export default function TeamBehindPage() {
                 <p className="legacy-lead">Built by operators who care about better rooms, better introductions, and conversations that continue after the event.</p>
             </div>
             <div className="legacy-cube-wrap reveal">
-                <video className="legacy-cube-img" autoPlay muted loop playsInline preload="metadata" poster="/tools/hero-video/out/cube-spin-poster.png" aria-label="FoundersVN mark on a 3D cube">
-                    <source src="/tools/hero-video/out/cube-spin.webm" type="video/webm" />
-                    <source src="/tools/hero-video/out/cube-spin.mp4" type="video/mp4" />
-                </video>
+                <RotatingCube label="FoundersVN mark on a 3D cube" />
             </div>
         </section>
 
@@ -86,6 +89,9 @@ export default function TeamBehindPage() {
                     <h2>{person.name}</h2>
                     <p className="legacy-role">{person.role}</p>
                     <p>{person.body}</p>
+                    {person.websites && <div className="legacy-profile-links">
+                        {person.websites.map(([label, href]) => <a href={href} target="_blank" rel="noopener noreferrer" key={href}>{label}</a>)}
+                    </div>}
                     {(person.email || person.linkedin || person.instagram) && <div className="legacy-social-row">
                         {person.email && <a className="legacy-social" href={person.email} aria-label={`Email ${person.name}`}><MailIcon /></a>}
                         {person.linkedin && <a className="legacy-social" href={person.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${person.name} on LinkedIn`}><LinkedInIcon /></a>}

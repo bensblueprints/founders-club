@@ -1,4 +1,5 @@
 import LandingAnimations from '@/components/LandingAnimations';
+import { EventHeroMedia, RotatingCube } from '@/components/ResponsiveEventMedia';
 
 export const metadata = { title: 'FoundersVN events' };
 
@@ -30,9 +31,7 @@ export default function FoundersVNEventsPage() {
     return <main className="legacy-info-page legacy-events-page">
         <LandingAnimations />
         <section className="legacy-event-hero">
-            <video className="legacy-hero-video-bg" autoPlay muted loop playsInline preload="metadata" poster="/video/poster.jpg" aria-hidden="true">
-                <source src="/video/hero.webm" type="video/webm" />
-            </video>
+            <EventHeroMedia />
             <div className="legacy-event-hero-wrap">
                 <div className="legacy-event-hero-grid">
                     <div className="reveal">
@@ -41,10 +40,7 @@ export default function FoundersVNEventsPage() {
                         <p className="legacy-lead">A phone-free networking series built around curated rooms, hosted tables, and a digital layer that keeps the logistics quiet.</p>
                     </div>
                     <div className="legacy-cube-wrap legacy-event-cube-wrap reveal">
-                        <video className="legacy-cube-img legacy-event-cube-img" autoPlay muted loop playsInline preload="metadata" poster="/tools/hero-video/out/cube-spin-poster.png" aria-label="FoundersVN mark on a rotating 3D cube">
-                            <source src="/tools/hero-video/out/cube-spin.webm" type="video/webm" />
-                            <source src="/tools/hero-video/out/cube-spin.mp4" type="video/mp4" />
-                        </video>
+                        <RotatingCube className="legacy-cube-img legacy-event-cube-img" />
                     </div>
                 </div>
             </div>
