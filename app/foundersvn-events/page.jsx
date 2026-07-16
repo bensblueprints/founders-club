@@ -11,7 +11,7 @@ const modelCards = [
 ];
 
 const timeline = [
-    ['Da Nang, Edition 01', 'Friday, July 31, 2026 · 4U Lounge, Võ Nguyên Giáp · 25 seats'],
+    ['Da Nang, Edition 01', 'Friday, July 31, 2026 · FOR YOU SteakHouse, Võ Nguyên Giáp · 25 seats'],
     ['Ho Chi Minh City, Planned', 'August 15 to 16, 2026 · shaped by what we learn from Da Nang'],
     ['Future editions', 'More city chapters and collaborations to be announced.']
 ];

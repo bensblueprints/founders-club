@@ -50,7 +50,7 @@ function displayEventTime(value) {
 function venueFor(event = {}) {
     const location = String(event.location || '').toLowerCase();
     if (location.includes('da nang') || location.includes('đà nẵng')) {
-        return { name: '4U Lounge', address: 'Da Nang, Vietnam' };
+        return { name: 'FOR YOU SteakHouse', address: 'Da Nang, Vietnam' };
     }
     if (location.includes('ho chi minh') || location.includes('hcmc')) {
         return { name: 'Ho Chi Minh City', address: 'Ho Chi Minh City, Vietnam' };

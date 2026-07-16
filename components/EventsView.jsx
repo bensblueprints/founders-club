@@ -8,7 +8,7 @@ import { db, formatDate } from '@/lib/api';
 import { useAuth } from './AuthProvider';
 
 const fallback = [
-    { id: 'danang', slug: 'danang-jul-2026', name: 'Founders Dinner · Da Nang', event_date: '2026-07-31', location: '4U Lounge, Da Nang', dinner_price: 150, status: 'open', description: 'A phone-free dinner for a carefully selected group of founders.', image_url: '/images/gallery/venue-wide.jpg' },
+    { id: 'danang', slug: 'danang-jul-2026', name: 'Founders Dinner · Da Nang', event_date: '2026-07-31', location: 'FOR YOU SteakHouse, Da Nang', dinner_price: 150, status: 'open', description: 'A phone-free dinner for a carefully selected group of founders.', image_url: '/images/gallery/venue-wide.jpg' },
     { id: 'hcmc', slug: 'hcmc-aug-2026', name: 'Founders Dinner · Ho Chi Minh City', event_date: '2026-08-28', location: 'Ho Chi Minh City', dinner_price: 150, status: 'open', description: 'An intimate evening for founders building ambitious companies in Vietnam.', image_url: '/images/gallery/networking-2.jpg' }
 ];
 

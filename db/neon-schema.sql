@@ -310,7 +310,7 @@ INSERT INTO events (slug, name, event_date, day_of_week, status, description) VA
     ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
     ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'upcoming', 'Monthly gathering for founders.'),
     ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'upcoming', 'Monthly gathering for founders.'),
-    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'open', 'Curated FoundersVN networking dinner at 4U Lounge.'),
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
     ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO NOTHING;
 
