@@ -1,2 +1,7 @@
-export const metadata={title:'Refunds'};
-export default function RefundPage(){return <article className="narrow legal"><span className="eyebrow">Policy</span><h1>Refund policy</h1><p>If you cannot attend, contact us as early as possible at ben@advancedmarketing.co with your registration email and event name.</p><h2>Participant cancellation</h2><p>Refund eligibility depends on the notice period and the terms shown with your payment link. Processing fees charged by the payment provider may be non-refundable.</p><h2>Event cancellation</h2><p>If Founders Vietnam cancels an event without offering a suitable replacement date, eligible ticket payments will be refunded to the original payment method.</p><h2>Transfers</h2><p>Tickets cannot be transferred without approval because every participant is individually reviewed.</p></article>}
+import { redirect } from 'next/navigation';
+
+export const metadata = { title: 'Refund policy' };
+
+export default function RefundPage() {
+    redirect('/terms#refunds');
+}

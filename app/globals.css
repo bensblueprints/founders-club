@@ -385,6 +385,15 @@ main { flex: 1; }
 .legal h1 { font: 650 clamp(40px, 6vw, 68px)/1 var(--font-display); letter-spacing: -.045em; }
 .legal h2 { margin-top: 36px; font: 650 23px var(--font-display); }
 .legal p, .legal li { color: #b8b7ae; }
+.policy-page { width: min(860px, calc(100% - 40px)); }
+.policy-intro { max-width: 70ch; margin-top: 24px; font-size: 17px; line-height: 1.75; }
+.policy-summary { margin-top: 38px; padding: 24px 26px; background: rgba(190,255,70,.07); border: 1px solid rgba(190,255,70,.28); border-radius: 8px; }
+.policy-summary strong { display: block; margin-bottom: 7px; color: #f3f2eb; font: 650 17px var(--font-display); }
+.policy-summary p { margin: 0; }
+.policy-section { padding-top: 32px; margin-top: 32px; border-top: 1px solid rgba(255,255,255,.1); scroll-margin-top: 100px; }
+.policy-section h2 { margin-top: 0; }
+.policy-section p { margin-top: 12px; line-height: 1.75; }
+.policy-back { display: inline-flex; margin-top: 46px; }
 .site-footer { width: min(1320px, calc(100% - 40px)); margin: auto; padding: 54px 0 34px; display: grid; grid-template-columns: 1fr auto; gap: 30px; border-top: 1px solid var(--line); color: var(--muted); }
 .site-footer p { max-width: 440px; font-size: 13px; }
 .footer-links { display: flex; gap: 20px; font-size: 13px; }
