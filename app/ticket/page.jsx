@@ -61,6 +61,7 @@ function TicketContent() {
     const { user, ready } = useAuth();
     const params = useSearchParams();
     const [orders, setOrders] = useState(null);
+    const [selectedId, setSelectedId] = useState('');
     const [error, setError] = useState('');
     useEffect(() => {
         if (!ready || !user) return;
@@ -72,14 +73,44 @@ function TicketContent() {
     const sorted = useMemo(() => {
         const list = [...(orders || [])];
         const requested = params.get('id');
-        return requested ? list.sort((a,b) => (a.id === requested ? -1 : b.id === requested ? 1 : 0)) : list;
+        return list.sort((a, b) => {
+            if (requested) {
+                if (a.id === requested) return -1;
+                if (b.id === requested) return 1;
+            }
+            const rank = order => order.status === 'pending' ? 0 : order.status === 'paid' ? 1 : 2;
+            const ranked = rank(a) - rank(b);
+            if (ranked !== 0) return ranked;
+            return new Date(b.createdAt || b.created_at || b.event?.date || 0) - new Date(a.createdAt || a.created_at || a.event?.date || 0);
+        });
     }, [orders, params]);
+    useEffect(() => {
+        if (!sorted.length) return;
+        const requested = params.get('id');
+        const requestedOrder = requested && sorted.find(order => order.id === requested);
+        const currentOrder = selectedId && sorted.find(order => order.id === selectedId);
+        if (requestedOrder && requestedOrder.id !== selectedId) setSelectedId(requestedOrder.id);
+        else if (!currentOrder) setSelectedId(sorted[0].id);
+    }, [sorted, params, selectedId]);
     if (!ready || (user && orders === null && !error)) return <div className="loading">Loading all tickets…</div>;
     if (!user) return <section className="auth-page"><div className="auth-card center"><QrCode style={{color:'var(--lime)'}} size={40}/><h1>Sign in to view your tickets.</h1><Link className="button primary" href="/login?next=/ticket">Sign in</Link></div></section>;
     if (error || !sorted.length) return <section className="auth-page"><div className="auth-card center"><AlertCircle style={{color:'var(--orange)'}} size={40}/><h1>{error || 'No tickets found'}</h1><p className="muted">Register for an upcoming event to see it here.</p><Link className="button primary" href="/events">View events</Link></div></section>;
     const paidCount = sorted.filter(order => order.status === 'paid').length;
     const pendingCount = sorted.filter(order => order.status === 'pending').length;
-    return <><section className="ticket-success-hero"><div className="container center"><CheckCircle2 size={48}/><h1>Your tickets</h1><p>{sorted.length} registration{sorted.length === 1 ? '' : 's'} · {paidCount} confirmed{pendingCount ? ` · ${pendingCount} pending payment` : ''}</p></div></section><section className="section compact"><div className="container ticket-collection">{sorted.map(order=><TicketCard key={order.id} order={order} attendee={attendee}/>)}</div></section></>;
+    const selectedOrder = sorted.find(order => order.id === selectedId) || sorted[0];
+    return <><section className="ticket-success-hero"><div className="container center"><CheckCircle2 size={48}/><h1>Your tickets</h1><p>{sorted.length} registration{sorted.length === 1 ? '' : 's'} · {paidCount} confirmed{pendingCount ? ` · ${pendingCount} pending payment` : ''}</p></div></section><section className="section compact"><div className="container ticket-collection">
+        <div className="panel ticket-picker">
+            <div className="ticket-picker-heading"><h2>Select a registration</h2><p className="muted">Pending payments are shown first.</p></div>
+            <div className="ticket-picker-list" role="listbox" aria-label="Your ticket registrations">
+                {sorted.map(order => <button type="button" key={order.id} className={`ticket-picker-item ${selectedOrder.id === order.id ? 'selected' : ''}`} onClick={() => setSelectedId(order.id)} role="option" aria-selected={selectedOrder.id === order.id}>
+                    <span className={`status ${order.status}`}>{order.status === 'pending' ? 'payment pending' : order.status === 'paid' ? 'confirmed' : order.status}</span>
+                    <strong>{order.event.name}</strong>
+                    <small>{formatDate(order.event.date, { weekday:'long' })} · {order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</small>
+                </button>)}
+            </div>
+        </div>
+        <TicketCard key={selectedOrder.id} order={selectedOrder} attendee={attendee}/>
+    </div></section></>;
 }
 
 export default function TicketPage() {
