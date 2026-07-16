@@ -11,11 +11,32 @@ import { db, formatDate } from '@/lib/api';
 function TicketCard({ order, attendee }) {
     const [qrDataUrl, setQrDataUrl] = useState('');
     const paid = order.status === 'paid';
-    const pending = order.status === 'pending';
     useEffect(() => {
+        if (!paid) return;
         QRCode.toDataURL(`FVN:${order.id}`, { width:280, margin:2, errorCorrectionLevel:'M', color:{ dark:'#001e16', light:'#ffffff' } })
             .then(setQrDataUrl).catch(() => setQrDataUrl(''));
-    }, [order.id]);
+    }, [order.id, paid]);
+    if (!paid) {
+        const pending = order.status === 'pending';
+        return <article className="panel ticket-pending-card">
+            <div className="ticket-pending-icon">{pending ? <Clock3 size={28}/> : <AlertCircle size={28}/>}</div>
+            <div>
+                <span className={`status ${order.status}`}>{pending ? 'payment pending' : order.status}</span>
+                <h2>{pending ? 'Payment required before ticket is issued' : 'Ticket unavailable'}</h2>
+                <p className="muted">{pending
+                    ? 'Your seat reservation is active, but the ticket QR and check-in details only unlock after payment is completed.'
+                    : `This reservation is ${order.status} and cannot be used for entry.`}</p>
+                <div className="ticket-pending-meta">
+                    <span>{order.event.name}</span>
+                    <span>{formatDate(order.event.date, { weekday:'long' })}</span>
+                    <span>{order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</span>
+                </div>
+            </div>
+            <div className="ticket-pending-actions">
+                {pending ? <Link className="button primary" href={`/payment?order=${order.id}`}>Proceed to Payment</Link> : <Link className="button ghost" href="/events">View events</Link>}
+            </div>
+        </article>;
+    }
     return <article className="ticket-record">
         <div className="digital-ticket">
             <div className="ticket-top"><div><span className="brand-text">FOUNDERS</span><span className="brand-accent"> VIETNAM</span></div><span className={`status ${order.status}`}>{paid ? 'confirmed' : order.status}</span></div>
@@ -26,12 +47,12 @@ function TicketCard({ order, attendee }) {
                 <div className="ticket-attendee"><span>Attendee</span><b>{attendee}</b></div>{order.guestName && <div className="ticket-attendee"><span>Partner / co-founder</span><b>{order.guestName}</b></div>}
                 <div className="ticket-ref"><span>Booking ref</span><b>{order.id}</b></div>
             </div>
-            <div className="ticket-qr">{qrDataUrl ? <img className="ticket-qr-image" src={qrDataUrl} alt={`Scannable ticket reference ${order.id}`}/> : <QrCode size={96}/>}<p>{paid ? 'Present this QR or booking reference at check-in' : 'QR becomes valid for check-in after payment'}</p></div>
+            <div className="ticket-qr">{qrDataUrl ? <img className="ticket-qr-image" src={qrDataUrl} alt={`Scannable ticket reference ${order.id}`}/> : <QrCode size={96}/>}<p>Present this QR or booking reference at check-in</p></div>
             <div className="ticket-footer-line">foundersvietnam.com</div>
         </div>
         <aside className="ticket-side">
             <div className="panel"><h2>Event details</h2><div className="event-meta register-meta"><span><CalendarDays size={16}/>{formatDate(order.event.date, { weekday:'long' })}</span><span><MapPin size={16}/>{order.event.location || 'Vietnam'}</span><span><UsersRound size={16}/>{order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</span></div></div>
-            <div className="panel ticket-actions-panel">{paid ? <><button className="button primary" onClick={()=>window.print()}><Printer size={17}/> Print ticket</button><button className="button ghost" onClick={()=>window.print()}><Download size={17}/> Save as PDF</button><Link className="button ghost" href="/meal">Choose meal</Link><Link className="button primary" href="/members">Member directory</Link></> : pending ? <><div className="ticket-payment-due"><Clock3 size={18}/><span>Payment pending</span></div><Link className="button primary" href={`/payment?order=${order.id}`}>Complete payment</Link></> : <><AlertCircle size={24}/><p className="muted">This reservation is {order.status} and cannot be used for entry.</p><Link className="button ghost" href="/events">View events</Link></>}</div>
+            <div className="panel ticket-actions-panel"><button className="button primary" onClick={()=>window.print()}><Printer size={17}/> Print ticket</button><button className="button ghost" onClick={()=>window.print()}><Download size={17}/> Save as PDF</button><Link className="button ghost" href="/meal">Choose meal</Link><Link className="button primary" href="/members">Member directory</Link></div>
         </aside>
     </article>;
 }

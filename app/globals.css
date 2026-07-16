@@ -508,7 +508,19 @@ main { flex: 1; }
 .ticket-record { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .75fr); gap: 24px; align-items: start; }
 .ticket-record + .ticket-record { border-top: 1px solid var(--line); padding-top: 44px; }
 .ticket-payment-due { display: flex; gap: 9px; align-items: center; color: var(--cream); }
-@media (max-width: 800px) { .ticket-record { grid-template-columns: 1fr; } }
+.ticket-pending-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; }
+.ticket-pending-card h2 { margin: 10px 0 8px; font: 650 26px/1.2 var(--font-display); }
+.ticket-pending-card p { margin: 0; }
+.ticket-pending-icon { width: 54px; height: 54px; display: grid; place-items: center; color: var(--orange); background: rgba(255,117,73,.12); border: 1px solid rgba(255,117,73,.28); border-radius: 16px; }
+.ticket-pending-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.ticket-pending-meta span { padding: 7px 10px; color: var(--muted); background: rgba(255,255,255,.045); border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
+.ticket-pending-actions { justify-self: end; }
+@media (max-width: 800px) {
+    .ticket-record { grid-template-columns: 1fr; }
+    .ticket-pending-card { grid-template-columns: 1fr; }
+    .ticket-pending-actions { justify-self: stretch; }
+    .ticket-pending-actions .button { width: 100%; justify-content: center; }
+}
 .ticket-footer-line { padding: 14px 28px; color: rgba(242,240,232,.72); background: #071a14; text-align: center; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
 .ticket-side { display: grid; gap: 18px; }
 .ticket-side h2 { margin: 0 0 16px; font: 650 23px/1.2 var(--font-display); }
