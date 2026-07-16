@@ -747,7 +747,9 @@ main { flex: 1; }
     max-width: 440px;
     height: auto;
     filter: drop-shadow(0 34px 54px rgba(0,0,0,.6));
-    animation: legacy-cube-float 7s ease-in-out infinite;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
 }
 @keyframes legacy-cube-float {
     0%, 100% { transform: translateY(0) rotate(-1.2deg); }
@@ -2070,4 +2072,5 @@ main { flex: 1; }
         transform: none;
         transition: none;
     }
+    .legacy-marq-track { animation: legacy-marq 42s linear infinite !important; }
 }

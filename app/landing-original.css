@@ -132,10 +132,21 @@
 
 .landing-original .gallery { padding: 14px 0 92px; overflow: hidden; }
 .landing-original .marq { display: flex; overflow: hidden; mask-image: linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-.landing-original .marq-track { display: flex; width: max-content; animation: legacyMarquee 48s linear infinite; }
+.landing-original .marq-track { display: flex; width: max-content; will-change: transform; transform: translate3d(0,0,0); animation: legacyMarquee 48s linear infinite; }
+.landing-original .marq-group { display: flex; flex: none; gap: 16px; padding-right: 16px; }
 .landing-original .marq-track:hover { animation-play-state: paused; }
-.landing-original .marq img { width: auto; height: 232px; flex: none; margin-right: 16px; object-fit: cover; border: 1px solid var(--legacy-border); border-radius: 14px; }
-@keyframes legacyMarquee { to { transform: translateX(-50%); } }
+.landing-original .marq-item { width: 348px; height: 232px; flex: none; padding: 0; overflow: hidden; cursor: zoom-in; background: var(--pine-raise); border: 1px solid var(--legacy-border); border-radius: 14px; }
+.landing-original .marq-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+.landing-original .marq-item:hover img { transform: scale(1.025); }
+@keyframes legacyMarquee { to { transform: translate3d(-50%,0,0); } }
+.landing-original .gallery-lightbox { position: fixed; inset: 0; z-index: 1000; display: grid; grid-template-columns: 70px minmax(0,1fr) 70px; align-items: center; gap: 18px; padding: 34px; background: rgba(2,10,7,.94); backdrop-filter: blur(14px); }
+.landing-original .gallery-lightbox figure { min-width: 0; margin: 0; text-align: center; }
+.landing-original .gallery-lightbox figure img { width: auto; max-width: 100%; max-height: calc(100vh - 110px); margin: auto; object-fit: contain; border-radius: 8px; box-shadow: 0 30px 90px rgba(0,0,0,.55); }
+.landing-original .gallery-lightbox figcaption { margin-top: 10px; color: var(--mist); font-size: .84rem; }
+.landing-original .lightbox-close,.landing-original .lightbox-nav { display: inline-flex; align-items: center; justify-content: center; color: var(--bone); cursor: pointer; background: rgba(242,240,232,.08); border: 1px solid var(--legacy-border); border-radius: 50%; }
+.landing-original .lightbox-close { position: absolute; top: 22px; right: 24px; width: 44px; height: 44px; font-size: 28px; }
+.landing-original .lightbox-nav { width: 52px; height: 52px; justify-self: center; font-size: 36px; line-height: 1; }
+.landing-original .lightbox-close:hover,.landing-original .lightbox-nav:hover { background: rgba(242,240,232,.16); }
 
 .landing-original .people { overflow: hidden; }
 .landing-original .people::before { content: ''; position: absolute; inset: 0; background: radial-gradient(64% 90% at 88% 12%,rgba(231,100,74,.14),transparent 58%); }
@@ -275,7 +286,10 @@
     .landing-original .ic:nth-child(4) { border-top: 1px solid var(--legacy-border); }
     .landing-original .ic:nth-child(5) { flex-basis: 100%; border-top: 1px solid var(--legacy-border); border-left: 0; }
     .landing-original .gallery { padding-top: 14px; }
-    .landing-original .marq img { height: 168px; margin-right: 12px; }
+    .landing-original .marq-group { gap: 12px; padding-right: 12px; }
+    .landing-original .marq-item { width: 252px; height: 168px; }
+    .landing-original .gallery-lightbox { grid-template-columns: 44px minmax(0,1fr) 44px; gap: 6px; padding: 24px 10px; }
+    .landing-original .lightbox-nav { width: 40px; height: 40px; font-size: 29px; }
     .landing-original .legacy-apply .panel.form-grid { padding: 28px 20px; }
     .landing-original .band-wrap { padding: 8px 14px 72px; }
     .landing-original .band { min-height: 0; padding: 42px 28px; }
@@ -286,6 +300,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .landing-original .app-watermark, .landing-original .app-badge, .landing-original .marq-track { animation: none; }
+    .landing-original .app-watermark, .landing-original .app-badge { animation: none; }
+    .landing-original .marq-track { animation: legacyMarquee 48s linear infinite !important; }
     .landing-original.reveal-ready [data-reveal] { opacity: 1; transform: none; transition: none; }
 }

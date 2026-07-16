@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import ApplicationForm from '@/components/ApplicationForm';
 import LandingAnimations from '@/components/LandingAnimations';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -18,6 +19,50 @@ const gallery = [
 ];
 function Tick() {
     return <span className="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="m5 12.5 4.5 4.5L19 7" /></svg></span>;
+}
+
+function LandingGallery() {
+    const [active, setActive] = useState(null);
+    const close = () => setActive(null);
+    const move = (direction) => setActive(index => (index + direction + gallery.length) % gallery.length);
+
+    useEffect(() => {
+        if (active === null) return undefined;
+        const onKey = (event) => {
+            if (event.key === 'Escape') close();
+            if (event.key === 'ArrowLeft') move(-1);
+            if (event.key === 'ArrowRight') move(1);
+        };
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKey);
+        return () => {
+            document.body.style.overflow = '';
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [active]);
+
+    return <>
+        <section className="gallery" aria-label="Photos from FoundersVN gatherings">
+            <div className="marq">
+                <div className="marq-track">
+                    {[0, 1].map(group => <div className="marq-group" aria-hidden={group === 1} key={group}>
+                        {gallery.map((image, index) => <button className="marq-item" type="button" onClick={() => setActive(index)} tabIndex={group === 1 ? -1 : 0} key={`${group}-${image}`}>
+                            <img src={image} alt={group === 0 ? `FoundersVN gathering ${index + 1}` : ''} />
+                        </button>)}
+                    </div>)}
+                </div>
+            </div>
+        </section>
+        {active !== null && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label="FoundersVN gallery" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
+            <button className="lightbox-close" type="button" onClick={close} aria-label="Close gallery">×</button>
+            <button className="lightbox-nav lightbox-prev" type="button" onClick={() => move(-1)} aria-label="Previous image">‹</button>
+            <figure>
+                <img src={gallery[active]} alt={`FoundersVN gathering ${active + 1}`} />
+                <figcaption>{active + 1} / {gallery.length}</figcaption>
+            </figure>
+            <button className="lightbox-nav lightbox-next" type="button" onClick={() => move(1)} aria-label="Next image">›</button>
+        </div>}
+    </>;
 }
 
 export default function HomePage() {
@@ -76,7 +121,7 @@ export default function HomePage() {
                 </div>
             </div></section>
 
-            <section className="gallery" aria-label="Photos from FoundersVN gatherings"><div className="marq"><div className="marq-track">{[...gallery, ...gallery].map((image, index) => <img key={`${image}-${index}`} src={image} alt={index < gallery.length ? 'FoundersVN gathering' : ''} />)}</div></div></section>
+            <LandingGallery />
 
             <section className="people"><div className="wrap"><div className="sec-head" data-reveal="down"><p className="kicker">{copy.testimonials.kicker}</p><h2>{copy.testimonials.title}</h2></div><div className="testi-grid">{copy.testimonials.items.map(([quote, image, name, role]) => <article className="testi-card" data-reveal key={name}><blockquote>{quote}</blockquote><div className="testi-who"><img src={`/images/landing/${image}`} alt="" /><p>{name}<small>{role}</small></p></div></article>)}</div></div></section>
 
