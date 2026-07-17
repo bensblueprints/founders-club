@@ -46,7 +46,7 @@
 .landing-original .ic { display: flex; flex-direction: column; gap: 5px; padding: 14px 20px; }
 .landing-original .ic + .ic { border-left: 1px solid var(--legacy-border); }
 .landing-original .ic-l { color: var(--mist); font-size: .66rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
-.landing-original .ic-v { color: var(--bone); font-family: var(--font-display), sans-serif; font-size: 1rem; font-weight: 600; }
+.landing-original .ic-v { color: var(--bone); font-family: var(--font-display), sans-serif; font-size: 1rem; font-weight: 600; white-space: pre-line; }
 .landing-original .hero-cta { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin-top: 34px; }
 .landing-original .hero-sub, .landing-original .infocard, .landing-original .hero-cta { animation: legacyHeroIn .7s cubic-bezier(.19,.66,.3,1) both; }
 .landing-original .hero-sub { animation-delay: .12s; }
