@@ -2010,6 +2010,19 @@ main { flex: 1; }
 @media (max-width: 1000px) {
     .desktop-nav, .profile-chip, .nav-actions > .icon-link { display: none; }
     .landing-lang { display: none; }
+    .mobile-nav .mobile-lang {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        margin: 8px 0 0;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+    }
+    .mobile-nav .mobile-lang button {
+        display: inline-flex;
+        width: auto;
+        padding: 10px 13px;
+    }
     .landing-nav-cluster { margin-left: auto; }
     .nav-actions { margin-left: auto; }
     .menu-button { display: block; }

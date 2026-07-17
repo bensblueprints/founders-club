@@ -24,23 +24,16 @@ function splitName(name) {
     return { first, last };
 }
 
-function isHttpUrl(value) {
-    try {
-        const url = new URL(String(value || '').trim());
-        return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname);
-    } catch (_) {
-        return false;
-    }
-}
-
-function isContactNumber(value) {
-    const raw = String(value || '').trim();
-    const digits = raw.replace(/\D/g, '');
-    return /^\+?[0-9][0-9\s().-]{7,18}$/.test(raw) && digits.length >= 8 && digits.length <= 15;
-}
-
 function json(statusCode, obj) {
     return { statusCode, headers: { 'Content-Type': 'application/json', ...CORS }, body: JSON.stringify(obj) };
+}
+
+function companyLinkFromProfile(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^(www\.|linkedin\.com\/)/i.test(raw)) return `https://${raw}`;
+    return null;
 }
 
 exports.handler = async (event) => {
@@ -56,30 +49,27 @@ exports.handler = async (event) => {
 
     // Required fields (match the public landing application form).
     const required = [
-        'name', 'email', 'company', 'role', 'event_slug', 'company_link',
-        'industry', 'looking_for', 'can_offer', 'what_you_do', 'links', 'language'
+        'name', 'email', 'company_profile', 'role', 'event_slug',
+        'what_you_do', 'why_join', 'whatsapp'
     ];
     const missing = required.filter(f => !String(body[f] || '').trim());
     if (missing.length) {
         return json(400, { error: `Missing required field(s): ${missing.join(', ')}` });
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) {
-        return json(400, { error: 'Please enter a valid email address, for example name@company.com.' });
+        return json(400, { error: 'Invalid email address' });
     }
-    if (!isHttpUrl(body.company_link)) {
-        return json(400, { error: 'Please enter a valid company website or LinkedIn URL starting with https:// or http://.' });
-    }
-    if (!isContactNumber(body.links)) {
-        return json(400, { error: 'Please enter a valid WhatsApp/Zalo number, for example +84 901 234 567.' });
+    if (!/^[+0-9() .-]{7,24}$/.test(String(body.whatsapp).trim())) {
+        return json(400, { error: 'Invalid WhatsApp number' });
     }
 
     const { first, last } = splitName(body.name);
-    const ticketCount = Number(body.ticket_count || 1);
-    if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
-    const guestName = String(body.guest_name || '').trim();
-    if (ticketCount === 2 && !guestName) {
-        return json(400, { error: 'Please enter your partner / co-founder name for the second ticket.' });
-    }
+    const ticketCount = 1;
+    const companyProfile = String(body.company_profile).trim();
+    const companyLink = companyLinkFromProfile(companyProfile);
+    const whatsapp = String(body.whatsapp).trim();
+    const socialLink = `WhatsApp: ${whatsapp}`;
+    const whyJoin = String(body.why_join).trim();
 
     // Map the landing form's fields onto the applications table.
     const email = String(body.email).trim().toLowerCase();
@@ -109,18 +99,28 @@ exports.handler = async (event) => {
     // landing page updates an existing pending public application without
     // changing reviewed/payment records. We avoid ON CONFLICT here because
     // logged-in members may later request one additional ticket as a separate
-    // application for the same event.
+    // application for the same event and older DBs may not have a matching
+    // expression unique index for LOWER(email).
     let data;
     try {
         let rows = await sql`
             UPDATE applications SET
-                first_name = ${first}, last_name = ${last}, company = ${body.company || null},
-                role = ${body.role || null}, company_link = ${body.company_link || null},
-                industry = ${body.industry || null}, looking_for = ${body.looking_for || null},
-                can_offer = ${body.can_offer || null}, what_you_do = ${body.what_you_do || null},
-                social_link = ${body.links || null}, page_language = ${body.page_language || null},
-                event = ${selectedEvent.name}, event_interest = ${selectedEvent.slug},
-                ticket_count = ${ticketCount}, guest_name = ${guestName || null}
+                first_name = ${first},
+                last_name = ${last},
+                company = ${companyProfile},
+                role = ${body.role || null},
+                company_link = ${companyLink},
+                industry = NULL,
+                looking_for = ${whyJoin},
+                can_offer = NULL,
+                what_you_do = ${body.what_you_do || null},
+                social_link = ${socialLink},
+                page_language = ${body.page_language || null},
+                why_join = ${whyJoin},
+                event = ${selectedEvent.name},
+                event_interest = ${selectedEvent.slug},
+                ticket_count = ${ticketCount},
+                guest_name = NULL
             WHERE event_id = ${selectedEvent.id}
               AND LOWER(email) = LOWER(${email})
               AND status = 'pending'
@@ -130,13 +130,12 @@ exports.handler = async (event) => {
             rows = await sql`
                 INSERT INTO applications
                     (first_name, last_name, email, event_id, company, role, company_link, industry,
-                     looking_for, can_offer, what_you_do, social_link, page_language,
+                     looking_for, can_offer, what_you_do, social_link, page_language, why_join,
                      event, event_interest, ticket_count, guest_name, status, payment_status, reminders_sent)
                 VALUES
-                    (${first}, ${last}, ${email}, ${selectedEvent.id}, ${body.company || null}, ${body.role || null},
-                     ${body.company_link || null}, ${body.industry || null}, ${body.looking_for || null},
-                     ${body.can_offer || null}, ${body.what_you_do || null}, ${body.links || null},
-                     ${body.page_language || null}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, ${guestName || null},
+                    (${first}, ${last}, ${email}, ${selectedEvent.id}, ${companyProfile}, ${body.role || null},
+                     ${companyLink}, NULL, ${whyJoin}, NULL, ${body.what_you_do || null}, ${socialLink},
+                     ${body.page_language || null}, ${whyJoin}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, NULL,
                      'pending', NULL, '{}')
                 RETURNING *`;
         }
@@ -149,8 +148,7 @@ exports.handler = async (event) => {
 
     // Notify organisers (best-effort — never fail the submission on email trouble).
     try {
-        const spokenLang = body.language ? ` (spoken: ${body.language})` : '';
-        const tmpl = notificationEmail({ app: { ...data, page_language: (data.page_language || '') + spokenLang }, adminUrl: ADMIN_URL });
+        const tmpl = notificationEmail({ app: data, adminUrl: ADMIN_URL });
         await sendEmail({ to: NOTIFY_EMAILS, subject: tmpl.subject, html: tmpl.html });
     } catch (e) {
         console.error('[submit-application] notify email failed:', e);

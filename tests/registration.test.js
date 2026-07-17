@@ -106,16 +106,13 @@ async function test(name, fn) {
     const completeApplicationPayload = {
         name: 'Jane Doe',
         email: 'JANE@X.CO',
-        company: 'Acme',
+        company_profile: 'https://linkedin.com/in/jane',
         role: 'CEO',
         event_slug: 'danang-jul-2026',
-        company_link: 'https://acme.test',
-        industry: 'Tech / SaaS',
-        looking_for: 'Customers / Clients',
-        can_offer: 'Expertise / Advice',
         what_you_do: 'Building founder workflow software',
-        links: '+84 901 234 567',
-        language: 'en'
+        why_join: 'Meet founders and operators at my level',
+        whatsapp: '+84 912 345 678',
+        page_language: 'en'
     };
 
     await test('submit-application inserts an event-scoped application without creating an account', async () => {
@@ -132,16 +129,18 @@ async function test(name, fn) {
         assert.ok(!memInsert, 'account must not exist before approval');
         assert.ok(appInsert.values.includes('evt1'), 'application is bound to the selected event id');
         assert.ok(appInsert.values.includes('jane@x.co'), 'email is normalized and bound');
+        assert.ok(appInsert.values.includes('WhatsApp: +84 912 345 678'), 'WhatsApp is stored with the application');
+        assert.ok(appInsert.values.includes('Meet founders and operators at my level'), 'join reason is stored with the application');
     });
 
     await test('submit-application rejects incomplete landing application data', async () => {
         const res = await submit.handler({
             httpMethod: 'POST',
             headers: {},
-            body: JSON.stringify({ ...completeApplicationPayload, looking_for: '' })
+            body: JSON.stringify({ ...completeApplicationPayload, why_join: '' })
         });
         assert.strictEqual(res.statusCode, 400);
-        assert.match(JSON.parse(res.body).error, /looking_for/i);
+        assert.match(JSON.parse(res.body).error, /why_join/i);
         assert.strictEqual(calls.length, 0, 'no SQL for incomplete application');
     });
 
