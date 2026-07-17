@@ -1,143 +1,163 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { callFunction, db, formatDate } from '@/lib/api';
+import { ArrowRight, CheckCircle2, X } from 'lucide-react';
+import { callFunction } from '@/lib/api';
 import { useLanguage } from './LanguageProvider';
 
-const CHIP_GROUPS = {
-    industry: [['tech', 'Tech / SaaS', 'Công nghệ / SaaS'], ['ecom', 'E-commerce', 'Thương mại điện tử'], ['agency', 'Agency / Services', 'Agency / Dịch vụ'], ['fnb', 'F&B / Hospitality', 'F&B / Nhà hàng'], ['retail', 'Retail / Consumer', 'Bán lẻ / Tiêu dùng'], ['mfg', 'Manufacturing', 'Sản xuất'], ['finance', 'Finance', 'Tài chính'], ['media', 'Media / Creative', 'Truyền thông / Sáng tạo'], ['other', 'Other', 'Khác']],
-    looking: [['invest', 'Investment', 'Gọi vốn / Đầu tư'], ['customers', 'Customers / Clients', 'Khách hàng'], ['talent', 'Talent / Hiring', 'Tuyển người'], ['partners', 'Partnerships', 'Đối tác'], ['suppliers', 'Suppliers', 'Nhà cung cấp'], ['mentor', 'Mentorship / Advice', 'Cố vấn / Lời khuyên'], ['other', 'Other', 'Khác']],
-    offer: [['expertise', 'Expertise / Advice', 'Chuyên môn / Tư vấn'], ['intros', 'Introductions', 'Kết nối / Giới thiệu'], ['capital', 'Investment', 'Đầu tư'], ['hiring', 'Hiring / Jobs', 'Tuyển dụng / Việc làm'], ['partnership', 'Partnership', 'Hợp tác'], ['feedback', 'Product feedback', 'Góp ý sản phẩm'], ['other', 'Other', 'Khác']]
-};
+const WHY_JOIN_OPTIONS = [
+    ['network', 'Grow my network', 'Mở rộng mạng lưới'],
+    ['peers', 'Meet founders and operators at my level', 'Gặp các founder và operator cùng cấp độ'],
+    ['partners', 'Find partners and new opportunities', 'Tìm đối tác và cơ hội mới'],
+    ['learn', 'Learn from other people building companies', 'Học hỏi từ những người đang xây dựng doanh nghiệp'],
+    ['other', 'Other', 'Lý do khác']
+];
 
 const FORM_COPY = {
     en: {
         name: 'Full name',
         email: 'Work email',
-        company: 'Company / project',
+        companyProfile: 'Company or LinkedIn',
+        companyPlaceholder: 'Company name or linkedin.com/in/…',
         role: 'Your role',
         rolePlaceholder: 'Founder, CEO, Co-founder',
-        chooseEvent: 'Choose an event',
-        companyLink: 'Company website or LinkedIn',
-        tickets: 'How many tickets?',
-        ticketOne: '1 ticket',
-        ticketOneHint: 'For me',
-        ticketTwo: '2 tickets',
-        ticketTwoHint: 'Me + partner / co-founder · same price per ticket',
-        guestName: 'Partner / co-founder full name',
-        groups: { industry: 'Your industry', looking: 'What are you looking for?', offer: 'What can you offer?' },
-        hint: 'tap all that apply',
-        otherIndustry: 'Which industry?',
-        other: 'Tell us more',
-        what: 'In one line, what are you building?',
-        links: 'Your links (LinkedIn / Zalo / portfolio)',
-        language: 'Which language are you most comfortable using at the event?',
-        vi: 'Vietnamese',
-        en: 'English',
-        both: 'Both are fine',
-        submit: 'Submit',
+        what: 'What are you building?',
+        whatPlaceholder: 'One sentence is enough',
+        why: 'Why would you like to join?',
+        whyHint: 'choose the closest fit',
+        whyOther: 'Tell us briefly',
+        whyOtherPlaceholder: 'What would make this dinner valuable for you?',
+        whatsapp: 'WhatsApp number',
+        whatsappHint: 'Include your country code',
+        submit: 'Apply for invitation',
         sending: 'Sending application…',
-        privacy: 'Your answers are only used to curate the room and are never shared publicly without your consent.',
-        chooseEventError: 'Please choose an event.',
-        chipError: group => `Please select at least one option for ${group}.`,
-        chipLabels: { industry: 'your industry', looking: 'what you are looking for', offer: 'what you can offer' },
-        success: 'Application received. We’ll review it and email you with the next step.'
+        noPayment: 'No payment required to apply.',
+        privacy: 'Your information is only used to review your application and contact you about FoundersVN.',
+        success: 'Application received. We’ll review it and email you with the next step.',
+        exitKicker: 'Quick feedback',
+        exitTitle: 'Before you go',
+        exitBody: "You haven’t finished your application. What stopped you?",
+        exitContinue: 'Continue application',
+        exitThanks: 'Thank you. This helps us improve the experience.',
+        exitReasons: [
+            ['timing', 'Timing'],
+            ['price', 'Price'],
+            ['fit', 'Event fit'],
+            ['application', 'The application'],
+            ['browsing', 'Just browsing']
+        ]
     },
     vi: {
         name: 'Họ và tên',
         email: 'Email công việc',
-        company: 'Công ty / dự án',
+        companyProfile: 'Công ty hoặc LinkedIn',
+        companyPlaceholder: 'Tên công ty hoặc linkedin.com/in/…',
         role: 'Vai trò của bạn',
         rolePlaceholder: 'Founder, CEO, Co-founder',
-        chooseEvent: 'Chọn sự kiện',
-        companyLink: 'Website công ty hoặc LinkedIn',
-        tickets: 'Số lượng vé?',
-        ticketOne: '1 vé',
-        ticketOneHint: 'Cho tôi',
-        ticketTwo: '2 vé',
-        ticketTwoHint: 'Tôi + partner / co-founder · cùng giá mỗi vé',
-        guestName: 'Họ tên partner / co-founder',
-        groups: { industry: 'Ngành của bạn', looking: 'Bạn đang tìm gì?', offer: 'Bạn có thể đóng góp gì?' },
-        hint: 'chạm vào các mục phù hợp',
-        otherIndustry: 'Ngành nào?',
-        other: 'Cho chúng tôi biết thêm',
-        what: 'Một câu: bạn đang xây gì?',
-        links: 'Link của bạn (LinkedIn / Zalo / portfolio)',
-        language: 'Bạn muốn dùng ngôn ngữ nào trong sự kiện?',
-        vi: 'Tiếng Việt',
-        en: 'Tiếng Anh',
-        both: 'Cả hai đều ổn',
-        submit: 'Gửi đăng ký',
+        what: 'Bạn đang xây dựng điều gì?',
+        whatPlaceholder: 'Chỉ cần chia sẻ trong một câu',
+        why: 'Vì sao bạn muốn tham gia?',
+        whyHint: 'chọn lý do phù hợp nhất',
+        whyOther: 'Chia sẻ ngắn với chúng tôi',
+        whyOtherPlaceholder: 'Điều gì sẽ khiến buổi tiệc này có giá trị với bạn?',
+        whatsapp: 'Số WhatsApp',
+        whatsappHint: 'Bao gồm mã quốc gia',
+        submit: 'Đăng ký nhận thư mời',
         sending: 'Đang gửi đăng ký…',
-        privacy: 'Thông tin của bạn chỉ được dùng để lựa chọn và kết nối người tham dự, không chia sẻ công khai khi chưa có sự đồng ý.',
-        chooseEventError: 'Vui lòng chọn sự kiện.',
-        chipError: group => `Vui lòng chọn ít nhất một mục cho ${group}.`,
-        chipLabels: { industry: 'ngành của bạn', looking: 'nhu cầu kết nối của bạn', offer: 'giá trị bạn có thể đóng góp' },
-        success: 'Đã nhận đăng ký. Đội ngũ FoundersVN sẽ xem xét và email bước tiếp theo cho bạn.'
+        noPayment: 'Không cần thanh toán khi đăng ký.',
+        privacy: 'Thông tin chỉ được dùng để xét duyệt hồ sơ và liên hệ với bạn về FoundersVN.',
+        success: 'Đã nhận đăng ký. Đội ngũ FoundersVN sẽ xem xét và email bước tiếp theo cho bạn.',
+        exitKicker: 'Phản hồi nhanh',
+        exitTitle: 'Trước khi bạn rời đi',
+        exitBody: 'Bạn chưa hoàn tất đăng ký. Điều gì khiến bạn dừng lại?',
+        exitContinue: 'Tiếp tục đăng ký',
+        exitThanks: 'Cảm ơn bạn. Phản hồi này giúp FoundersVN cải thiện trải nghiệm.',
+        exitReasons: [
+            ['timing', 'Thời gian'],
+            ['price', 'Chi phí'],
+            ['fit', 'Mức độ phù hợp'],
+            ['application', 'Form đăng ký'],
+            ['browsing', 'Chỉ đang tìm hiểu']
+        ]
     }
 };
 
-export default function ApplicationForm({ initialEvent, legacy = false, hideEventPicker = false }) {
+export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
     const { language } = useLanguage();
     const copy = FORM_COPY[language] || FORM_COPY.en;
-    const [events, setEvents] = useState([]);
-    const [selectedEvent, setSelectedEvent] = useState(initialEvent || '');
     const [status, setStatus] = useState(null);
     const [busy, setBusy] = useState(false);
-    const [chips, setChips] = useState({ industry: [], looking: [], offer: [] });
-    const [ticketCount, setTicketCount] = useState('1');
-
-    function toggleChip(group, value) {
-        setChips(current => ({
-            ...current,
-            [group]: current[group].includes(value)
-                ? current[group].filter(item => item !== value)
-                : [...current[group], value]
-        }));
-    }
+    const [joinReason, setJoinReason] = useState('');
+    const [formStarted, setFormStarted] = useState(false);
+    const [formCompleted, setFormCompleted] = useState(false);
+    const [showExitSurvey, setShowExitSurvey] = useState(false);
+    const [surveyAnswered, setSurveyAnswered] = useState(false);
 
     useEffect(() => {
-        db('events.list').then(rows => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const available = rows.filter(e => ['open', 'upcoming'].includes(e.status) && new Date(e.event_date) >= today);
-            setEvents(available);
-            setSelectedEvent(current => current || available.find(e => e.slug === 'danang-jul-2026')?.slug || available[0]?.slug || '');
-        }).catch(() => {});
-    }, []);
+        if (!formStarted || formCompleted || surveyAnswered) return undefined;
+
+        const showSurvey = () => setShowExitSurvey(true);
+        const handleMouseOut = event => {
+            if (!event.relatedTarget && event.clientY <= 0) showSurvey();
+        };
+        const handleVisibility = () => {
+            if (document.visibilityState === 'hidden') {
+                window.sessionStorage.setItem('fvn-application-left', 'true');
+            } else if (window.sessionStorage.getItem('fvn-application-left') === 'true') {
+                window.sessionStorage.removeItem('fvn-application-left');
+                showSurvey();
+            }
+        };
+
+        document.addEventListener('mouseout', handleMouseOut);
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            document.removeEventListener('mouseout', handleMouseOut);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, [formStarted, formCompleted, surveyAnswered]);
+
+    useEffect(() => {
+        if (!showExitSurvey) return undefined;
+        const handleKeyDown = event => {
+            if (event.key === 'Escape') setShowExitSurvey(false);
+        };
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showExitSurvey]);
+
+    function recordExitReason(reason) {
+        const detail = { reason, language, event: initialEvent };
+        window.dataLayer?.push({ event: 'application_abandonment_reason', ...detail });
+        window.dispatchEvent(new CustomEvent('foundersvn:application-abandonment', { detail }));
+        window.sessionStorage.setItem('fvn-application-feedback', reason);
+        setSurveyAnswered(true);
+    }
 
     async function submit(event) {
         event.preventDefault();
         const formElement = event.currentTarget;
         setStatus(null);
-        const form = new FormData(formElement);
-        if (!form.get('event_slug')) {
-            setStatus({ type: 'error', message: copy.chooseEventError });
-            return;
-        }
-        const missingChipGroup = Object.keys(CHIP_GROUPS).find(group => chips[group].length === 0);
-        if (missingChipGroup) {
-            setStatus({ type: 'error', message: copy.chipError(copy.chipLabels[missingChipGroup]) });
-            return;
-        }
+        if (!formElement.reportValidity()) return;
+
         setBusy(true);
         try {
-            const payload = Object.fromEntries(form.entries());
-            const withOther = (group, otherName) => [
-                ...chips[group]
-                    .filter(value => value !== 'other')
-                    .map(value => CHIP_GROUPS[group].find(item => item[0] === value)?.[1] || value),
-                ...(chips[group].includes('other') && payload[otherName] ? [payload[otherName]] : [])
-            ].join(', ');
-            payload.industry = withOther('industry', 'industry_other');
-            payload.looking_for = withOther('looking', 'looking_other');
-            payload.can_offer = withOther('offer', 'offer_other');
+            const payload = Object.fromEntries(new FormData(formElement).entries());
+            const selectedReason = WHY_JOIN_OPTIONS.find(option => option[0] === payload.why_join);
+            payload.why_join = payload.why_join === 'other'
+                ? `Other: ${payload.why_join_other}`
+                : selectedReason?.[1] || payload.why_join;
+            delete payload.why_join_other;
             payload.page_language = language;
             await callFunction('submit-application', payload, { token: null });
             formElement.reset();
-            setChips({ industry: [], looking: [], offer: [] });
-            setTicketCount('1');
+            setJoinReason('');
+            setFormCompleted(true);
             setStatus({ type: 'success', message: copy.success });
         } catch (error) {
             setStatus({ type: 'error', message: error.message });
@@ -146,46 +166,53 @@ export default function ApplicationForm({ initialEvent, legacy = false, hideEven
         }
     }
 
-    return (
-        <form className="panel form-grid" onSubmit={submit}>
+    return <>
+        <form className="panel form-grid application-short-form" onSubmit={submit} onChange={() => setFormStarted(true)}>
+            <input type="hidden" name="event_slug" value={initialEvent} />
             <div className="field"><label htmlFor="name">{copy.name}</label><input id="name" name="name" autoComplete="name" required /></div>
             <div className="field"><label htmlFor="email">{copy.email}</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
-            <div className="field"><label htmlFor="company">{copy.company}</label><input id="company" name="company" autoComplete="organization" required /></div>
-            <div className="field"><label htmlFor="role">{copy.role}</label><input id="role" name="role" placeholder={copy.rolePlaceholder} required /></div>
-            <div className="field full">
-                {hideEventPicker ? <input type="hidden" id="event_slug" name="event_slug" value={selectedEvent} /> : <>
-                    <label htmlFor="event_slug">{copy.chooseEvent}</label>
-                    {legacy ? <>
-                    <div className="legacy-event-tabs" role="group" aria-label="Choose an event">
-                        {events.map(item => <button type="button" key={item.id} className={selectedEvent === item.slug ? 'selected' : ''} onClick={() => setSelectedEvent(item.slug)}>{item.slug === 'danang-jul-2026' ? 'Da Nang · Jul 31' : item.slug === 'hcmc-aug-2026' ? 'HCMC · Aug 15 to 16' : `${item.location || item.name} · ${formatDate(item.event_date)}`}</button>)}
-                    </div>
-                    <input type="hidden" id="event_slug" name="event_slug" value={selectedEvent} />
-                </> : <select id="event_slug" name="event_slug" value={selectedEvent} onChange={event => setSelectedEvent(event.target.value)} required>
-                    <option value="" disabled>Select an open event</option>
-                    {events.map(item => <option key={item.id} value={item.slug}>{item.name} — {formatDate(item.event_date)}</option>)}
-                </select>}
-                </>}
-            </div>
-            <div className="field full"><label htmlFor="company_link">{copy.companyLink}</label><input id="company_link" name="company_link" type="text" inputMode="url" placeholder="https://…" required /></div>
-            <div className="field full ticket-count-field">
-                <label>{copy.tickets}</label>
-                <div className="ticket-count-options" role="radiogroup" aria-label="Ticket quantity">
-                    <label className={ticketCount === '1' ? 'selected' : ''}><input type="radio" name="ticket_count" value="1" checked={ticketCount === '1'} onChange={event => setTicketCount(event.target.value)} required />{copy.ticketOne} <span>{copy.ticketOneHint}</span></label>
-                    <label className={ticketCount === '2' ? 'selected' : ''}><input type="radio" name="ticket_count" value="2" checked={ticketCount === '2'} onChange={event => setTicketCount(event.target.value)} required />{copy.ticketTwo} <span>{copy.ticketTwoHint}</span></label>
+            <div className="field full"><label htmlFor="company_profile">{copy.companyProfile}</label><input id="company_profile" name="company_profile" placeholder={copy.companyPlaceholder} required /></div>
+            <div className="field full"><label htmlFor="role">{copy.role}</label><input id="role" name="role" placeholder={copy.rolePlaceholder} autoComplete="organization-title" required /></div>
+            <div className="field full"><label htmlFor="what_you_do">{copy.what}</label><textarea id="what_you_do" name="what_you_do" placeholder={copy.whatPlaceholder} rows="3" required /></div>
+            <fieldset className="field full quick-choice-field">
+                <legend>{copy.why} <span>{copy.whyHint}</span></legend>
+                <div className="quick-choice-options">
+                    {WHY_JOIN_OPTIONS.map(([value, en, vi]) => <label className={joinReason === value ? 'selected' : ''} key={value}>
+                        <input type="radio" name="why_join" value={value} checked={joinReason === value} onChange={() => setJoinReason(value)} required />
+                        <span>{language === 'vi' ? vi : en}</span>
+                    </label>)}
                 </div>
-                {ticketCount === '2' && <input name="guest_name" placeholder={copy.guestName} required />}
-            </div>
-            {Object.entries(CHIP_GROUPS).map(([group, values]) => <div className="field full chip-field" key={group}>
-                <label>{copy.groups[group]} <span className="chip-hint">{copy.hint}</span></label>
-                <div className="legacy-answer-chips" role="group" aria-required="true">{values.map(([value, en, vi]) => <button type="button" key={value} aria-pressed={chips[group].includes(value)} onClick={() => toggleChip(group, value)}>{language === 'vi' ? vi : en}</button>)}</div>
-                {chips[group].includes('other') && <input name={`${group === 'offer' ? 'offer' : group}_other`} placeholder={group === 'industry' ? copy.otherIndustry : copy.other} required />}
-            </div>)}
-            <div className="field full"><label htmlFor="what_you_do">{copy.what}</label><input id="what_you_do" name="what_you_do" required /></div>
-            <div className="field"><label htmlFor="links">{copy.links}</label><input id="links" name="links" type="text" placeholder="https://…" required /></div>
-            <div className="field"><label htmlFor="language">{copy.language}</label><select id="language" name="language" defaultValue="vi" required><option value="vi">{copy.vi}</option><option value="en">{copy.en}</option><option value="both">{copy.both}</option></select></div>
+                {joinReason === 'other' && <div className="field quick-choice-other">
+                    <label htmlFor="why_join_other">{copy.whyOther}</label>
+                    <input id="why_join_other" name="why_join_other" placeholder={copy.whyOtherPlaceholder} required />
+                </div>}
+            </fieldset>
+            <div className="field full"><label htmlFor="whatsapp">{copy.whatsapp} <span className="field-hint">{copy.whatsappHint}</span></label><input id="whatsapp" name="whatsapp" type="tel" autoComplete="tel" inputMode="tel" placeholder="+84 912 345 678" pattern="[+0-9() .-]{7,24}" required /></div>
             {status && <div className={`form-status ${status.type} field full`}>{status.type === 'success' && <CheckCircle2 size={17} />} {status.message}</div>}
-            <div className="field full"><button className="button primary submit-application" disabled={busy}>{busy ? copy.sending : <>{copy.submit} <ArrowRight size={18} /></>}</button></div>
+            <div className="field full form-submit-group">
+                <button className="button primary submit-application" disabled={busy}>{busy ? copy.sending : <>{copy.submit} <ArrowRight size={18} /></>}</button>
+                <p className="form-payment-note">{copy.noPayment}</p>
+            </div>
             <p className="legacy-form-privacy field full">{copy.privacy}</p>
         </form>
-    );
+
+        {showExitSurvey && <div className="application-exit-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowExitSurvey(false); }}>
+            <section className={`application-exit-modal${surveyAnswered ? ' is-complete' : ''}`} role="dialog" aria-modal="true" aria-labelledby="exit-survey-title">
+                <button className="application-exit-close" type="button" onClick={() => setShowExitSurvey(false)} aria-label={copy.exitContinue}><X size={18} /></button>
+                {!surveyAnswered ? <>
+                    <p className="application-exit-kicker">{copy.exitKicker}</p>
+                    <h2 id="exit-survey-title">{copy.exitTitle}</h2>
+                    <p>{copy.exitBody}</p>
+                    <div className="application-exit-options">
+                        {copy.exitReasons.map(([value, label]) => <button type="button" key={value} onClick={() => recordExitReason(value)}>{label}</button>)}
+                    </div>
+                    <button className="application-exit-continue" type="button" onClick={() => setShowExitSurvey(false)}>{copy.exitContinue}</button>
+                </> : <>
+                    <CheckCircle2 className="application-exit-success" size={34} />
+                    <h2 id="exit-survey-title">{copy.exitThanks}</h2>
+                    <button className="button primary" type="button" onClick={() => setShowExitSurvey(false)}>{copy.exitContinue}</button>
+                </>}
+            </section>
+        </div>}
+    </>;
 }

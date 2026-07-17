@@ -72,7 +72,7 @@ export default function AppShell({ children }) {
         faq: 'FAQ',
         members: 'Thành viên',
         login: 'Đăng nhập',
-        apply: 'Tôi muốn tham gia'
+        apply: 'Nhận thư mời'
     } : {
         how: 'How it works',
         about: 'About',
@@ -81,7 +81,7 @@ export default function AppShell({ children }) {
         faq: 'FAQ',
         members: 'Members',
         login: 'Login',
-        apply: 'Apply'
+        apply: 'Request invite'
     };
 
     return (
@@ -131,7 +131,7 @@ export default function AppShell({ children }) {
                     </div>
                 </div>
                 {open && <div className="mobile-nav">
-                    {(!user ? [[navCopy.how, `${hashPrefix}#how`], [navCopy.about, '/foundersvn-events'], [navCopy.events, '/foundersvn-events'], [navCopy.team, '/team-behind'], [navCopy.faq, `${hashPrefix}#faq`], [navCopy.members, '/login'], [navCopy.login, '/login']] : visibleMemberLinks).map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+                    {(!user ? [[navCopy.how, `${hashPrefix}#how`], [navCopy.about, '/foundersvn-events'], [navCopy.events, '/foundersvn-events'], [navCopy.team, '/team-behind'], [navCopy.faq, `${hashPrefix}#faq`], [navCopy.members, '/login'], [navCopy.login, '/login']] : visibleMemberLinks).map(([label, href]) => <Link key={`${href}-${label}`} href={href}>{label}</Link>)}
                     {!user && <div className="landing-lang mobile-lang" role="group" aria-label="Language">
                         <button type="button" aria-pressed={language === 'vi'} onClick={() => setLanguage('vi')}>VI</button><span>/</span><button type="button" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
                     </div>}

@@ -103,7 +103,7 @@ export default function HomePage() {
             </div></div></section>
 
             <section className="offer" id="offer"><div className="wrap"><div className="offer-grid">
-                <div className="offer-copy" data-reveal><p className="kicker">{copy.offer.kicker}</p><h2>{copy.offer.title}</h2><p className="legacy-lead">{copy.offer.sub}</p><Link className="legacy-btn" href="#apply">{copy.hero.cta} <span>→</span></Link><p className="offer-refund">✓ <span>{copy.offer.refund}</span></p></div>
+                <div className="offer-copy" data-reveal><p className="kicker">{copy.offer.kicker}</p><h2>{copy.offer.title}</h2><div className="offer-body">{copy.offer.body.map(paragraph => <p className="legacy-lead" key={paragraph}>{paragraph}</p>)}</div><Link className="legacy-btn" href="#apply">{copy.hero.cta} <span>→</span></Link><p className="offer-refund">✓ <span>{copy.offer.refund}</span></p></div>
                 <div className="incl">{copy.offer.items.map(item => <div className="incl-item" data-reveal key={item}><Tick /><p>{item}</p></div>)}</div>
             </div></div></section>
 
