@@ -63,6 +63,7 @@ export default function EventRegisterPage() {
     if (!ready || loading) return <div className="loading">Loading registration…</div>;
     if (!user) return <section className="auth-page"><div className="auth-card center"><ShieldCheck size={40}/><h1>Sign in to register.</h1><p className="muted">Existing members use this dedicated registration request. New founders can apply from the landing page.</p><Link className="button primary" href={`/login?next=/events/${slug}/register`}>Sign in</Link><Link className="button ghost" href="/#apply">Apply for access</Link></div></section>;
     if (!event) return <section className="auth-page"><div className="auth-card center"><h1>Event not found.</h1><Link className="button primary" href="/events">Back to events</Link></div></section>;
+    if (event.status !== 'open') return <section className="auth-page"><div className="auth-card center"><CalendarDays style={{color:'var(--orange)'}} size={40}/><h1>This event is not open for registration.</h1><p className="muted">Closed, completed, and upcoming draft events are hidden from member registration.</p><Link className="button primary" href="/events">View open events</Link></div></section>;
 
     const activeOrders = registration?.activeOrders || [];
     const pendingPaymentOrder = activeOrders.find(order => ['pending', 'preparing'].includes(order.status));

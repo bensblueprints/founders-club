@@ -21,7 +21,7 @@ export default function EventsView({ past = false }) {
             today.setHours(0, 0, 0, 0);
             setEvents(rows.filter(e => past
                 ? e.status === 'completed' || new Date(e.event_date) < today
-                : e.status !== 'completed' && new Date(e.event_date) >= today));
+                : e.status === 'open' && new Date(e.event_date) >= today));
         }).catch(() => setEvents(past ? [] : fallback));
     }, [past]);
     const rows = useMemo(() => events || [], [events]);
