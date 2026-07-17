@@ -10,6 +10,7 @@ const {
     INSTAGRAM_ICON_BASE64,
     WHATSAPP_ICON_BASE64
 } = require('./email-social-assets');
+const { publicBaseUrl: configuredPublicBaseUrl } = require('./site-url');
 
 const EVENT_DETAILS = {
     price: '$150 USD',
@@ -67,7 +68,7 @@ function venueFor(event = {}) {
 }
 
 function publicBaseUrl() {
-    return String(process.env.URL || 'https://foundersvn.com').replace(/\/+$/, '');
+    return configuredPublicBaseUrl();
 }
 
 function absoluteUrl(path) {

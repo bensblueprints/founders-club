@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { sql, isConfigured } = require('./lib/neon');
 const { sendEmail, passwordResetEmail } = require('./lib/emailer');
+const { publicBaseUrl } = require('./lib/site-url');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -18,10 +19,6 @@ function json(statusCode, value) {
 
 function hashToken(token) {
     return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-function baseUrl() {
-    return String(process.env.URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://foundersvn.com').replace(/\/+$/, '');
 }
 
 const GENERIC_RESPONSE = {
@@ -63,7 +60,7 @@ exports.handler = async (event) => {
             INSERT INTO password_reset_tokens (member_id, token_hash, expires_at)
             VALUES (${member.id}, ${hashToken(rawToken)}, ${expiresAt.toISOString()})`;
 
-        const resetUrl = `${baseUrl()}/reset-password?token=${encodeURIComponent(rawToken)}`;
+        const resetUrl = `${publicBaseUrl()}/reset-password?token=${encodeURIComponent(rawToken)}`;
         const emailContent = passwordResetEmail({
             firstName: member.first_name,
             resetUrl,
