@@ -202,7 +202,21 @@ const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', venu
 function EventManager({ events, reload, notify }) {
     const [editing, setEditing] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [eventStatusFilter, setEventStatusFilter] = useState('open');
+    const [eventLocationFilter, setEventLocationFilter] = useState('all');
     const editorRef = useRef(null);
+    const eventRows = useMemo(() => {
+        const statusRank = { open:0, upcoming:1, closed:2, completed:3 };
+        return [...(events || [])]
+            .filter(event => eventStatusFilter === 'all' || event.status === eventStatusFilter)
+            .filter(event => eventLocationFilter === 'all' || (event.location || 'unassigned') === eventLocationFilter)
+            .sort((a, b) => {
+                const ranked = (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9);
+                if (ranked !== 0) return ranked;
+                return new Date(a.event_date || 0) - new Date(b.event_date || 0);
+            });
+    }, [events, eventStatusFilter, eventLocationFilter]);
+    const eventLocations = useMemo(() => Array.from(new Set((events || []).map(event => event.location || 'unassigned'))).sort((a, b) => a.localeCompare(b)), [events]);
     const openEditor = next => {
         setEditing(next);
         window.setTimeout(() => {
@@ -234,6 +248,7 @@ function EventManager({ events, reload, notify }) {
     const update = (field, value) => setEditing(current => ({ ...current, [field]:value }));
     return <div className="event-manager">
         <div className="event-manager-heading"><p className="muted">Create and maintain event details, pricing, capacity, and publishing status.</p><button className="button primary small" onClick={()=>openEditor({...EMPTY_EVENT})}><Plus size={15}/> New event</button></div>
+        <div className="panel application-filters event-filters"><div className="field"><label htmlFor="event-status-filter">Event status</label><select id="event-status-filter" value={eventStatusFilter} onChange={e=>setEventStatusFilter(e.target.value)}><option value="open">Open events only</option><option value="upcoming">Upcoming drafts</option><option value="closed">Closed</option><option value="completed">Completed</option><option value="all">All statuses</option></select></div><div className="field"><label htmlFor="event-location-filter">Location</label><select id="event-location-filter" value={eventLocationFilter} onChange={e=>setEventLocationFilter(e.target.value)}><option value="all">All locations</option>{eventLocations.map(location=><option key={location} value={location}>{location === 'unassigned' ? 'No location' : location}</option>)}</select></div><p className="muted">{eventRows.length} of {events?.length || 0} events shown.</p></div>
         {editing && <form ref={editorRef} className="panel event-editor" onSubmit={save}><div className="event-editor-title"><div><span className="eyebrow">{editing.id ? 'Edit event' : 'New event'}</span><h3>{editing.name || 'Untitled event'}</h3></div><button type="button" className="admin-icon-button" aria-label="Close event editor" onClick={()=>setEditing(null)}><X size={18}/></button></div><div className="event-form-grid">
             <div className="field"><label htmlFor="event-name">Event name</label><input id="event-name" value={editing.name} onChange={e=>update('name',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-slug">URL slug</label><input id="event-slug" value={editing.slug} onChange={e=>update('slug',e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} required/></div>
@@ -247,7 +262,7 @@ function EventManager({ events, reload, notify }) {
             <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
             <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
         </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
-        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
+        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{eventRows.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table>{events && !eventRows.length && <div className="empty">No events match these filters.</div>}</div>
     </div>;
 }
 
