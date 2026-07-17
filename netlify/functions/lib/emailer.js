@@ -479,6 +479,29 @@ function expiredEmail({ firstName, existingAccount = false, event = EVENT_DETAIL
     };
 }
 
+function passwordResetEmail({ firstName, resetUrl, expiresMinutes = 60 }) {
+    const safeFirstName = escapeHtml(firstName || 'there');
+    const safeMinutes = Number(expiresMinutes || 60);
+    const inner = `
+      <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">Reset your FoundersVN password</h2>
+      ${textBlock(`Hi ${safeFirstName},`)}
+      ${textBlock(`We received a request to reset the password for your FoundersVN account. This link expires in ${safeMinutes} minutes.`)}
+      <div style="margin:0 0 24px;">${btn(resetUrl, 'Reset password')}</div>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;margin:0 0 18px;overflow-wrap:anywhere;">If the button does not work, copy and paste this link into your browser:<br><a href="${escapeHtml(resetUrl)}" style="color:#a9bbb6;text-decoration:none;">${escapeHtml(resetUrl)}</a></p>
+      ${textBlock('If you did not request this, you can ignore this email. Your password will stay unchanged.')}
+      <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Đặt lại mật khẩu FoundersVN</h2>
+      ${textBlock(`Chào ${safeFirstName},`)}
+      ${textBlock(`FoundersVN nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Đường dẫn này sẽ hết hạn sau ${safeMinutes} phút.`)}
+      <div style="margin:0 0 24px;">${btn(resetUrl, 'Đặt lại mật khẩu')}</div>
+      ${textBlock('Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này. Mật khẩu hiện tại sẽ không thay đổi.')}`;
+    return {
+        subject: 'Reset your FoundersVN password | Đặt lại mật khẩu FoundersVN',
+        html: shell(inner)
+    };
+}
+
 function paymentConfirmedEmail({
     firstName,
     email,
@@ -576,6 +599,7 @@ module.exports = {
     approvedWithLoginEmail,
     reminderEmail,
     expiredEmail,
+    passwordResetEmail,
     paymentConfirmedEmail,
     notificationEmail
 };

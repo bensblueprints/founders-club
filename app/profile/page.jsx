@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { CalendarDays, Camera, Check, Globe2, LogOut, Plus, Save, Send, Trash2, UserRound, UsersRound, X } from 'lucide-react';
+import { CalendarDays, Camera, Check, Globe2, KeyRound, LogOut, Plus, Save, Send, Trash2, UserRound, UsersRound, X } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { db, initials } from '@/lib/api';
 
@@ -201,6 +201,7 @@ export default function ProfilePage() {
                     <p>{user.role || 'Founder'} · {user.company || 'Independent'}</p>
                     <small>{user.email}</small>
                 </div>
+                <Link className="button ghost" href="/change-password"><KeyRound size={16} /> Change password</Link>
                 <button className="button ghost" onClick={async () => { await logout(); window.location.href = '/'; }}><LogOut size={16} /> Logout</button>
             </aside>
 

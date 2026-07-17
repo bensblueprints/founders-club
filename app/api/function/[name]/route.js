@@ -12,6 +12,8 @@ import paymentReminders from '@/netlify/functions/payment-reminders';
 import registerEvent from '@/netlify/functions/register-event';
 import mockPayment from '@/netlify/functions/mock-payment';
 import authChangePassword from '@/netlify/functions/auth-change-password';
+import authForgotPassword from '@/netlify/functions/auth-forgot-password';
+import authResetPassword from '@/netlify/functions/auth-reset-password';
 import resendWebhook from '@/netlify/functions/resend-webhook';
 
 export const runtime = 'nodejs';
@@ -32,6 +34,8 @@ const modules = {
     'register-event': registerEvent,
     'mock-payment': mockPayment,
     'auth-change-password': authChangePassword,
+    'auth-forgot-password': authForgotPassword,
+    'auth-reset-password': authResetPassword,
     'resend-webhook': resendWebhook
 };
 

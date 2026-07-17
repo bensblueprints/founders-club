@@ -19,6 +19,7 @@ const assert = require('assert');
 const authLibPath = path.resolve(__dirname, '../netlify/functions/lib/auth.js');
 const neonPath = path.resolve(__dirname, '../netlify/functions/lib/neon.js');
 const loginPath = path.resolve(__dirname, '../netlify/functions/auth-login.js');
+const changePasswordPath = path.resolve(__dirname, '../netlify/functions/auth-change-password.js');
 const dbApiPath = path.resolve(__dirname, '../netlify/functions/db-api.js');
 
 process.env.SESSION_SECRET = 'test-session-secret-please-change';
@@ -48,6 +49,7 @@ function loadFresh(modPath) {
     delete require.cache[modPath];
     delete require.cache[dbApiPath];
     delete require.cache[loginPath];
+    delete require.cache[changePasswordPath];
     injectNeon();
     return require(modPath);
 }
@@ -207,6 +209,44 @@ async function test(name, fn) {
     await test('auth-login missing fields -> 400', async () => {
         const res = await invokeLogin({ email: '', password: '' });
         assert.strictEqual(res.statusCode, 400);
+    });
+
+    // ---------------------------------------------------------------
+    // 5b. auth-change-password handler
+    // ---------------------------------------------------------------
+    const changePassword = loadFresh(changePasswordPath);
+    const memberJwtForPasswordChange = auth.signToken({ sub: 'm-101', email: 'member@b.co', is_admin: false, must_reset_password: false });
+    function invokeChangePassword(body, token = memberJwtForPasswordChange) {
+        return changePassword.handler({
+            httpMethod: 'POST',
+            headers: { authorization: 'Bearer ' + token },
+            body: JSON.stringify(body)
+        });
+    }
+
+    await test('auth-change-password requires current password for normal accounts', async () => {
+        nextRows = [{ id: 'm-101', email: 'member@b.co', password_hash: knownHash, must_reset_password: false, account_status: 'active' }];
+        const res = await invokeChangePassword({ password: 'NewSecure123!' });
+        assert.strictEqual(res.statusCode, 400);
+        assert.strictEqual(JSON.parse(res.body).error, 'Current password is required.');
+    });
+
+    await test('auth-change-password rejects wrong current password', async () => {
+        nextRows = [{ id: 'm-101', email: 'member@b.co', password_hash: knownHash, must_reset_password: false, account_status: 'active' }];
+        const res = await invokeChangePassword({ currentPassword: 'WrongPassword123!', password: 'NewSecure123!' });
+        assert.strictEqual(res.statusCode, 401);
+        assert.strictEqual(JSON.parse(res.body).error, 'Current password is incorrect.');
+    });
+
+    await test('auth-change-password accepts correct current password', async () => {
+        nextRows = [{ id: 'm-101', email: 'member@b.co', password_hash: knownHash, first_name: 'M', last_name: 'B', must_reset_password: false, account_status: 'active' }];
+        const res = await invokeChangePassword({ currentPassword: 'CorrectHorse1!', password: 'NewSecure123!' });
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.ok(body.token);
+        assert.strictEqual(body.user.password_hash, undefined);
+        const update = calls.find(c => c.strings.join(' ').includes('UPDATE members SET password_hash'));
+        assert.ok(update, 'password update ran');
     });
 
     // ---------------------------------------------------------------

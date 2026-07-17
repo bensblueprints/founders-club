@@ -49,6 +49,7 @@ function LoginContent() {
         <form onSubmit={submit}>
             <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
             <div className="field"><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required /></div>
+            <div style={{ textAlign: 'right', margin: '-4px 0 14px' }}><Link href="/forgot-password" style={{ color: 'var(--muted)', fontSize: 13 }}>Forgot password?</Link></div>
             {error && <div className="form-status error">{error}</div>}
             <button className="button primary" disabled={busy}>{busy ? 'Signing in…' : <>Sign in <ArrowRight size={17} /></>}</button>
         </form>
