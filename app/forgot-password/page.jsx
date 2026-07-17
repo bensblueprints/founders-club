@@ -12,14 +12,15 @@ export default function ForgotPasswordPage() {
 
     async function submit(event) {
         event.preventDefault();
-        const form = new FormData(event.currentTarget);
+        const formElement = event.currentTarget;
+        const form = new FormData(formElement);
         setBusy(true);
         setError('');
         setMessage('');
         try {
             const result = await callFunction('auth-forgot-password', { email: form.get('email') }, { token: null });
             setMessage(result.message || 'If an account exists for that email, we sent password reset instructions.');
-            event.currentTarget.reset();
+            formElement.reset();
         } catch (err) {
             setError(err.message);
         } finally {
