@@ -56,17 +56,33 @@ CREATE INDEX IF NOT EXISTS idx_attendance_paid_event
 INSERT INTO event_attendance
     (event_id, member_id, application_id, ticket_type, payment_status, approved_at, paid_at)
 SELECT
-    a.event_id,
-    m.id,
-    a.id,
-    CASE WHEN a.membership_type = 'full' THEN 'full' ELSE 'dinner' END,
-    CASE WHEN a.payment_status = 'paid' THEN 'paid' ELSE COALESCE(a.payment_status, 'awaiting') END,
-    COALESCE(a.accepted_at, a.reviewed_at, NOW()),
-    a.paid_at
-FROM applications a
-JOIN members m ON LOWER(m.email) = LOWER(a.email)
-WHERE a.event_id IS NOT NULL
-  AND a.status = 'approved'
+    backfill.event_id,
+    backfill.member_id,
+    backfill.application_id,
+    backfill.ticket_type,
+    backfill.payment_status,
+    backfill.approved_at,
+    backfill.paid_at
+FROM (
+    SELECT DISTINCT ON (a.event_id, m.id)
+        a.event_id,
+        m.id AS member_id,
+        a.id AS application_id,
+        CASE WHEN a.membership_type = 'full' THEN 'full' ELSE 'dinner' END AS ticket_type,
+        CASE WHEN a.payment_status = 'paid' THEN 'paid' ELSE COALESCE(a.payment_status, 'awaiting') END AS payment_status,
+        COALESCE(a.accepted_at, a.reviewed_at, NOW()) AS approved_at,
+        a.paid_at
+    FROM applications a
+    JOIN members m ON LOWER(m.email) = LOWER(a.email)
+    WHERE a.event_id IS NOT NULL
+      AND a.status = 'approved'
+    ORDER BY
+        a.event_id,
+        m.id,
+        CASE WHEN a.payment_status = 'paid' THEN 0 ELSE 1 END,
+        COALESCE(a.accepted_at, a.reviewed_at, a.created_at) DESC,
+        a.id DESC
+) backfill
 ON CONFLICT (event_id, member_id) DO UPDATE SET
     application_id = EXCLUDED.application_id,
     payment_status = EXCLUDED.payment_status,
