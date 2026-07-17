@@ -249,8 +249,10 @@
 .landing-original .foot-bottom p { margin: 0; }
 
 @media (max-width: 1020px) {
-    .landing-original .infocard { width: 100%; flex-wrap: wrap; }
-    .landing-original .ic { flex: 1 1 30%; }
+    .landing-original .infocard { width: 100%; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .landing-original .ic { min-width: 0; }
+    .landing-original .ic:nth-child(4) { border-left: 0; }
+    .landing-original .ic:nth-child(n+4) { border-top: 1px solid var(--legacy-border); }
     .landing-original .pos-grid, .landing-original .offer-grid, .landing-original .app-grid { grid-template-columns: 1fr; gap: 44px; }
     .landing-original .pos-fig-wrap { order: -1; }
     .landing-original .app-shot { max-width: 520px; }
@@ -280,11 +282,10 @@
     .landing-original .hero-shade { background: radial-gradient(90% 55% at 100% 100%,rgba(231,100,74,.26),transparent 52%),linear-gradient(180deg,rgba(6,18,13,.52),rgba(6,18,13,.5) 30%,rgba(6,18,13,.8) 68%,rgba(6,18,13,.9)); }
     .landing-original .hero h1 { font-size: clamp(2.5rem,12vw,4rem); }
     .landing-original .pos-cube { right: -58px; bottom: -42px; width: 252px; }
-    .landing-original .infocard { width: 100%; }
-    .landing-original .ic { flex: 1 1 44%; padding: 13px 15px; }
-    .landing-original .ic:nth-child(3) { border-left: 0; border-top: 1px solid var(--legacy-border); }
-    .landing-original .ic:nth-child(4) { border-top: 1px solid var(--legacy-border); }
-    .landing-original .ic:nth-child(5) { flex-basis: 100%; border-top: 1px solid var(--legacy-border); border-left: 0; }
+    .landing-original .infocard { width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .landing-original .ic { padding: 13px 15px; }
+    .landing-original .ic:nth-child(odd) { border-left: 0; }
+    .landing-original .ic:nth-child(n+3) { border-top: 1px solid var(--legacy-border); }
     .landing-original .gallery { padding-top: 14px; }
     .landing-original .marq-track { --marq-duration: 28s; }
     .landing-original .marq-group { gap: 12px; padding-right: 12px; }
