@@ -284,8 +284,10 @@
     .landing-original .pos-cube { right: -58px; bottom: -42px; width: 252px; }
     .landing-original .infocard { width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); }
     .landing-original .ic { padding: 13px 15px; }
-    .landing-original .ic:nth-child(odd) { border-left: 0; }
-    .landing-original .ic:nth-child(n+3) { border-top: 1px solid var(--legacy-border); }
+    .landing-original .ic:first-child { grid-column: 1 / -1; border-left: 0; }
+    .landing-original .ic:nth-child(2),
+    .landing-original .ic:nth-child(4) { border-left: 0; }
+    .landing-original .ic:nth-child(n+2) { border-top: 1px solid var(--legacy-border); }
     .landing-original .gallery { padding-top: 14px; }
     .landing-original .marq-track { --marq-duration: 28s; }
     .landing-original .marq-group { gap: 12px; padding-right: 12px; }
