@@ -114,7 +114,7 @@ function printCheckinList(event, registrations) {
       table{width:100%;border-collapse:collapse;table-layout:fixed}th{background:#0b241b;color:white;text-align:left;padding:7px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.04em}td{border-bottom:1px solid #dce3e0;padding:7px 6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f5f7f6}
       .check{width:14px;height:14px;border:1.5px solid #17231f;display:inline-block}.num{width:28px}.check-col{width:48px}.type{width:52px}.meal-col{width:78px}.paid{width:92px}.email{width:165px}.company{width:130px}
       footer{margin-top:10px;display:flex;justify-content:space-between;color:#71807a;font-size:9px}@media print{button{display:none}}
-    </style></head><body><header><div><h1>${escape(event?.name || 'Event')} - Check-in list</h1><p>${escape(eventDate)}${event?.event_time ? ` at ${escape(event.event_time)}` : ''}</p><p>${escape(event?.location || '')}</p></div><div class="summary"><b>${rows.length} attendee${rows.length === 1 ? '' : 's'}</b><p>${registrations.length} paid registration${registrations.length === 1 ? '' : 's'}</p></div></header>
+    </style></head><body><header><div><h1>${escape(event?.name || 'Event')} - Check-in list</h1><p>${escape(eventDate)}${event?.event_time ? ` at ${escape(event.event_time)}` : ''}</p><p>${escape(event?.venue_name || event?.location || '')}</p>${event?.venue_address ? `<p>${escape(event.venue_address)}</p>` : ''}</div><div class="summary"><b>${rows.length} attendee${rows.length === 1 ? '' : 's'}</b><p>${registrations.length} paid registration${registrations.length === 1 ? '' : 's'}</p></div></header>
     <div class="meals">${Object.entries(mealCounts).map(([meal,count]) => `<span class="meal">${escape(meal)}: <b>${count}</b></span>`).join('')}</div>
     <table><thead><tr><th class="num">#</th><th class="check-col">In</th><th>Attendee</th><th class="type">Type</th><th class="email">Email</th><th class="company">Company</th><th class="meal-col">Meal</th><th class="paid">Payment</th></tr></thead><tbody>
     ${rows.map((row,index) => `<tr><td>${index+1}</td><td><span class="check"></span></td><td><b>${escape(row.attendee)}</b></td><td>${escape(row.type)}</td><td>${escape(row.email || '—')}</td><td>${escape(row.company || '—')}</td><td>${escape(row.meal)}</td><td>${escape(row.paidVia)}</td></tr>`).join('')}</tbody></table>
@@ -197,14 +197,15 @@ function CheckinView({ events, selectedEventId, setSelectedEventId, registration
     </div>;
 }
 
-const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', description:'', price:150, capacity:25, status:'open' };
+const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', venueName:'', venueAddress:'', description:'', price:150, capacity:25, status:'open' };
 
 function EventManager({ events, reload, notify }) {
     const [editing, setEditing] = useState(null);
     const [saving, setSaving] = useState(false);
     const beginEdit = event => setEditing({
         id:event.id, slug:event.slug || '', name:event.name || '', date:String(event.event_date || '').slice(0,10),
-        time:String(event.event_time || '18:00').slice(0,5), location:event.location || '', description:event.description || '',
+        time:String(event.event_time || '18:00').slice(0,5), location:event.location || '',
+        venueName:event.venue_name || '', venueAddress:event.venue_address || '', description:event.description || '',
         price:Number(event.dinner_price || 150),
         capacity:Number(event.max_attendees || 25), status:event.status || 'open'
     });
@@ -230,13 +231,15 @@ function EventManager({ events, reload, notify }) {
             <div className="field"><label htmlFor="event-slug">URL slug</label><input id="event-slug" value={editing.slug} onChange={e=>update('slug',e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} required/></div>
             <div className="field"><label htmlFor="event-date">Date</label><input id="event-date" type="date" value={editing.date} onChange={e=>update('date',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-time">Time</label><input id="event-time" type="time" value={editing.time} onChange={e=>update('time',e.target.value)} required/></div>
-            <div className="field wide"><label htmlFor="event-location">Location</label><input id="event-location" value={editing.location} onChange={e=>update('location',e.target.value)} required/></div>
+            <div className="field"><label htmlFor="event-location">City / location</label><input id="event-location" value={editing.location} onChange={e=>update('location',e.target.value)} placeholder="Da Nang" required/></div>
+            <div className="field"><label htmlFor="event-venue-name">Venue name</label><input id="event-venue-name" value={editing.venueName} onChange={e=>update('venueName',e.target.value)} placeholder="FOR YOU STEAKHOUSE"/></div>
+            <div className="field wide"><label htmlFor="event-venue-address">Venue address</label><input id="event-venue-address" value={editing.venueAddress} onChange={e=>update('venueAddress',e.target.value)} placeholder="Full street address"/></div>
             <div className="field"><label htmlFor="event-price">Dinner ticket (USD)</label><input id="event-price" type="number" min="0" step="0.01" value={editing.price} onChange={e=>update('price',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-capacity">Total capacity</label><input id="event-capacity" type="number" min="1" value={editing.capacity} onChange={e=>update('capacity',e.target.value)} required/></div>
             <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
             <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
         </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
-        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="icon-button" aria-label={`Edit ${event.name}`} onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="icon-button danger" aria-label={`Delete ${event.name}`} onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
+        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{events?.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="icon-button" aria-label={`Edit ${event.name}`} onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="icon-button danger" aria-label={`Delete ${event.name}`} onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>
     </div>;
 }
 

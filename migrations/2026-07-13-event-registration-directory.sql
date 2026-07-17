@@ -4,13 +4,18 @@
 ALTER TABLE members ADD COLUMN IF NOT EXISTS member_type TEXT DEFAULT 'member';
 ALTER TABLE members ADD COLUMN IF NOT EXISTS must_reset_password BOOLEAN DEFAULT false;
 
-INSERT INTO events (slug, name, event_date, day_of_week, location, status, description) VALUES
-    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'FOR YOU SteakHouse, Da Nang', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
-    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
+ALTER TABLE events ADD COLUMN IF NOT EXISTS venue_name VARCHAR(255);
+ALTER TABLE events ADD COLUMN IF NOT EXISTS venue_address TEXT;
+
+INSERT INTO events (slug, name, event_date, day_of_week, location, venue_name, venue_address, status, description) VALUES
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'Da Nang', 'FOR YOU STEAKHOUSE', 'Lô 1C - 01 Võ Nguyên Giáp, An Hải, Đà Nẵng 550000, Việt Nam', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
+    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', NULL, NULL, 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO UPDATE SET
     name = EXCLUDED.name,
     event_date = EXCLUDED.event_date,
     location = EXCLUDED.location,
+    venue_name = COALESCE(events.venue_name, EXCLUDED.venue_name),
+    venue_address = COALESCE(events.venue_address, EXCLUDED.venue_address),
     status = EXCLUDED.status,
     description = EXCLUDED.description;
 

@@ -43,7 +43,7 @@ function TicketCard({ order, attendee }) {
             <div className="ticket-divider"><span/><i/><i/></div>
             <div className="ticket-body">
                 <h2>{order.event.name}</h2><p className="ticket-name">{order.ticketCount} event ticket{order.ticketCount === 1 ? '' : 's'}</p>
-                <div className="ticket-detail-grid"><div><span>Date</span><b>{formatDate(order.event.date, { weekday:'long' })}</b></div><div><span>Time</span><b>{String(order.event.time || '18:00').slice(0,5)}</b></div><div className="full"><span>Venue</span><b>{order.event.location || 'FoundersVN venue'}</b></div></div>
+                <div className="ticket-detail-grid"><div><span>Date</span><b>{formatDate(order.event.date, { weekday:'long' })}</b></div><div><span>Time</span><b>{String(order.event.time || '18:00').slice(0,5)}</b></div><div className="full"><span>Venue</span><b>{order.event.venueName || order.event.location || 'FoundersVN venue'}</b>{order.event.venueAddress && <small>{order.event.venueAddress}</small>}</div></div>
                 <div className="ticket-attendee"><span>Attendee</span><b>{attendee}</b></div>{order.guestName && <div className="ticket-attendee"><span>Partner / co-founder</span><b>{order.guestName}</b></div>}
                 <div className="ticket-ref"><span>Booking ref</span><b>{order.id}</b></div>
             </div>
@@ -51,7 +51,7 @@ function TicketCard({ order, attendee }) {
             <div className="ticket-footer-line">foundersvietnam.com</div>
         </div>
         <aside className="ticket-side">
-            <div className="panel"><h2>Event details</h2><div className="event-meta register-meta"><span><CalendarDays size={16}/>{formatDate(order.event.date, { weekday:'long' })}</span><span><MapPin size={16}/>{order.event.location || 'Vietnam'}</span><span><UsersRound size={16}/>{order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</span></div></div>
+            <div className="panel"><h2>Event details</h2><div className="event-meta register-meta"><span><CalendarDays size={16}/>{formatDate(order.event.date, { weekday:'long' })}</span><span><MapPin size={16}/>{order.event.venueName || order.event.location || 'Vietnam'}</span>{order.event.venueAddress && <span><MapPin size={16}/>{order.event.venueAddress}</span>}<span><UsersRound size={16}/>{order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</span></div></div>
             <div className="panel ticket-actions-panel"><button className="button primary" onClick={()=>window.print()}><Printer size={17}/> Print ticket</button><button className="button ghost" onClick={()=>window.print()}><Download size={17}/> Save as PDF</button><Link className="button ghost" href="/meal">Choose meal</Link><Link className="button primary" href="/members">Member directory</Link></div>
         </aside>
     </article>;

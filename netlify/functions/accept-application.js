@@ -62,7 +62,8 @@ exports.handler = async (event) => {
     try {
         const rows = await sql`
             SELECT a.*, e.slug AS event_slug, e.name AS event_name, e.event_date, e.event_time,
-                   e.location AS event_location, e.dinner_price, e.max_attendees,
+                   e.location AS event_location, e.venue_name AS event_venue_name,
+                   e.venue_address AS event_venue_address, e.dinner_price, e.max_attendees,
                    po.id AS payment_order_id, po.status AS order_status,
                    po.ticket_count AS order_ticket_count, po.base_amount_usd,
                    po.airwallex_fee_usd, po.airwallex_total_usd, po.sepay_amount_vnd,
@@ -293,6 +294,8 @@ exports.handler = async (event) => {
         }),
         time: String(app.event_time || '18:00').slice(0, 5),
         location: app.event_location,
+        venueName: app.event_venue_name,
+        venueAddress: app.event_venue_address,
         price: `$${baseAmountUsd.toFixed(2)} USD for ${ticketCount} ticket${ticketCount === 1 ? '' : 's'}`
     };
     let emailResult = { success: false };

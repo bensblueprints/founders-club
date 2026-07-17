@@ -103,7 +103,8 @@ function publicPaymentOrder(order) {
         paidProvider: order.paid_provider, paidAt: order.paid_at, expiresAt: order.expires_at,
         createdAt: order.created_at,
         event: { id: order.event_id, name: order.event_name, date: order.event_date,
-            time: order.event_time, location: order.event_location }
+            time: order.event_time, location: order.event_location,
+            venueName: order.event_venue_name, venueAddress: order.event_venue_address }
     };
 }
 
@@ -341,7 +342,8 @@ const handlers = {
 
         const orderRows = await sql`
             SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
@@ -391,11 +393,12 @@ const handlers = {
         if (Number(p.capacity) < 1) throw new Error('Capacity must be at least 1');
         const rows = await sql`
             INSERT INTO events
-                (slug, name, event_date, event_time, location, description,
+                (slug, name, event_date, event_time, location, venue_name, venue_address, description,
                  dinner_price, max_attendees, status)
             VALUES
                 (${p.slug}, ${p.name}, ${p.date}, ${p.time || '18:00'}, ${p.location || null},
-                 ${p.description || null}, ${Number(p.price || 150)},
+                 ${p.venueName || p.venue_name || null}, ${p.venueAddress || p.venue_address || null}, ${p.description || null},
+                 ${Number(p.price || 150)},
                  ${Number(p.capacity)}, ${p.status || 'open'})
             RETURNING *`;
         return rows[0] || null;
@@ -409,6 +412,7 @@ const handlers = {
         const rows = await sql`
             UPDATE events SET slug = ${p.slug}, name = ${p.name}, event_date = ${p.date},
                 event_time = ${p.time || '18:00'}, location = ${p.location || null},
+                venue_name = ${p.venueName || p.venue_name || null}, venue_address = ${p.venueAddress || p.venue_address || null},
                 description = ${p.description || null}, dinner_price = ${Number(p.price || 150)},
                 max_attendees = ${Number(p.capacity)}, status = ${p.status || 'open'}
             WHERE id = ${p.id} RETURNING *`;
@@ -465,6 +469,7 @@ const handlers = {
                    m.whatsapp, m.zalo, m.telegram, m.linkedin, m.twitter, m.wechat,
                    m.facebook, m.instagram, m.social_link, m.member_type, m.account_status,
                    e.name AS event_name, e.event_date, e.event_time, e.location,
+                   e.venue_name, e.venue_address,
                    po.id AS payment_order_id, po.paid_provider,
                    po.provider_transaction_id, po.paid_amount, po.paid_currency,
                    po.base_amount_usd, po.sepay_amount_vnd, po.created_at AS order_created_at,
@@ -541,14 +546,16 @@ const handlers = {
         const rows = orderId
             ? await sql`
                 SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
-                       e.event_date, e.event_time, e.location AS event_location
+                       e.event_date, e.event_time, e.location AS event_location,
+                       e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
                 FROM payment_orders po
                 JOIN applications a ON a.id = po.application_id
                 JOIN events e ON e.id = po.event_id
                 WHERE po.id = ${orderId} AND po.member_id = ${ctx.memberId} LIMIT 1`
             : await sql`
                 SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
-                       e.event_date, e.event_time, e.location AS event_location
+                       e.event_date, e.event_time, e.location AS event_location,
+                       e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
                 FROM payment_orders po
                 JOIN applications a ON a.id = po.application_id
                 JOIN events e ON e.id = po.event_id
@@ -560,7 +567,8 @@ const handlers = {
     async 'payments.list'(_payload, ctx) {
         const rows = await sql`
             SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id

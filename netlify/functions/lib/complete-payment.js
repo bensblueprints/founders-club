@@ -11,7 +11,8 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     if (orderId) {
         const rows = await sql`
             SELECT po.*, a.first_name, a.email, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
@@ -21,7 +22,8 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     if (applicationId) {
         const rows = await sql`
             SELECT po.*, a.first_name, a.email, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
@@ -31,7 +33,8 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     if (sepayCode) {
         const rows = await sql`
             SELECT po.*, a.first_name, a.email, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
@@ -41,7 +44,8 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     if (airwallexLinkId) {
         const rows = await sql`
             SELECT po.*, a.first_name, a.email, e.name AS event_name,
-                   e.event_date, e.event_time, e.location AS event_location
+                   e.event_date, e.event_time, e.location AS event_location,
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
@@ -74,7 +78,9 @@ async function sendConfirmation(order) {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
             }),
             time: String(order.event_time || '18:00').slice(0, 5),
-            location: order.event_location
+            location: order.event_location,
+            venueName: order.event_venue_name,
+            venueAddress: order.event_venue_address
         }
     });
     const result = await sendEmail({ to: order.email, subject: tmpl.subject, html: tmpl.html, tracking: {

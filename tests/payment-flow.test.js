@@ -130,6 +130,8 @@ test('approval email uses the V1 bilingual seat-held template', () => {
             date: 'Friday, July 31, 2026',
             time: '18:00',
             location: 'Da Nang',
+            venueName: 'Custom Test Venue',
+            venueAddress: '123 Editable Event Street, Da Nang',
             price: '$150.00 USD for 1 ticket'
         }
     });
@@ -139,7 +141,9 @@ test('approval email uses the V1 bilingual seat-held template', () => {
     assert.ok(email.html.includes('We have reserved a seat for you for the next 48 hours.'));
     assert.ok(email.html.includes('FoundersVN đã giữ riêng một chỗ cho bạn trong 48 giờ.'));
     assert.ok(email.html.includes('Bạn đã đặt chỗ thành công tại FoundersVN'));
-    assert.ok(email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
+    assert.ok(email.html.includes('Custom Test Venue'));
+    assert.ok(email.html.includes('123 Editable Event Street, Da Nang'));
+    assert.ok(!email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
     assert.ok(email.html.includes('Temporary password'));
     assert.ok(email.html.includes('next=%2Fpayment%3Forder%3Dorder-1'));
     assert.ok(email.html.includes('You can pay by international card through Airwallex with a 5% card fee'));
@@ -243,7 +247,9 @@ test('payment confirmation email links to meal selection', () => {
             name: 'FoundersVN Da Nang',
             date: 'Friday, July 31, 2026',
             time: '18:00',
-            location: 'Da Nang'
+            location: 'Da Nang',
+            venueName: 'Confirmation Test Venue',
+            venueAddress: '456 Confirmation Street, Da Nang'
         }
     });
     assert.match(email.subject, /You are confirmed, Jane/);
@@ -252,7 +258,9 @@ test('payment confirmation email links to meal selection', () => {
     assert.ok(email.html.includes('Your payment has been received and your seat is confirmed.'));
     assert.ok(email.html.includes('FoundersVN đã nhận được thanh toán'));
     assert.ok(email.html.includes('THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN'));
-    assert.ok(email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
+    assert.ok(email.html.includes('Confirmation Test Venue'));
+    assert.ok(email.html.includes('456 Confirmation Street, Da Nang'));
+    assert.ok(!email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
     assert.ok(email.html.includes('https://foundersvn.com/meal'));
     assert.ok(email.html.includes('Choose meal options'));
     assert.ok(email.html.includes('1. Set up your profile in the app'));

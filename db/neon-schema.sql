@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS events (
     event_time TIME DEFAULT '18:00',
     day_of_week VARCHAR(20),
     location VARCHAR(255) DEFAULT 'Ho Chi Minh City',
+    venue_name VARCHAR(255),
+    venue_address TEXT,
     description TEXT,
     dinner_price DECIMAL(10,2) DEFAULT 150.00,
     cruise_price DECIMAL(10,2) DEFAULT 297.00,
@@ -125,6 +127,9 @@ CREATE TABLE IF NOT EXISTS events (
     status VARCHAR(20) DEFAULT 'upcoming',    -- upcoming, open, closed, completed
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE events ADD COLUMN IF NOT EXISTS venue_name VARCHAR(255);
+ALTER TABLE events ADD COLUMN IF NOT EXISTS venue_address TEXT;
 
 -- An email can apply to multiple events, but only once per event.
 ALTER TABLE applications
@@ -303,16 +308,16 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- ========================================
 -- SAMPLE EVENTS (same seed as the old schema)
 -- ========================================
-INSERT INTO events (slug, name, event_date, day_of_week, location, status, description) VALUES
-    ('jan-2026', 'January Gathering', '2026-01-24', 'Saturday', 'Ho Chi Minh City', 'completed', 'Our inaugural gathering brought together Vietnam''s most ambitious founders.'),
-    ('feb-2026', 'February Gathering', '2026-02-10', 'Tuesday', 'Ho Chi Minh City', 'open', 'Monthly gathering for founders.'),
-    ('mar-2026', 'March Gathering', '2026-03-11', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
-    ('apr-2026', 'April Gathering', '2026-04-14', 'Tuesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
-    ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
-    ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
-    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'Ho Chi Minh City', 'upcoming', 'Monthly gathering for founders.'),
-    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'FOR YOU SteakHouse, Da Nang', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
-    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', 'open', 'FoundersVN networking event in Ho Chi Minh City.')
+INSERT INTO events (slug, name, event_date, day_of_week, location, venue_name, venue_address, status, description) VALUES
+    ('jan-2026', 'January Gathering', '2026-01-24', 'Saturday', 'Ho Chi Minh City', NULL, NULL, 'completed', 'Our inaugural gathering brought together Vietnam''s most ambitious founders.'),
+    ('feb-2026', 'February Gathering', '2026-02-10', 'Tuesday', 'Ho Chi Minh City', NULL, NULL, 'open', 'Monthly gathering for founders.'),
+    ('mar-2026', 'March Gathering', '2026-03-11', 'Wednesday', 'Ho Chi Minh City', NULL, NULL, 'upcoming', 'Monthly gathering for founders.'),
+    ('apr-2026', 'April Gathering', '2026-04-14', 'Tuesday', 'Ho Chi Minh City', NULL, NULL, 'upcoming', 'Monthly gathering for founders.'),
+    ('may-2026', 'May Gathering', '2026-05-13', 'Wednesday', 'Ho Chi Minh City', NULL, NULL, 'upcoming', 'Monthly gathering for founders.'),
+    ('jun-2026', 'June Gathering', '2026-06-09', 'Tuesday', 'Ho Chi Minh City', NULL, NULL, 'upcoming', 'Monthly gathering for founders.'),
+    ('jul-2026', 'July Gathering', '2026-07-08', 'Wednesday', 'Ho Chi Minh City', NULL, NULL, 'upcoming', 'Monthly gathering for founders.'),
+    ('danang-jul-2026', 'FoundersVN Da Nang', '2026-07-31', 'Friday', 'Da Nang', 'FOR YOU STEAKHOUSE', 'Lô 1C - 01 Võ Nguyên Giáp, An Hải, Đà Nẵng 550000, Việt Nam', 'open', 'Curated FoundersVN networking dinner at FOR YOU SteakHouse.'),
+    ('hcmc-aug-2026', 'FoundersVN Ho Chi Minh City', '2026-08-15', 'Saturday', 'Ho Chi Minh City', NULL, NULL, 'open', 'FoundersVN networking event in Ho Chi Minh City.')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ========================================

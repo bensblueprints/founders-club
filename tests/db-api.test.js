@@ -249,18 +249,24 @@ async function test(name, fn) {
 
         nextRows = [{ id: 'event-1', slug: 'new-event' }];
         let res = await invoke(api, { action: 'events.create', headers: adminHeaders, payload: {
-            slug: 'new-event', name: 'New Event', date: '2026-09-01', capacity: 25, price: 150
+            slug: 'new-event', name: 'New Event', date: '2026-09-01', capacity: 25, price: 150,
+            location: 'Da Nang', venueName: 'Editable Venue', venueAddress: '123 Admin Street'
         }});
         assert.strictEqual(res.statusCode, 200, res.body);
         assert.ok(calls[0].values.includes('new-event'));
+        assert.ok(calls[0].values.includes('Editable Venue'));
+        assert.ok(calls[0].values.includes('123 Admin Street'));
 
         reset(); nextRows = [{ id: 'event-1', slug: 'updated-event' }];
         res = await invoke(api, { action: 'events.update', headers: adminHeaders, payload: {
-            id: 'event-1', slug: 'updated-event', name: 'Updated Event', date: '2026-09-02', capacity: 30, price: 160
+            id: 'event-1', slug: 'updated-event', name: 'Updated Event', date: '2026-09-02', capacity: 30, price: 160,
+            location: 'Ho Chi Minh City', venueName: 'Updated Venue', venueAddress: '456 Admin Avenue'
         }});
         assert.strictEqual(res.statusCode, 200, res.body);
         assert.ok(calls[0].values.includes('event-1'));
         assert.ok(calls[0].values.includes('updated-event'));
+        assert.ok(calls[0].values.includes('Updated Venue'));
+        assert.ok(calls[0].values.includes('456 Admin Avenue'));
 
         reset(); nextRows = [{ applications: 0, attendance: 0, id: 'event-1' }];
         res = await invoke(api, { action: 'events.delete', headers: adminHeaders, payload: { id: 'event-1' } });

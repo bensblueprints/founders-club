@@ -13,7 +13,9 @@ const {
 
 const EVENT_DETAILS = {
     price: '$150 USD',
-    location: 'FOR YOU STEAKHOUSE, Da Nang',
+    location: 'Da Nang',
+    venueName: 'FoundersVN venue',
+    venueAddress: 'Venue address to be announced',
     date: 'Friday, July 31, 2026',
 };
 
@@ -59,17 +61,9 @@ function displayEventTime(value) {
 }
 
 function venueFor(event = {}) {
-    const location = String(event.location || '').toLowerCase();
-    if (location.includes('da nang') || location.includes('đà nẵng')) {
-        return {
-            name: 'FOR YOU STEAKHOUSE',
-            address: 'Lô 1C - 01 Võ Nguyên Giáp, An Hải, Đà Nẵng 550000, Việt Nam'
-        };
-    }
-    if (location.includes('ho chi minh') || location.includes('hcmc')) {
-        return { name: 'Ho Chi Minh City', address: 'Ho Chi Minh City, Vietnam' };
-    }
-    return { name: event.location || EVENT_DETAILS.location, address: event.location || EVENT_DETAILS.location };
+    const venueName = event.venueName || event.venue_name || event.place || event.venue || event.location || EVENT_DETAILS.venueName;
+    const venueAddress = event.venueAddress || event.venue_address || event.address || '';
+    return { name: venueName, address: venueAddress };
 }
 
 function publicBaseUrl() {
@@ -352,7 +346,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Time:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Place:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Dress code:</strong> suit and tie</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Ticket:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
@@ -376,7 +370,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Ngày:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Giờ:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa điểm:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Trang phục:</strong> suit and tie</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Vé:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
@@ -431,7 +425,7 @@ function reminderEmail({ firstName, paymentUrl, hoursLeft = 24, reminderKind = '
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
         ${eventTime ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Time:</strong> ${escapeHtml(eventTime)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Place:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Ticket:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
       <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Sign in and finish payment to confirm your seat')}</div>
@@ -445,7 +439,7 @@ function reminderEmail({ firstName, paymentUrl, hoursLeft = 24, reminderKind = '
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Ngày:</strong> ${escapeHtml(eventDate)}</p>
         ${eventTime ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Giờ:</strong> ${escapeHtml(eventTime)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa điểm:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Vé:</strong> ${escapeHtml(ticketPrice)}</p>
       </div>
       <div style="margin:0 0 24px;">${btn(paymentAccessUrl, 'Đăng nhập và hoàn tất thanh toán để xác nhận chỗ')}</div>
@@ -516,7 +510,7 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Time:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Place:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Address:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Payment method:</strong> ${escapeHtml(method)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Receipt:</strong> ${receiptUrl ? textLink(receiptUrl, 'View receipt') : 'Available in your account'}</p>
       </div>
@@ -536,7 +530,7 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Ngày:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Giờ:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa điểm:</strong> ${escapeHtml(venue.name)}</p>
-        <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>
+        ${venue.address ? `<p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa chỉ:</strong> ${escapeHtml(venue.address)}</p>` : ''}
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Phương thức thanh toán:</strong> ${escapeHtml(method)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Biên nhận:</strong> ${receiptUrl ? textLink(receiptUrl, 'Xem biên nhận') : 'Có trong tài khoản của bạn'}</p>
       </div>

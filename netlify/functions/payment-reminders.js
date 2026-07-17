@@ -11,7 +11,8 @@ exports.handler = async () => {
 
     const orders = await sql`
         SELECT po.*, a.first_name, a.email, a.payment_link,
-               e.name AS event_name, e.event_date, e.event_time, e.location AS event_location
+               e.name AS event_name, e.event_date, e.event_time, e.location AS event_location,
+               e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
         FROM payment_orders po
         JOIN applications a ON a.id = po.application_id
         JOIN events e ON e.id = po.event_id
@@ -32,6 +33,8 @@ exports.handler = async () => {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
             }),
             location: order.event_location,
+            venueName: order.event_venue_name,
+            venueAddress: order.event_venue_address,
             time: order.event_time,
             price: `${order.ticket_count} ticket${Number(order.ticket_count) === 1 ? '' : 's'}`
         };
