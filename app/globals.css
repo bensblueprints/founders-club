@@ -287,6 +287,8 @@ main { flex: 1; }
 .status.pending, .status.awaiting { color: #ffd784; background: rgba(255,190,55,.1); }
 .status.approved, .status.paid { color: var(--lime); background: rgba(217,255,99,.1); }
 .application-list { display: grid; gap: 10px; }
+.application-filters { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; gap: 14px; align-items: end; margin-bottom: 16px; padding: 18px; }
+.application-filters p { margin: 0 0 10px; white-space: nowrap; }
 .application-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #0d1010; }
 .application-row h3 { margin: 0 0 4px; }
 .application-row p { margin: 0; color: var(--muted); font-size: 13px; }
@@ -366,6 +368,8 @@ main { flex: 1; }
   .event-manager-heading { align-items: stretch; flex-direction: column; }
   .event-form-grid { grid-template-columns: 1fr; }
   .event-form-grid .wide { grid-column: auto; }
+  .application-filters { grid-template-columns: 1fr; }
+  .application-filters p { margin: 0; white-space: normal; }
 }
 .application-actions { flex-wrap: wrap; justify-content: flex-end; }
 .review-toggle { white-space: nowrap; }
