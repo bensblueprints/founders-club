@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CalendarDays, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock3, Download, ExternalLink, Mail, Pencil, Plus, RefreshCw, Save, ScanLine, ShieldCheck, Ticket, Trash2, UserCheck, UsersRound, Utensils, X } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { callFunction, db, formatDate } from '@/lib/api';
@@ -57,6 +58,24 @@ function ApplicationReview({ app }) {
 }
 
 const MEAL_LABELS = { steak: 'Steak', shrimp: 'Shrimp', chicken: 'Chicken', vegan: 'Vegan' };
+const formatMealVnd = value => `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`;
+function mealOrder(row) {
+    if (row?.meal_order && typeof row.meal_order === 'object') return row.meal_order;
+    try { return JSON.parse(row?.meal_order || 'null'); } catch (_) { return null; }
+}
+function mealOrderText(row) {
+    const order = mealOrder(row);
+    return order?.items?.map(item => `${item.quantity}× ${item.name}${item.detail ? ` (${item.detail})` : ''}`).join('; ') || '';
+}
+function mealLabel(row) {
+    const order = mealOrder(row);
+    if (row.meal_submitted_at || order) {
+        const count = order?.items?.reduce((sum, item) => sum + Number(item.quantity || 0), 0) || 0;
+        const due = Number(row.meal_amount_due_vnd || order?.amountDueVnd || 0);
+        return `${count} item${count === 1 ? '' : 's'}${due > 0 ? ` · ${formatMealVnd(due)} due` : ' · within credit'}`;
+    }
+    return MEAL_LABELS[row.meal_option] || 'Not selected';
+}
 const isUpcomingEvent = event => event.status !== 'completed' && new Date(`${String(event.event_date).slice(0, 10)}T23:59:59`).getTime() >= Date.now();
 
 function attendeeTicketRows(registrations = []) {
@@ -66,7 +85,7 @@ function attendeeTicketRows(registrations = []) {
             registrationId: registration.attendance_id,
             attendee: `${registration.first_name || ''} ${registration.last_name || ''}`.trim(),
             type: 'Member', email: registration.email || '', company: registration.company || '',
-            meal: MEAL_LABELS[registration.meal_option] || 'Not selected',
+            meal: mealLabel(registration), mealStatus:registration.meal_submitted_at || mealOrder(registration) ? 'Menu saved' : 'Not selected',
             paidVia: registration.paid_provider || '—', paidAt: registration.paid_at
         };
         if (Number(registration.seat_count || 1) !== 2) return [primary];
@@ -75,7 +94,8 @@ function attendeeTicketRows(registrations = []) {
             registrationId: registration.attendance_id,
             attendee: registration.guest_name || 'Guest name not provided', type: 'Guest',
             email: '', company: registration.company || '',
-            meal: MEAL_LABELS[registration.guest_meal_option] || 'Not selected',
+            meal:registration.meal_submitted_at || mealOrder(registration) ? 'Shared booking order' : MEAL_LABELS[registration.guest_meal_option] || 'Not selected',
+            mealStatus:registration.meal_submitted_at || mealOrder(registration) ? 'Menu saved' : 'Not selected',
             paidVia: registration.paid_provider || '—', paidAt: registration.paid_at
         }];
     });
@@ -84,11 +104,13 @@ function attendeeTicketRows(registrations = []) {
 function downloadCsv(filename, rows) {
     const quote = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
     const columns = ['Checked in', 'Attendee', 'Type', 'Email', 'Age', 'Company', 'Role', 'Industry', 'Ticket type',
-        'Seat count', 'Guest name', 'Meal', 'Member meal', 'Guest meal', 'Phone / WhatsApp', 'Zalo', 'Telegram',
+        'Seat count', 'Guest name', 'Menu status', 'Food order', 'Food subtotal VND', 'Food VAT VND', 'Food service VND',
+        'Food total VND', 'Food credit VND', 'Due at restaurant VND', 'Legacy member meal', 'Legacy guest meal', 'Phone / WhatsApp', 'Zalo', 'Telegram',
         'LinkedIn', 'Website', 'What they do', 'Looking for', 'Can offer', 'Revenue', 'Team size', 'Referral',
         'Paid via', 'Paid amount', 'Currency', 'Paid at', 'Payment transaction ID', 'Payment order ID', 'Registration ID'];
     const data = rows.map(row => [row.checked_in ? 'Yes' : '', row.attendee, row.type, row.email, row.age, row.company,
-        row.role, row.industry, row.ticket_type, row.seat_count, row.guest_name, row.meal,
+        row.role, row.industry, row.ticket_type, row.seat_count, row.guest_name, row.mealStatus, mealOrderText(row),
+        row.meal_subtotal_vnd, row.meal_vat_vnd, row.meal_service_vnd, row.meal_total_vnd, row.meal_credit_vnd, row.meal_amount_due_vnd,
         MEAL_LABELS[row.meal_option] || 'Not selected', MEAL_LABELS[row.guest_meal_option] || 'Not selected',
         row.whatsapp, row.zalo, row.telegram, row.linkedin, row.website || row.social_link, row.what_you_do,
         row.looking_for, row.can_offer, row.revenue, row.team_size, row.referral, row.paidVia,
@@ -105,14 +127,14 @@ function downloadCsv(filename, rows) {
 function printCheckinList(event, registrations) {
     const rows = attendeeTicketRows(registrations);
     const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]);
-    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.meal]: (counts[row.meal] || 0) + 1 }), {});
+    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.mealStatus]: (counts[row.mealStatus] || 0) + 1 }), {});
     const eventDate = event?.event_date ? new Date(event.event_date).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape(event?.name)} check-in</title><style>
       @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,"Helvetica Neue",sans-serif;color:#17231f;margin:0;font-size:10px}
       header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #ef654b;padding-bottom:12px;margin-bottom:14px}h1{font-size:24px;margin:0 0 5px}p{margin:3px 0;color:#53625d}.summary{text-align:right}.summary b{font-size:16px;color:#17231f}
       .meals{display:flex;gap:8px;margin-bottom:12px}.meal{border:1px solid #cfd8d4;border-radius:6px;padding:5px 9px}.meal b{color:#ef654b}
       table{width:100%;border-collapse:collapse;table-layout:fixed}th{background:#0b241b;color:white;text-align:left;padding:7px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.04em}td{border-bottom:1px solid #dce3e0;padding:7px 6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f5f7f6}
-      .check{width:14px;height:14px;border:1.5px solid #17231f;display:inline-block}.num{width:28px}.check-col{width:48px}.type{width:52px}.meal-col{width:78px}.paid{width:92px}.email{width:165px}.company{width:130px}
+      .check{width:14px;height:14px;border:1.5px solid #17231f;display:inline-block}.num{width:28px}.check-col{width:48px}.type{width:52px}.meal-col{width:160px}.paid{width:92px}.email{width:165px}.company{width:130px}
       footer{margin-top:10px;display:flex;justify-content:space-between;color:#71807a;font-size:9px}@media print{button{display:none}}
     </style></head><body><header><div><h1>${escape(event?.name || 'Event')} - Check-in list</h1><p>${escape(eventDate)}${event?.event_time ? ` at ${escape(event.event_time)}` : ''}</p><p>${escape(event?.venue_name || event?.location || '')}</p>${event?.venue_address ? `<p>${escape(event.venue_address)}</p>` : ''}</div><div class="summary"><b>${rows.length} attendee${rows.length === 1 ? '' : 's'}</b><p>${registrations.length} paid registration${registrations.length === 1 ? '' : 's'}</p></div></header>
     <div class="meals">${Object.entries(mealCounts).map(([meal,count]) => `<span class="meal">${escape(meal)}: <b>${count}</b></span>`).join('')}</div>
@@ -137,8 +159,14 @@ function CheckinDetail({ row }) {
         ['Company', row.company], ['Role', row.role], ['Industry', row.industry], ['Member type', row.member_type],
         ['Account status', row.account_status], ['WhatsApp', row.whatsapp], ['Zalo', row.zalo], ['Telegram', row.telegram],
         ['LinkedIn', row.linkedin], ['Website', row.website], ['Social profile', row.social_link], ['Other websites', Array.isArray(row.websites) ? row.websites.join(', ') : row.websites],
-        ['Ticket type', row.ticket_type], ['Seats', row.seat_count], ['Guest', row.guest_name], ['Member meal', MEAL_LABELS[row.meal_option] || 'Not selected'],
-        ['Guest meal', Number(row.seat_count) === 2 ? MEAL_LABELS[row.guest_meal_option] || 'Not selected' : 'Not applicable'],
+        ['Ticket type', row.ticket_type], ['Seats', row.seat_count], ['Guest', row.guest_name], ['Menu status', row.mealStatus],
+        ['Food order', mealOrderText(row)], ['Special requests', mealOrder(row)?.notes],
+        ['Menu subtotal', row.meal_submitted_at ? formatMealVnd(row.meal_subtotal_vnd) : null],
+        ['VAT', row.meal_submitted_at ? formatMealVnd(row.meal_vat_vnd) : null], ['Service charge', row.meal_submitted_at ? formatMealVnd(row.meal_service_vnd) : null],
+        ['Restaurant total', row.meal_submitted_at ? formatMealVnd(row.meal_total_vnd) : null], ['Food credit', row.meal_submitted_at ? formatMealVnd(row.meal_credit_vnd) : null],
+        ['Due at restaurant', row.meal_submitted_at ? formatMealVnd(row.meal_amount_due_vnd) : null], ['Menu last updated', row.meal_updated_at ? new Date(row.meal_updated_at).toLocaleString() : null],
+        ['Legacy member meal', MEAL_LABELS[row.meal_option] || null],
+        ['Legacy guest meal', Number(row.seat_count) === 2 ? MEAL_LABELS[row.guest_meal_option] || null : null],
         ['Applied', row.applied_at ? new Date(row.applied_at).toLocaleString() : null], ['Approved', row.approved_at ? new Date(row.approved_at).toLocaleString() : null],
         ['Paid', row.paid_at ? new Date(row.paid_at).toLocaleString() : null], ['Paid via', row.paid_provider],
         ['Paid amount', row.paid_amount != null ? `${Number(row.paid_amount).toLocaleString()} ${row.paid_currency || ''}` : null],
@@ -161,7 +189,7 @@ function CheckinView({ events, selectedEventId, setSelectedEventId, registration
     const [checking, setChecking] = useState(false);
     const event = events?.find(item => item.id === selectedEventId);
     const rows = attendeeTicketRows(registrations || []);
-    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.meal]: (counts[row.meal] || 0) + 1 }), {});
+    const mealCounts = rows.reduce((counts, row) => ({ ...counts, [row.mealStatus]: (counts[row.mealStatus] || 0) + 1 }), {});
     const slug = (event?.slug || event?.name || 'event').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     async function checkIn(value = reference, checkedIn = true) {
         const cleaned = String(value || '').trim();
@@ -193,13 +221,14 @@ function CheckinView({ events, selectedEventId, setSelectedEventId, registration
         <div className="panel checkin-controls"><div className="field"><label htmlFor="checkin-event">Upcoming event</label><select id="checkin-event" value={selectedEventId || ''} onChange={e=>setSelectedEventId(e.target.value)}>{events?.filter(isUpcomingEvent).map(item=><option key={item.id} value={item.id}>{item.name} · {formatDate(item.event_date)}</option>)}</select></div><div className="checkin-export-actions"><button className="button ghost small" disabled={!rows.length} onClick={()=>downloadCsv(`${slug}-checkin.csv`, rows)}><Download size={15}/> Export CSV</button><button className="button primary small" disabled={!rows.length} onClick={()=>{try{printCheckinList(event, registrations);}catch(error){notice(error.message);}}}><Download size={15}/> Export PDF / Print</button></div></div>
         <form className="panel checkin-scanner" onSubmit={e=>{e.preventDefault();checkIn();}}><div><span className="eyebrow">Door check-in</span><h3>Scan QR or enter booking reference</h3><p className="muted">Accepts the ticket booking ref, attendance ID, or SePay transfer code.</p></div><div className="checkin-scanner-actions"><input aria-label="Booking reference" placeholder="FVN:9f4c9a0e-…" value={reference} onChange={e=>setReference(e.target.value)}/><button type="button" className="button ghost" onClick={scan}><ScanLine size={17}/> Scan QR</button><button className="button primary" disabled={checking}>{checking?'Checking…':'Check in'}</button></div></form>
         {loading ? <div className="loading">Loading paid attendees…</div> : <><div className="checkin-stats"><div className="panel"><span>Paid registrations</span><strong>{registrations?.length || 0}</strong></div><div className="panel"><span>Confirmed attendees</span><strong>{rows.length}</strong></div>{Object.entries(mealCounts).map(([meal,count])=><div className="panel" key={meal}><span>{meal}</span><strong>{count}</strong></div>)}</div>
-        <div className="panel table-wrap"><table className="data-table checkin-table"><thead><tr><th>Attendee</th><th>Ticket</th><th>Meal</th><th>Email</th><th>Attendance</th><th>Details</th></tr></thead><tbody>{rows.flatMap((row,index)=>{const key=`${row.registrationId}-${row.type}-${index}`; const open=expanded===key; return [<tr key={key}><td><b>{row.attendee}</b>{row.email && <><br/><span className="muted">{row.email}</span></>}</td><td>{row.type}<br/><span className="muted">{row.ticket_type} · {row.seat_count} seat{Number(row.seat_count)===1?'':'s'}</span></td><td><span className={`meal-pill ${row.meal === 'Not selected' ? 'missing' : ''}`}><Utensils size={13}/>{row.meal}</span></td><td><span className={`status email-${row.email_status}`}><Mail size={12}/>{row.email_status || 'not sent'}</span><br/><span className="muted">{row.email_type?.replaceAll('_',' ') || '—'}</span></td><td>{row.type==='Member'?<button className={`button small ${row.checked_in?'ghost':'primary'}`} onClick={()=>checkIn(row.payment_order_id,!row.checked_in)}>{row.checked_in?'Undo check-in':'Check in'}</button>:<span className="muted">With member</span>}</td><td><button className="button ghost small" aria-expanded={open} onClick={()=>setExpanded(open?null:key)}>{open?<ChevronUp size={14}/>:<ChevronDown size={14}/>} {open?'Hide':'All info'}</button></td></tr>, open?<tr className="checkin-detail-row" key={`${key}-details`}><td colSpan="6"><CheckinDetail row={row}/></td></tr>:null];})}</tbody></table>{!rows.length && <div className="empty">No paid attendees for this event yet.</div>}</div></>}
+        <div className="panel table-wrap"><table className="data-table checkin-table"><thead><tr><th>Attendee</th><th>Ticket</th><th>Menu</th><th>Email</th><th>Attendance</th><th>Details</th></tr></thead><tbody>{rows.flatMap((row,index)=>{const key=`${row.registrationId}-${row.type}-${index}`; const open=expanded===key; return [<tr key={key}><td><b>{row.attendee}</b>{row.email && <><br/><span className="muted">{row.email}</span></>}</td><td>{row.type}<br/><span className="muted">{row.ticket_type} · {row.seat_count} seat{Number(row.seat_count)===1?'':'s'}</span></td><td><span className={`meal-pill ${row.mealStatus === 'Not selected' ? 'missing' : ''}`}><Utensils size={13}/>{row.meal}</span></td><td><span className={`status email-${row.email_status}`}><Mail size={12}/>{row.email_status || 'not sent'}</span><br/><span className="muted">{row.email_type?.replaceAll('_',' ') || '—'}</span></td><td>{row.type==='Member'?<button className={`button small ${row.checked_in?'ghost':'primary'}`} onClick={()=>checkIn(row.payment_order_id,!row.checked_in)}>{row.checked_in?'Undo check-in':'Check in'}</button>:<span className="muted">With member</span>}</td><td><button className="button ghost small" aria-expanded={open} onClick={()=>setExpanded(open?null:key)}>{open?<ChevronUp size={14}/>:<ChevronDown size={14}/>} {open?'Hide':'All info'}</button></td></tr>, open?<tr className="checkin-detail-row" key={`${key}-details`}><td colSpan="6"><CheckinDetail row={row}/></td></tr>:null];})}</tbody></table>{!rows.length && <div className="empty">No paid attendees for this event yet.</div>}</div></>}
     </div>;
 }
 
 const EMPTY_EVENT = { slug:'', name:'', date:'', time:'18:00', location:'', venueName:'', venueAddress:'', description:'', price:150, capacity:25, status:'open' };
 
 function EventManager({ events, reload, notify }) {
+    const router = useRouter();
     const [editing, setEditing] = useState(null);
     const [saving, setSaving] = useState(false);
     const [eventStatusFilter, setEventStatusFilter] = useState('open');
@@ -262,7 +291,7 @@ function EventManager({ events, reload, notify }) {
             <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
             <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
         </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
-        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{eventRows.map(event=><tr key={event.id}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={()=>beginEdit(event)}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={()=>remove(event)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table>{events && !eventRows.length && <div className="empty">No events match these filters.</div>}</div>
+        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{eventRows.map(event=><tr className="admin-event-row" key={event.id} tabIndex="0" role="link" aria-label={`Open ${event.name}`} onClick={()=>router.push(`/admin/events/${encodeURIComponent(event.id)}`)} onKeyDown={keyEvent=>{if(keyEvent.key==='Enter'||keyEvent.key===' '){keyEvent.preventDefault();router.push(`/admin/events/${encodeURIComponent(event.id)}`);}}}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><Link className="admin-icon-button" aria-label={`View ${event.name}`} title="View event" href={`/admin/events/${encodeURIComponent(event.id)}`} onClick={clickEvent=>clickEvent.stopPropagation()}><ExternalLink size={16}/></Link><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={clickEvent=>{clickEvent.stopPropagation();beginEdit(event);}}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={clickEvent=>{clickEvent.stopPropagation();remove(event);}}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table>{events && !eventRows.length && <div className="empty">No events match these filters.</div>}</div>
     </div>;
 }
 
@@ -280,6 +309,11 @@ export default function AdminPage() {
     const [applicationStatusFilter, setApplicationStatusFilter] = useState('pending');
     const [checkinRows, setCheckinRows] = useState(null);
     const [checkinLoading, setCheckinLoading] = useState(false);
+
+    useEffect(() => {
+        const requestedTab = new URLSearchParams(window.location.search).get('tab');
+        if (['applications', 'checkin', 'members', 'events'].includes(requestedTab)) setTab(requestedTab);
+    }, []);
 
     async function load() {
         try {

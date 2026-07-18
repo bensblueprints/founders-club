@@ -539,6 +539,10 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Receipt:</strong> ${receiptUrl ? textLink(receiptUrl, 'View receipt') : 'Available in your account'}</p>
       </div>
       ${textBlock('To help us prepare a thoughtful experience for you, please complete the setup steps below before the FoundersVN meetup.')}
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750,000 VND FOOD CREDIT</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Choose anything you like from the restaurant menu with your included credit (about $30). If you spend more, the remaining balance is due at the restaurant by cash or Vietnamese QR code.</p>
+      </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Choose meal options' : 'Choose meal option')}</div>
       ${textBlock('1. Set up your profile in the app')}
       <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.<br>${textLink(accountUrl, 'Sign in to your FoundersVN account')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Complete your member profile')}</p>
@@ -559,6 +563,10 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Biên nhận:</strong> ${receiptUrl ? textLink(receiptUrl, 'Xem biên nhận') : 'Có trong tài khoản của bạn'}</p>
       </div>
       ${textBlock('Để FoundersVN chuẩn bị chu đáo nhất cho buổi gặp mặt, bạn vui lòng hoàn tất các bước dưới đây:')}
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750.000 VND TÍN DỤNG ĐỒ ĂN</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Bạn có thể chọn bất kỳ món nào trong thực đơn. Nếu tổng đơn vượt quá phần tín dụng đã bao gồm, số dư còn lại sẽ được thanh toán tại nhà hàng bằng tiền mặt hoặc mã QR Việt Nam.</p>
+      </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Chọn món ăn' : 'Chọn món ăn')}</div>
       ${textBlock('1. Thiết lập hồ sơ trên app')}
       <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.<br>${textLink(accountUrl, 'Đăng nhập tài khoản FoundersVN')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Hoàn tất hồ sơ thành viên')}</p>

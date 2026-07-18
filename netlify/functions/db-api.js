@@ -24,6 +24,7 @@ const { encrypt } = require('./lib/field-crypto');
 const { config: sepayConfig, qrUrl: sepayQrUrl } = require('./lib/sepay');
 const { createPaymentIntent, isConfigured: airwallexConfigured } = require('./lib/airwallex');
 const { paymentProviderEnabled, paymentEnvironment } = require('./lib/payment-environment');
+const { MEAL_CREDIT_VND, normalizeMealOrder } = require('../../lib/meal-menu.cjs');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -91,6 +92,10 @@ function publicPaymentOrder(order) {
     if (!order) return null;
     let airwallexUrl = null;
     try { airwallexUrl = decrypt(order.airwallex_url_encrypted); } catch (_) {}
+    let mealOrder = order.meal_order || null;
+    if (typeof mealOrder === 'string') {
+        try { mealOrder = JSON.parse(mealOrder); } catch (_) { mealOrder = null; }
+    }
     const sepay = sepayConfig();
     return {
         id: order.id, status: order.status, providerEnvironment: order.provider_environment,
@@ -102,6 +107,18 @@ function publicPaymentOrder(order) {
         sepayBank: sepay.bank, sepayAccount: sepay.account, sepayAccountName: sepay.accountName,
         paidProvider: order.paid_provider, paidAt: order.paid_at, expiresAt: order.expires_at,
         createdAt: order.created_at,
+        meal: mealOrder || order.meal_submitted_at ? {
+            items:Array.isArray(mealOrder?.items) ? mealOrder.items : [],
+            notes:mealOrder?.notes || '',
+            subtotalVnd:Number(order.meal_subtotal_vnd || mealOrder?.subtotalVnd || 0),
+            vatVnd:Number(order.meal_vat_vnd || mealOrder?.vatVnd || 0),
+            serviceVnd:Number(order.meal_service_vnd || mealOrder?.serviceVnd || 0),
+            totalVnd:Number(order.meal_total_vnd || mealOrder?.totalVnd || 0),
+            creditVnd:Number(order.meal_credit_vnd || mealOrder?.creditVnd || 0),
+            amountDueVnd:Number(order.meal_amount_due_vnd || mealOrder?.amountDueVnd || 0),
+            submittedAt:order.meal_submitted_at || null,
+            updatedAt:order.meal_updated_at || null
+        } : null,
         event: { id: order.event_id, name: order.event_name, date: order.event_date,
             time: order.event_time, location: order.event_location,
             venueName: order.event_venue_name, venueAddress: order.event_venue_address }
@@ -463,23 +480,31 @@ const handlers = {
         return await sql`
             SELECT ea.id AS attendance_id, ea.event_id, ea.ticket_type, ea.seat_count,
                    ea.guest_name, ea.meal_option, ea.guest_meal_option,
+                   ea.meal_order, ea.meal_subtotal_vnd, ea.meal_vat_vnd,
+                   ea.meal_service_vnd, ea.meal_total_vnd, ea.meal_credit_vnd,
+                   ea.meal_amount_due_vnd, ea.meal_submitted_at, ea.meal_updated_at,
                    ea.approved_at, ea.paid_at, ea.payment_status, ea.checked_in, ea.checked_in_at,
                    m.id AS member_id, m.first_name, m.last_name, m.email,
-                   m.age, m.company, m.role, m.industry, m.bio, m.website, m.websites,
+                   m.age, m.company, m.role, m.industry, m.bio, m.website, m.websites, m.profile_photo,
                    m.whatsapp, m.zalo, m.telegram, m.linkedin, m.twitter, m.wechat,
                    m.facebook, m.instagram, m.social_link, m.member_type, m.account_status,
                    e.name AS event_name, e.event_date, e.event_time, e.location,
                    e.venue_name, e.venue_address,
                    po.id AS payment_order_id, po.paid_provider,
                    po.provider_transaction_id, po.paid_amount, po.paid_currency,
-                   po.base_amount_usd, po.sepay_amount_vnd, po.created_at AS order_created_at,
+                   po.base_amount_usd, po.airwallex_fee_usd, po.airwallex_total_usd,
+                   po.sepay_amount_vnd, po.sepay_code, po.status AS payment_order_status,
+                   po.expires_at AS payment_expires_at, po.created_at AS order_created_at,
                    COALESCE(email_summary.status,
                      CASE WHEN po.confirmation_email_sent_at IS NOT NULL OR po.reminder_sent_at IS NOT NULL OR a.approval_email_sent_at IS NOT NULL THEN 'sent' ELSE 'not_sent' END) AS email_status,
                    COALESCE(email_summary.email_type,
                      CASE WHEN po.confirmation_email_sent_at IS NOT NULL THEN 'payment_confirmation' WHEN po.reminder_sent_at IS NOT NULL THEN 'payment_reminder' WHEN a.approval_email_sent_at IS NOT NULL THEN 'approval' END) AS email_type,
                    COALESCE(email_summary.sent_at, po.confirmation_email_sent_at, po.reminder_sent_at, a.approval_email_sent_at) AS email_sent_at,
                    email_summary.event_at AS email_status_at, email_summary.error AS email_error,
-                   a.created_at AS applied_at, a.revenue, a.team_size, a.company_link,
+                   a.id AS application_id, a.status AS application_status,
+                   a.payment_status AS application_payment_status, a.ticket_count AS requested_ticket_count,
+                   a.accepted_at, a.reviewed_at, a.created_at AS applied_at,
+                   a.revenue, a.team_size, a.company_link,
                    a.looking_for, a.can_offer, a.what_you_do, a.biggest_challenge,
                    a.unique_value, a.goals_12_month, a.why_join, a.referral,
                    a.referrer_name, a.membership_type, a.page_language
@@ -568,10 +593,15 @@ const handlers = {
         const rows = await sql`
             SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
-                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
+                   e.venue_name AS event_venue_name, e.venue_address AS event_venue_address,
+                   ea.meal_order, ea.meal_subtotal_vnd, ea.meal_vat_vnd,
+                   ea.meal_service_vnd, ea.meal_total_vnd, ea.meal_credit_vnd,
+                   ea.meal_amount_due_vnd, ea.meal_submitted_at, ea.meal_updated_at
             FROM payment_orders po
             JOIN applications a ON a.id = po.application_id
             JOIN events e ON e.id = po.event_id
+            LEFT JOIN event_attendance ea ON ea.application_id = po.application_id
+              AND ea.member_id = po.member_id AND ea.event_id = po.event_id
             WHERE po.member_id = ${ctx.memberId}
             ORDER BY e.event_date DESC, po.created_at DESC`;
         return rows.map(publicPaymentOrder);
@@ -610,33 +640,47 @@ const handlers = {
     },
 
     // ---------- MEAL SELECTION (paid registrations only) ----------
-    async 'meals.get'(_payload, ctx) {
+    async 'meals.get'({ orderId } = {}, ctx) {
+        if (!orderId) throw new Error('Choose a paid ticket before selecting a meal');
         const rows = await sql`
             SELECT ea.meal_option, ea.guest_meal_option, ea.guest_name, ea.seat_count,
-                   e.name AS event_name, e.event_date
+                   ea.meal_order, ea.meal_subtotal_vnd, ea.meal_vat_vnd,
+                   ea.meal_service_vnd, ea.meal_total_vnd, ea.meal_credit_vnd,
+                   ea.meal_amount_due_vnd, ea.meal_submitted_at, ea.meal_updated_at,
+                   ea.id AS attendance_id, po.id AS payment_order_id,
+                   e.id AS event_id, e.name AS event_name, e.event_date
             FROM event_attendance ea
+            JOIN payment_orders po ON po.event_id = ea.event_id
+              AND po.member_id = ea.member_id
             JOIN events e ON e.id = ea.event_id
-            WHERE ea.member_id = ${ctx.memberId} AND ea.payment_status = 'paid'
-            ORDER BY ea.paid_at DESC LIMIT 1`;
+            WHERE po.id = ${orderId} AND po.member_id = ${ctx.memberId}
+              AND po.status = 'paid' AND ea.payment_status = 'paid'
+            LIMIT 1`;
         return rows[0] || null;
     },
 
-    async 'meals.update'({ mealOption, guestMealOption }, ctx) {
-        const allowed = new Set(['steak', 'shrimp', 'chicken', 'vegan']);
-        if (!allowed.has(mealOption)) throw new Error('Invalid meal option');
-        const current = await handlers['meals.get']({}, ctx);
+    async 'meals.update'({ orderId, items, notes }, ctx) {
+        const current = await handlers['meals.get']({ orderId }, ctx);
         if (!current) throw new Error('A paid event registration is required');
-        if (Number(current.seat_count) === 2 && !allowed.has(guestMealOption)) {
-            throw new Error('Choose a meal for the second ticket');
-        }
+        // Never trust prices or totals sent by the browser. Rebuild every line
+        // from the canonical menu before persisting the restaurant preorder.
+        const order = normalizeMealOrder(items || [], MEAL_CREDIT_VND, notes || '');
         const rows = await sql`
-            UPDATE event_attendance SET meal_option = ${mealOption},
-                guest_meal_option = ${Number(current.seat_count) === 2 ? guestMealOption : null}
-            WHERE id = (
-                SELECT id FROM event_attendance
-                WHERE member_id = ${ctx.memberId} AND payment_status = 'paid'
-                ORDER BY paid_at DESC LIMIT 1
-            ) RETURNING meal_option, guest_meal_option, guest_name, seat_count`;
+            UPDATE event_attendance SET
+                meal_order = ${JSON.stringify(order)}::jsonb,
+                meal_subtotal_vnd = ${order.subtotalVnd},
+                meal_vat_vnd = ${order.vatVnd},
+                meal_service_vnd = ${order.serviceVnd},
+                meal_total_vnd = ${order.totalVnd},
+                meal_credit_vnd = ${order.creditVnd},
+                meal_amount_due_vnd = ${order.amountDueVnd},
+                meal_submitted_at = COALESCE(meal_submitted_at, NOW()),
+                meal_updated_at = NOW()
+            WHERE id = ${current.attendance_id}
+            RETURNING meal_option, guest_meal_option, guest_name, seat_count,
+                meal_order, meal_subtotal_vnd, meal_vat_vnd, meal_service_vnd,
+                meal_total_vnd, meal_credit_vnd, meal_amount_due_vnd,
+                meal_submitted_at, meal_updated_at`;
         return rows[0] || null;
     },
 
@@ -960,6 +1004,7 @@ exports.handler = async (event) => {
         return json(200, { data });
     } catch (e) {
         console.error(`[db-api] action ${action} failed:`, e);
+        if (action === 'meals.update') return json(400, { error:e.message });
         return json(500, { error: 'Query failed', details: e.message });
     }
 };

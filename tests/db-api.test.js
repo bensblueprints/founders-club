@@ -171,7 +171,7 @@ async function test(name, fn) {
 
     await test('payments.list returns every payment order for the logged-in member', async () => {
         nextRows = [
-            { id:'paid-order', member_id:'m-current', status:'paid', ticket_count:1, event_name:'Paid event' },
+            { id:'paid-order', member_id:'m-current', status:'paid', ticket_count:1, event_name:'Paid event', meal_order:{ items:[{ itemId:'starter', name:'Starter', quantity:1, lineTotalVnd:185000 }], totalVnd:212750, amountDueVnd:0 }, meal_total_vnd:212750, meal_submitted_at:'2026-07-19T00:00:00Z' },
             { id:'pending-order', member_id:'m-current', status:'pending', ticket_count:1, event_name:'Pending event' }
         ];
         const res = await invoke(api, { action:'payments.list', payload:{}, headers:memberHeaders });
@@ -179,6 +179,27 @@ async function test(name, fn) {
         const data = JSON.parse(res.body).data;
         assert.strictEqual(data.length, 2);
         assert.deepStrictEqual(data.map(row=>row.status), ['paid', 'pending']);
+        assert.strictEqual(data[0].meal.items[0].name, 'Starter');
+        assert.strictEqual(data[0].meal.totalVnd, 212750);
+        assert.strictEqual(data[1].meal, null);
+        assert.ok(calls[0].strings.join(' ').includes('LEFT JOIN event_attendance'), 'ticket list should include the saved meal for each registration');
+        assert.ok(calls[0].values.includes('m-current'));
+    });
+
+    await test('meals.get scopes the menu to the selected paid ticket and member', async () => {
+        nextRows = [{
+            attendance_id:'attendance-1', payment_order_id:'order-1', event_id:'event-1',
+            event_name:'Selected event', meal_order:null
+        }];
+        const res = await invoke(api, {
+            action:'meals.get', payload:{ orderId:'order-1' }, headers:memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(JSON.parse(res.body).data.payment_order_id, 'order-1');
+        const sqlText = calls[0].strings.join(' ');
+        assert.ok(sqlText.includes("po.status = 'paid'"));
+        assert.ok(sqlText.includes("ea.payment_status = 'paid'"));
+        assert.ok(calls[0].values.includes('order-1'));
         assert.ok(calls[0].values.includes('m-current'));
     });
 
@@ -219,6 +240,9 @@ async function test(name, fn) {
         assert.ok(calls[0].values.includes('event-1'));
         const sqlText = calls[0].strings.join('?');
         assert.ok(sqlText.includes("ea.payment_status = 'paid'"));
+        assert.ok(sqlText.includes('m.profile_photo'), 'complete guest export should include the member profile image');
+        assert.ok(sqlText.includes('po.airwallex_total_usd'), 'complete guest export should include payment totals');
+        assert.ok(sqlText.includes('a.status AS application_status'), 'complete guest export should include application lifecycle');
         assert.strictEqual(JSON.parse(res.body).data[0].seat_count, 2);
     });
 

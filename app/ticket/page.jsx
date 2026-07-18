@@ -3,10 +3,30 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AlertCircle, CalendarDays, CheckCircle2, Clock3, Download, MapPin, Printer, QrCode, UsersRound } from 'lucide-react';
+import { AlertCircle, CalendarDays, CheckCircle2, Clock3, Download, MapPin, Printer, QrCode, UsersRound, UtensilsCrossed } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useAuth } from '@/components/AuthProvider';
 import { db, formatDate } from '@/lib/api';
+
+const formatMealVnd = value => `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`;
+
+function TicketMealSummary({ meal, orderId }) {
+    const itemCount = meal.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const overdue = Number(meal.amountDueVnd || 0) > 0;
+    return <section className={`panel ticket-meal-summary ${overdue ? 'over' : ''}`}>
+        <header className="ticket-meal-heading">
+            <div className="ticket-meal-title"><span className="ticket-meal-icon"><UtensilsCrossed size={21}/></span><div><span className="eyebrow">Saved meal</span><h2>Your menu options</h2><p>{itemCount ? `${itemCount} selection${itemCount === 1 ? '' : 's'} recorded for the restaurant.` : 'No advance food selections were requested.'}</p></div></div>
+            <Link className="button ghost small" href={`/meal?order=${encodeURIComponent(orderId)}`}>Edit meal</Link>
+        </header>
+        <div className="ticket-meal-layout">
+            <div className="ticket-meal-items">
+                {meal.items.length ? meal.items.map((item, index) => <article key={item.lineId || `${item.itemId}-${index}`}><span className="ticket-meal-quantity">{item.quantity}×</span><div><h3>{item.name}</h3>{item.detail && <p>{item.detail}</p>}</div><strong>{formatMealVnd(item.lineTotalVnd)}</strong></article>) : <div className="ticket-meal-empty">You can still order directly at the restaurant.</div>}
+                {meal.notes && <div className="ticket-meal-notes"><span>Special requests</span><p>{meal.notes}</p></div>}
+            </div>
+            <aside className="ticket-meal-total"><div><span>Restaurant total</span><strong>{formatMealVnd(meal.totalVnd)}</strong></div>{overdue ? <div className="due"><span>Due at restaurant</span><strong>{formatMealVnd(meal.amountDueVnd)}</strong><p>Pay on site by cash or Vietnamese QR code.</p></div> : <div className="covered"><CheckCircle2 size={16}/><span>Covered by your food credit</span></div>}</aside>
+        </div>
+    </section>;
+}
 
 function TicketCard({ order, attendee }) {
     const [qrDataUrl, setQrDataUrl] = useState('');
@@ -37,7 +57,7 @@ function TicketCard({ order, attendee }) {
             </div>
         </article>;
     }
-    return <article className="ticket-record">
+    return <div className="ticket-with-meal"><article className="ticket-record">
         <div className="digital-ticket">
             <div className="ticket-top"><div><span className="brand-text">FOUNDERS</span><span className="brand-accent"> VIETNAM</span></div><span className={`status ${order.status}`}>{paid ? 'confirmed' : order.status}</span></div>
             <div className="ticket-divider"><span/><i/><i/></div>
@@ -52,9 +72,9 @@ function TicketCard({ order, attendee }) {
         </div>
         <aside className="ticket-side">
             <div className="panel"><h2>Event details</h2><div className="event-meta register-meta"><span><CalendarDays size={16}/>{formatDate(order.event.date, { weekday:'long' })}</span><span><MapPin size={16}/>{order.event.venueName || order.event.location || 'Vietnam'}</span>{order.event.venueAddress && <span><MapPin size={16}/>{order.event.venueAddress}</span>}<span><UsersRound size={16}/>{order.ticketCount} ticket{order.ticketCount === 1 ? '' : 's'}</span></div></div>
-            <div className="panel ticket-actions-panel"><button className="button primary" onClick={()=>window.print()}><Printer size={17}/> Print ticket</button><button className="button ghost" onClick={()=>window.print()}><Download size={17}/> Save as PDF</button><Link className="button ghost" href="/meal">Choose meal</Link><Link className="button primary" href="/members">Member directory</Link></div>
+            <div className="panel ticket-actions-panel"><button className="button primary" onClick={()=>window.print()}><Printer size={17}/> Print ticket</button><button className="button ghost" onClick={()=>window.print()}><Download size={17}/> Save as PDF</button><Link className="button ghost" href={`/meal?order=${encodeURIComponent(order.id)}`}>Choose meal</Link><Link className="button primary" href="/members">Member directory</Link></div>
         </aside>
-    </article>;
+    </article>{order.meal && <TicketMealSummary meal={order.meal} orderId={order.id}/>}</div>;
 }
 
 function TicketContent() {

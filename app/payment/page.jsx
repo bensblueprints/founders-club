@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Clock3, Copy, CreditCard, QrCode, RefreshCw, ShieldCheck } from 'lucide-react';
 import { init as initAirwallex } from '@airwallex/components-sdk';
 import { useAuth } from '@/components/AuthProvider';
@@ -15,6 +15,8 @@ function formatVnd(value) {
 function PaymentContent() {
     const { user, ready, refresh } = useAuth();
     const params = useSearchParams();
+    const router = useRouter();
+    const observedPendingPayment = useRef(false);
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -31,7 +33,12 @@ function PaymentContent() {
             setOrder(row);
             setError(row ? '' : 'No payment reservation found.');
             const cachedStatus = user?.account_status || user?.accountStatus;
+            if (row?.status === 'pending') observedPendingPayment.current = true;
             if (row?.status === 'paid' && cachedStatus === 'payment_pending') await refresh();
+            if (row?.status === 'paid' && observedPendingPayment.current) {
+                router.replace(`/meal?order=${encodeURIComponent(row.id)}&from=payment`);
+                return;
+            }
         } catch (e) { setError(e.message); }
         finally { if (!silent) setLoading(false); }
     }
@@ -91,7 +98,7 @@ function PaymentContent() {
         <section className="section compact"><div className="container payment-page-grid">
             <aside className="panel payment-status-card">
                 <span className={`status ${order.status}`}>{order.status}</span>
-                {paid ? <><CheckCircle2 className="payment-state-icon" size={44}/><h2>Your seat{order.ticketCount === 2 ? 's are' : ' is'} confirmed</h2><p className="muted">Paid with {order.paidProvider === 'sepay' ? 'SePay bank transfer' : 'Airwallex card'}.</p><Link className="button primary" href="/meal">Choose meal option</Link><Link className="button ghost" href="/members">Browse attendees</Link></> : unavailable ? <><Clock3 className="payment-state-icon expired" size={44}/><h2>The 48-hour window ended</h2><p className="muted">The payment options are disabled and the seat reservation has been released.</p></> : <><div className="payment-countdown"><Clock3 size={18}/><span>Time remaining</span><strong>{countdown}</strong></div><p className="muted">We sent a reminder after 24 hours. The reservation releases automatically when this timer reaches zero.</p><button className="button ghost small" onClick={() => load()}><RefreshCw size={15}/> Refresh status</button></>}
+                {paid ? <><CheckCircle2 className="payment-state-icon" size={44}/><h2>Your seat{order.ticketCount === 2 ? 's are' : ' is'} confirmed</h2><p className="muted">Paid with {order.paidProvider === 'sepay' ? 'SePay bank transfer' : 'Airwallex card'}.</p><Link className="button primary" href={`/meal?order=${encodeURIComponent(order.id)}`}>Choose your menu</Link><Link className="button ghost" href="/members">Browse attendees</Link></> : unavailable ? <><Clock3 className="payment-state-icon expired" size={44}/><h2>The 48-hour window ended</h2><p className="muted">The payment options are disabled and the seat reservation has been released.</p></> : <><div className="payment-countdown"><Clock3 size={18}/><span>Time remaining</span><strong>{countdown}</strong></div><p className="muted">We sent a reminder after 24 hours. The reservation releases automatically when this timer reaches zero.</p><button className="button ghost small" onClick={() => load()}><RefreshCw size={15}/> Refresh status</button></>}
             </aside>
 
             {!paid && !unavailable && <div className="payment-options-stack">

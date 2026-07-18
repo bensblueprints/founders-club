@@ -177,10 +177,16 @@ async function invokeSepay(body) {
     const afterPayment = await invoke(api.handler, { action: 'members.list', payload: {} }, { authorization: `Bearer ${token}` });
     assert.ok(JSON.parse(afterPayment.body).data.some(member => member.email === email));
 
-    const mealSaved = await invoke(api.handler, { action: 'meals.update', payload: { mealOption: 'steak', guestMealOption: 'vegan' } }, { authorization: `Bearer ${token}` });
+    const mealSaved = await invoke(api.handler, { action: 'meals.update', payload: { orderId: order.id, items: [
+        { itemId:'striploin', optionId:'stockyard-ms4-200', temperature:'Medium Rare', quantity:1 },
+        { itemId:'sauteed-broccoli', quantity:1 }
+    ], notes:'No shellfish allergy exposure, please.' } }, { authorization: `Bearer ${token}` });
     assert.strictEqual(mealSaved.statusCode, 200, mealSaved.body);
-    assert.strictEqual(JSON.parse(mealSaved.body).data.meal_option, 'steak');
-    assert.strictEqual(JSON.parse(mealSaved.body).data.guest_meal_option, 'vegan');
+    const savedMeal = JSON.parse(mealSaved.body).data;
+    assert.strictEqual(savedMeal.meal_order.items[0].temperature, 'Medium Rare');
+    assert.strictEqual(savedMeal.meal_order.items.length, 2);
+    assert.strictEqual(Number(savedMeal.meal_subtotal_vnd), 820000);
+    assert.strictEqual(Number(savedMeal.meal_amount_due_vnd), 193000);
 
     // A second reservation verifies the 48-hour release and account lock path.
     const submittedExpiry = await invoke(submit.handler, applicationPayload({

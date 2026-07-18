@@ -58,7 +58,7 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
 async function sendConfirmation(order) {
     if (!order || order.confirmation_email_sent_at) return true;
     const baseUrl = process.env.URL || 'https://foundersvn.com';
-    const mealUrl = `${baseUrl}/meal`;
+    const mealUrl = `${baseUrl}/meal?order=${encodeURIComponent(order.id)}`;
     const paymentUrl = `${baseUrl}/payment?order=${order.id}`;
     const profileUrl = `${baseUrl}/profile`;
     const appUrl = `${baseUrl}/login`;

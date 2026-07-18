@@ -236,7 +236,7 @@ test('payment confirmation email links to meal selection', () => {
     const email = paymentConfirmedEmail({
         firstName: 'Jane',
         email: 'jane@example.com',
-        mealUrl: 'https://foundersvn.com/meal',
+        mealUrl: 'https://foundersvn.com/meal?order=order-1',
         appUrl: 'https://foundersvn.com/login',
         profileUrl: 'https://foundersvn.com/profile',
         receiptUrl: 'https://foundersvn.com/payment?order=order-1',
@@ -261,8 +261,11 @@ test('payment confirmation email links to meal selection', () => {
     assert.ok(email.html.includes('Confirmation Test Venue'));
     assert.ok(email.html.includes('456 Confirmation Street, Da Nang'));
     assert.ok(!email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));
-    assert.ok(email.html.includes('https://foundersvn.com/meal'));
+    assert.ok(email.html.includes('https://foundersvn.com/meal?order=order-1'));
     assert.ok(email.html.includes('Choose meal options'));
+    assert.ok(email.html.includes('750,000 VND FOOD CREDIT'));
+    assert.ok(email.html.includes('remaining balance is due at the restaurant by cash or Vietnamese QR code'));
+    assert.ok(email.html.includes('750.000 VND TÍN DỤNG ĐỒ ĂN'));
     assert.ok(email.html.includes('1. Set up your profile in the app'));
     assert.ok(email.html.includes('1. Thiết lập hồ sơ trên app'));
     assert.ok(!email.html.includes('Join the FoundersVN WhatsApp community</a>'));

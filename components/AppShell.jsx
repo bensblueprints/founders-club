@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { CalendarDays, LogOut, Menu, ShieldCheck, Ticket, UserRound, X } from 'lucide-react';
+import { CalendarDays, LogOut, Menu, ShieldCheck, Ticket, UserRound, UtensilsCrossed, X } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from './AuthProvider';
 import { initials } from '@/lib/api';
@@ -121,6 +121,7 @@ export default function AppShell({ children }) {
                                 </div>
                                 {mustResetPassword ? <Link role="menuitem" href="/change-password"><UserRound size={16} /> Set password</Link> : <Link role="menuitem" href="/profile"><UserRound size={16} /> Profile</Link>}
                                 {!mustResetPassword && (paymentPending ? <Link role="menuitem" href="/payment"><Ticket size={16} /> Complete payment</Link> : <Link role="menuitem" href="/ticket"><Ticket size={16} /> My Ticket</Link>)}
+                                {!mustResetPassword && !paymentPending && <Link role="menuitem" href="/ticket"><UtensilsCrossed size={16} /> My Menu</Link>}
                                 {user?.is_admin && <Link role="menuitem" href="/admin"><ShieldCheck size={16} /> Admin</Link>}
                                 <button role="menuitem" type="button" onClick={signOut}><LogOut size={16} /> Sign out</button>
                             </div>}
