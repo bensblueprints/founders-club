@@ -83,13 +83,14 @@ const MEMBER_ACTIONS = new Set([
     'messages.unreadCount',
     'messages.markRead',
     'payments.current',
+    'payments.markPageViewed',
     'payments.list',
     'payments.ensureAirwallexCheckout',
     'meals.get',
     'meals.update'
 ]);
 
-const PENDING_ACCOUNT_ACTIONS = new Set(['members.update', 'payments.current', 'payments.list', 'payments.ensureAirwallexCheckout']);
+const PENDING_ACCOUNT_ACTIONS = new Set(['members.update', 'payments.current', 'payments.list', 'payments.markPageViewed', 'payments.ensureAirwallexCheckout']);
 
 function publicPaymentOrder(order) {
     if (!order) return null;
@@ -296,6 +297,8 @@ const handlers = {
                        po.id AS payment_order_id, po.status AS order_status,
                        po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
                        po.paid_provider, po.paid_at AS order_paid_at,
+                       po.payment_page_first_viewed_at, po.payment_page_last_viewed_at,
+                       COALESCE(po.payment_page_view_count, 0)::int AS payment_page_view_count,
                        m.id AS existing_member_id, m.account_status AS existing_account_status,
                        m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
                        m.login_tracking_started_at,
@@ -344,6 +347,8 @@ const handlers = {
                    po.id AS payment_order_id, po.status AS order_status,
                    po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
                    po.paid_provider, po.paid_at AS order_paid_at,
+                   po.payment_page_first_viewed_at, po.payment_page_last_viewed_at,
+                   COALESCE(po.payment_page_view_count, 0)::int AS payment_page_view_count,
                    m.id AS existing_member_id, m.account_status AS existing_account_status,
                    m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
                    m.login_tracking_started_at,
@@ -739,6 +744,21 @@ const handlers = {
             WHERE po.member_id = ${ctx.memberId}
             ORDER BY e.event_date DESC, po.created_at DESC`;
         return rows.map(publicPaymentOrder);
+    },
+
+    async 'payments.markPageViewed'({ orderId }, ctx) {
+        if (!orderId) throw new Error('Missing payment order');
+        const rows = await sql`
+            UPDATE payment_orders SET
+                payment_page_first_viewed_at = COALESCE(payment_page_first_viewed_at, NOW()),
+                payment_page_last_viewed_at = NOW(),
+                payment_page_view_count = COALESCE(payment_page_view_count, 0) + 1,
+                updated_at = NOW()
+            WHERE id = ${orderId} AND member_id = ${ctx.memberId}
+            RETURNING id, payment_page_first_viewed_at, payment_page_last_viewed_at,
+                      payment_page_view_count`;
+        if (!rows[0]) throw new Error('Payment reservation not found for this account');
+        return rows[0];
     },
 
     async 'payments.ensureAirwallexCheckout'({ orderId }, ctx) {

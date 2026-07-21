@@ -17,6 +17,7 @@ function PaymentContent() {
     const params = useSearchParams();
     const router = useRouter();
     const observedPendingPayment = useRef(false);
+    const recordedPageView = useRef('');
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -56,6 +57,13 @@ function PaymentContent() {
         const poll = setInterval(() => load(true), 10000);
         return () => { clearInterval(tick); clearInterval(poll); };
     }, [user, params]);
+    useEffect(() => {
+        if (!order?.id || recordedPageView.current === order.id) return;
+        recordedPageView.current = order.id;
+        db('payments.markPageViewed', { orderId:order.id }).catch(() => {
+            recordedPageView.current = '';
+        });
+    }, [order?.id]);
 
     const remaining = useMemo(() => order ? Math.max(0, new Date(order.expiresAt).getTime() - now) : 0, [order, now]);
     const countdown = `${String(Math.floor(remaining / 3600000)).padStart(2, '0')}:${String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0')}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}`;

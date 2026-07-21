@@ -251,6 +251,9 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     reminder_sent_at TIMESTAMP WITH TIME ZONE,
     final_reminder_sent_at TIMESTAMP WITH TIME ZONE,
     confirmation_email_sent_at TIMESTAMP WITH TIME ZONE,
+    payment_page_first_viewed_at TIMESTAMP WITH TIME ZONE,
+    payment_page_last_viewed_at TIMESTAMP WITH TIME ZONE,
+    payment_page_view_count INTEGER NOT NULL DEFAULT 0,
     account_was_existing BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -259,6 +262,15 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     CONSTRAINT payment_orders_provider_environment_check CHECK (provider_environment IN ('mock', 'sandbox', 'production')),
     CONSTRAINT payment_orders_ticket_count_check CHECK (ticket_count IN (1, 2))
 );
+
+ALTER TABLE payment_orders
+    ADD COLUMN IF NOT EXISTS payment_page_first_viewed_at TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS payment_page_last_viewed_at TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS payment_page_view_count INTEGER NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_payment_orders_page_viewed
+    ON payment_orders(payment_page_first_viewed_at DESC)
+    WHERE payment_page_first_viewed_at IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS payment_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

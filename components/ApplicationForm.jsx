@@ -46,6 +46,10 @@ const FORM_COPY = {
         noPayment: 'No payment required to apply.',
         privacy: 'Your information is only used to review your application and contact you about FoundersVN.',
         approved: 'You’re approved. Check your email to sign in and complete payment within 48 hours.',
+        approvedTitle: 'You’re approved',
+        unpaidLabel: 'Unpaid - payment required',
+        unpaidBody: 'Your place is reserved for 48 hours. Complete payment using the secure link in your approval email.',
+        approvedClose: 'Got it - check my email',
         declined: 'Thank you for your interest. Because you selected that you are not willing to pay the event entrance fee, this application will not proceed.',
         pending: 'Application received. We’ll review it and email you with the next step.',
         exitKicker: 'Quick feedback',
@@ -89,6 +93,10 @@ const FORM_COPY = {
         noPayment: 'Không cần thanh toán khi đăng ký.',
         privacy: 'Thông tin chỉ được dùng để xét duyệt hồ sơ và liên hệ với bạn về FoundersVN.',
         approved: 'Bạn đã được duyệt. Vui lòng kiểm tra email để đăng nhập và hoàn tất thanh toán trong 48 giờ.',
+        approvedTitle: 'Bạn đã được duyệt',
+        unpaidLabel: 'Chưa thanh toán - cần thanh toán',
+        unpaidBody: 'Chỗ của bạn được giữ trong 48 giờ. Hãy thanh toán bằng liên kết bảo mật trong email phê duyệt.',
+        approvedClose: 'Đã hiểu - kiểm tra email',
         declined: 'Cảm ơn bạn đã quan tâm. Vì bạn chọn chưa sẵn sàng thanh toán phí tham dự, hồ sơ này sẽ không được tiếp tục xét duyệt.',
         pending: 'Đã nhận đăng ký. Đội ngũ FoundersVN sẽ xem xét và email bước tiếp theo cho bạn.',
         exitKicker: 'Phản hồi nhanh',
@@ -110,6 +118,7 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
     const { language } = useLanguage();
     const copy = FORM_COPY[language] || FORM_COPY.en;
     const [status, setStatus] = useState(null);
+    const [showApprovalModal, setShowApprovalModal] = useState(false);
     const [busy, setBusy] = useState(false);
     const [joinReason, setJoinReason] = useState('');
     const [revenue, setRevenue] = useState('');
@@ -160,9 +169,12 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
     }, [showExitSurvey]);
 
     useEffect(() => {
-        if (!showFeeConfirmation) return undefined;
+        if (!showFeeConfirmation && !showApprovalModal) return undefined;
         const handleKeyDown = event => {
-            if (event.key === 'Escape') setShowFeeConfirmation(false);
+            if (event.key === 'Escape') {
+                setShowFeeConfirmation(false);
+                setShowApprovalModal(false);
+            }
         };
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
@@ -171,7 +183,7 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
             document.body.style.overflow = previousOverflow;
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [showFeeConfirmation]);
+    }, [showFeeConfirmation, showApprovalModal]);
 
     function recordExitReason(reason) {
         const detail = { reason, language, event: initialEvent };
@@ -207,7 +219,12 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
             setRevenue('');
             feeDecisionRef.current = '';
             setFormCompleted(true);
-            setStatus({ type: 'success', message: copy[result.decision] || copy.pending });
+            if (result.decision === 'approved') {
+                setStatus(null);
+                setShowApprovalModal(true);
+            } else {
+                setStatus({ type: 'success', message: copy[result.decision] || copy.pending });
+            }
         } catch (error) {
             setStatus({ type: 'error', message: error.message });
         } finally {
@@ -259,6 +276,18 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
             </div>
             <p className="legacy-form-privacy field full">{copy.privacy}</p>
         </form>
+
+        {showApprovalModal && createPortal(<div className="application-exit-backdrop landing-original" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowApprovalModal(false); }}>
+            <section className="application-exit-modal approval-result-modal" role="dialog" aria-modal="true" aria-labelledby="approval-result-title" aria-describedby="approval-result-body">
+                <button className="application-exit-close" type="button" onClick={() => setShowApprovalModal(false)} aria-label={copy.approvedClose}><X size={18} /></button>
+                <div className="approval-result-icon"><CheckCircle2 size={30}/></div>
+                <p className="application-exit-kicker">FoundersVN</p>
+                <h2 id="approval-result-title">{copy.approvedTitle}</h2>
+                <p id="approval-result-body">{copy.approved}</p>
+                <div className="approval-unpaid-card"><strong>{copy.unpaidLabel}</strong><span>{copy.unpaidBody}</span></div>
+                <button className="button primary approval-result-close" type="button" onClick={() => setShowApprovalModal(false)}>{copy.approvedClose}</button>
+            </section>
+        </div>, document.body)}
 
         {showFeeConfirmation && createPortal(<div className="application-exit-backdrop landing-original" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowFeeConfirmation(false); }}>
             <section className="application-exit-modal fee-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="fee-confirm-title" aria-describedby="fee-confirm-body">

@@ -201,6 +201,19 @@ async function test(name, fn) {
         assert.ok(orderCall.values.includes('m-current'));
     });
 
+    await test('payment page views are recorded separately from login and scoped to the member', async () => {
+        nextRows = [{ id:'order-1', payment_page_view_count:1 }];
+        const res = await invoke(api, {
+            action:'payments.markPageViewed', payload:{ orderId:'order-1' }, headers:memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200, res.body);
+        const sqlText = calls[0].strings.join(' ');
+        assert.match(sqlText, /payment_page_first_viewed_at/i);
+        assert.match(sqlText, /payment_page_view_count/i);
+        assert.ok(calls[0].values.includes('order-1'));
+        assert.ok(calls[0].values.includes('m-current'));
+    });
+
     await test('meals.get scopes the menu to the selected paid ticket and member', async () => {
         nextRows = [{
             attendance_id:'attendance-1', payment_order_id:'order-1', event_id:'event-1',
