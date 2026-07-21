@@ -311,7 +311,11 @@ const handlers = {
                 FROM applications a
                 LEFT JOIN events e ON e.id = a.event_id
                 LEFT JOIN payment_orders po ON po.application_id = a.id
-                LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+                LEFT JOIN members m ON m.id = COALESCE(
+                    po.member_id,
+                    (SELECT email_member.id FROM members email_member
+                     WHERE LOWER(email_member.email) = LOWER(a.email) LIMIT 1)
+                )
                 LEFT JOIN LATERAL (
                     SELECT ed.provider_email_id, ed.email_type, ed.status, ed.sent_at, ed.event_at, ed.error
                     FROM email_deliveries ed WHERE ed.application_id = a.id
@@ -355,7 +359,11 @@ const handlers = {
             FROM applications a
             LEFT JOIN events e ON e.id = a.event_id
             LEFT JOIN payment_orders po ON po.application_id = a.id
-            LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+            LEFT JOIN members m ON m.id = COALESCE(
+                po.member_id,
+                (SELECT email_member.id FROM members email_member
+                 WHERE LOWER(email_member.email) = LOWER(a.email) LIMIT 1)
+            )
             LEFT JOIN LATERAL (
                 SELECT ed.provider_email_id, ed.email_type, ed.status, ed.sent_at, ed.event_at, ed.error
                 FROM email_deliveries ed WHERE ed.application_id = a.id

@@ -241,6 +241,7 @@ async function test(name, fn) {
         assert.ok(calls.some(call => call.strings.join(' ').includes('provider_email_id')), 'application tracking includes the Resend record id');
         assert.ok(calls.some(call => call.strings.join(' ').includes('engagement_tracking_enabled')), 'application tracking exposes whether click measurement was enabled');
         assert.ok(calls.some(call => call.strings.join(' ').includes('email_webhook_events')), 'application click history uses immutable webhook events');
+        assert.ok(calls.some(call => call.strings.join(' ').includes('po.member_id')), 'payment order member id is the authoritative account link');
         assert.strictEqual(JSON.parse(res.body).data.length, 1);
     });
 
