@@ -44,9 +44,15 @@ the local server with an HTTPS tunnel, then configure these webhook URLs:
 In Airwallex demo, subscribe to `payment_intent.succeeded`. In SePay Test mode,
 create a simulated bank account, configure HMAC-SHA256 authentication and the
 `FVN` payment-code prefix, then simulate an incoming transfer using the exact
-amount and payment code shown on the payment page. In Resend, subscribe to
-delivery/open/click events and copy the webhook signing secret into
+amount and payment code shown on the payment page. In Resend, subscribe to all
+email lifecycle events, including sent, delivered, bounced, failed, delayed,
+suppressed, complained, opened, and clicked, then copy the signing secret into
 `RESEND_WEBHOOK_SECRET`.
+
+Give `RESEND_API_KEY` Full access so the application can both send email and
+reconcile historical delivery states through the Retrieve Email API. The
+webhook is the primary real-time source for delivered, bounced, opened, and
+clicked events.
 
 Validate credentials without creating a payment:
 

@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS members (
     must_reset_password BOOLEAN DEFAULT FALSE,
     account_status TEXT NOT NULL DEFAULT 'active',
     payment_access_expires_at TIMESTAMP WITH TIME ZONE,
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    login_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -93,6 +95,8 @@ CREATE TABLE IF NOT EXISTS applications (
     role VARCHAR(100),
     industry TEXT,                            -- widened (comma-joined chip labels)
     revenue VARCHAR(50),
+    fee_willingness BOOLEAN,
+    fee_acknowledged_at TIMESTAMP WITH TIME ZONE,
     team_size VARCHAR(50),
     biggest_challenge TEXT,
     unique_value TEXT,

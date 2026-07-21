@@ -182,8 +182,23 @@ async function test(name, fn) {
         assert.strictEqual(data[0].meal.items[0].name, 'Starter');
         assert.strictEqual(data[0].meal.totalVnd, 212750);
         assert.strictEqual(data[1].meal, null);
-        assert.ok(calls[0].strings.join(' ').includes('LEFT JOIN event_attendance'), 'ticket list should include the saved meal for each registration');
-        assert.ok(calls[0].values.includes('m-current'));
+        const listCall = calls.find(call => call.strings.join(' ').includes('LEFT JOIN event_attendance'));
+        assert.ok(listCall, 'ticket list should include the saved meal for each registration');
+        assert.ok(listCall.values.includes('m-current'));
+    });
+
+    await test('payments.current treats the order URL as a locator, not authorization', async () => {
+        nextRows = [{ id:'order-from-url', member_id:'m-current', status:'pending', ticket_count:1 }];
+        const res = await invoke(api, {
+            action:'payments.current', payload:{ orderId:'order-from-url' }, headers:memberHeaders
+        });
+        assert.strictEqual(res.statusCode, 200);
+        const orderCall = calls.find(call => call.strings.join(' ').includes('po.id ='));
+        const sqlText = orderCall.strings.join(' ');
+        assert.ok(sqlText.includes('po.id ='));
+        assert.ok(sqlText.includes('po.member_id ='), 'order lookup must also match the authenticated member');
+        assert.ok(orderCall.values.includes('order-from-url'));
+        assert.ok(orderCall.values.includes('m-current'));
     });
 
     await test('meals.get scopes the menu to the selected paid ticket and member', async () => {
@@ -223,6 +238,7 @@ async function test(name, fn) {
             headers: { 'x-admin-token': 'secret-token' }
         });
         assert.strictEqual(res.statusCode, 200);
+        assert.ok(calls.some(call => call.strings.join(' ').includes('provider_email_id')), 'application tracking includes the Resend record id');
         assert.strictEqual(JSON.parse(res.body).data.length, 1);
     });
 

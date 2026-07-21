@@ -103,7 +103,26 @@ async function recordDelivery({ providerEmailId = null, to, subject, tracking = 
             ${tracking.eventId || null}, ${recipient}, ${subject}, ${tracking.type || 'transactional'},
             ${status}, ${error}, ${JSON.stringify({ mock, ...(tracking.metadata || {}) })}::jsonb)
           ON CONFLICT (provider_email_id) DO UPDATE SET
-            status = EXCLUDED.status, error = EXCLUDED.error, updated_at = NOW()`;
+            member_id = COALESCE(email_deliveries.member_id, EXCLUDED.member_id),
+            application_id = COALESCE(email_deliveries.application_id, EXCLUDED.application_id),
+            event_id = COALESCE(email_deliveries.event_id, EXCLUDED.event_id),
+            recipient = EXCLUDED.recipient,
+            subject = EXCLUDED.subject,
+            email_type = EXCLUDED.email_type,
+            status = CASE
+                WHEN EXCLUDED.status IN ('queued', 'sent')
+                  AND email_deliveries.status NOT IN ('queued', 'sent')
+                THEN email_deliveries.status
+                ELSE EXCLUDED.status
+            END,
+            error = CASE
+                WHEN EXCLUDED.status IN ('queued', 'sent')
+                  AND email_deliveries.status NOT IN ('queued', 'sent')
+                THEN email_deliveries.error
+                ELSE EXCLUDED.error
+            END,
+            metadata = email_deliveries.metadata || EXCLUDED.metadata,
+            updated_at = NOW()`;
     } catch (recordError) {
         console.error('[emailer] could not record delivery:', recordError.message);
     }
@@ -338,9 +357,9 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
     const paymentOptions = `<p style="color:rgba(255,255,255,.72);font-size:14px;line-height:1.6;margin:0 0 18px;">You can pay by international card through Airwallex with a 5% card fee, or by e-wallet / VietQR / SePay with no fee. The payment page will show the correct option for you.</p>`;
     const inner = `
       <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
-      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">Your FoundersVN seat is reserved, ${safeFirstName}</h2>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">You're approved - please complete payment, ${safeFirstName}</h2>
       ${textBlock(`Hi ${safeFirstName},`)}
-      ${textBlock(`Thank you for applying to FoundersVN. We reviewed your application and would be honored to welcome you to our first dinner in Da Nang.`)}
+      ${textBlock(`Thank you for applying to FoundersVN. You're approved. Please complete payment within 48 hours to confirm your place at our first dinner in Da Nang.`)}
       ${textBlock(`We have reserved ${seatText} for you for the next 48 hours.`)}
       <div class="email-detail-box" style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
         <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">FOUNDERSVN MEETUP DETAILS</p>
@@ -362,7 +381,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock('We look forward to welcoming you at the table,')}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0 0 28px;">FoundersVN</p>
       <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
-      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Bạn đã đặt chỗ thành công tại FoundersVN, ${safeFirstName}</h2>
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Bạn đã được duyệt - vui lòng thanh toán, ${safeFirstName}</h2>
       ${textBlock(`Chào ${safeFirstName},`)}
       ${textBlock('Cảm ơn bạn đã đăng ký FoundersVN. Hồ sơ của bạn đã được duyệt, và FoundersVN rất hân hạnh xác nhận chỗ của bạn cho buổi gặp mặt đầu tiên tại Đà Nẵng.')}
       ${textBlock(`FoundersVN đã giữ riêng ${ticketCount === 2 ? 'hai chỗ' : 'một chỗ'} cho bạn trong 48 giờ.`)}
@@ -386,7 +405,45 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0;">FoundersVN rất mong được đón bạn tại buổi gặp mặt,<br>FoundersVN</p>
       `;
     return {
-        subject: `Your FoundersVN seat is reserved, ${firstName || ''} | Bạn đã đặt chỗ thành công tại FoundersVN, ${firstName || ''}`.trim(),
+        subject: `You're approved for FoundersVN - please pay within 48 hours, ${firstName || ''} | Bạn đã được duyệt - vui lòng thanh toán trong 48 giờ, ${firstName || ''}`.trim(),
+        html: shell(inner)
+    };
+}
+
+function declinedApplicationEmail({ firstName }) {
+    const safeFirstName = escapeHtml(firstName || 'there');
+    const inner = `
+      <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">Thank you for applying, ${safeFirstName}</h2>
+      ${textBlock(`Hi ${safeFirstName},`)}
+      ${textBlock('Thank you for your interest in FoundersVN. You selected that you are not willing to pay the event entrance fee if approved, so this application will not proceed.')}
+      ${textBlock('We appreciate the time you took to apply and wish you continued success as you grow your company.')}
+      <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Cảm ơn bạn đã đăng ký, ${safeFirstName}</h2>
+      ${textBlock(`Chào ${safeFirstName},`)}
+      ${textBlock('Cảm ơn bạn đã quan tâm đến FoundersVN. Bạn đã chọn chưa sẵn sàng thanh toán phí tham dự nếu được duyệt, vì vậy hồ sơ này sẽ không được tiếp tục xét duyệt.')}
+      ${textBlock('Cảm ơn bạn đã dành thời gian đăng ký. Chúc bạn tiếp tục gặt hái nhiều thành công trong quá trình phát triển công ty.')}`;
+    return {
+        subject: 'Your FoundersVN application | Kết quả đăng ký FoundersVN',
+        html: shell(inner)
+    };
+}
+
+function applicationReceivedEmail({ firstName }) {
+    const safeFirstName = escapeHtml(firstName || 'there');
+    const inner = `
+      <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">We received your application, ${safeFirstName}</h2>
+      ${textBlock(`Hi ${safeFirstName},`)}
+      ${textBlock('Thank you for applying to FoundersVN and confirming that you are willing to pay the event entrance fee if approved.')}
+      ${textBlock('Your application is now with our team for review. We will email you with the result and disclose the entrance fee if your application is approved.')}
+      <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Chúng tôi đã nhận hồ sơ của bạn, ${safeFirstName}</h2>
+      ${textBlock(`Chào ${safeFirstName},`)}
+      ${textBlock('Cảm ơn bạn đã đăng ký FoundersVN và xác nhận sẵn sàng thanh toán phí tham dự nếu được duyệt.')}
+      ${textBlock('Đội ngũ FoundersVN sẽ xem xét hồ sơ và gửi kết quả qua email. Phí tham dự sẽ được thông báo nếu hồ sơ của bạn được duyệt.')}`;
+    return {
+        subject: 'We received your FoundersVN application | Đã nhận hồ sơ FoundersVN',
         html: shell(inner)
     };
 }
@@ -593,6 +650,8 @@ function notificationEmail({ app, adminUrl }) {
         ${row('Looking for', app.looking_for)}
         ${row('Can offer', app.can_offer)}
         ${row('Building', app.what_you_do)}
+        ${row('Annual revenue', app.revenue)}
+        ${row('Willing to pay event fee', app.fee_willingness == null ? null : app.fee_willingness ? 'Yes - manual review' : 'No')}
         ${row('Links', app.social_link)}
         ${row('Event', app.event)}
         ${row('Page lang', app.page_language)}
@@ -606,6 +665,8 @@ module.exports = {
     sendEmail,
     acceptedEmail,
     approvedWithLoginEmail,
+    declinedApplicationEmail,
+    applicationReceivedEmail,
     reminderEmail,
     expiredEmail,
     passwordResetEmail,

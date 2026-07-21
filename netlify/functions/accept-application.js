@@ -1,4 +1,4 @@
-// Admin approval: atomically reserves capacity for 48 hours, creates a login,
+// Admin approval: atomically creates a 48-hour reservation, creates a login,
 // and provisions one payment order with Airwallex + SePay options.
 
 const crypto = require('crypto');
@@ -30,6 +30,20 @@ function roundMoney(value) {
     return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
 
+function eventDetailsFor(app, baseAmountUsd, ticketCount) {
+    return {
+        name: app.event_name,
+        date: new Date(app.event_date).toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+        }),
+        time: String(app.event_time || '18:00').slice(0, 5),
+        location: app.event_location,
+        venueName: app.event_venue_name,
+        venueAddress: app.event_venue_address,
+        price: `$${baseAmountUsd.toFixed(2)} USD for ${ticketCount} ticket${ticketCount === 1 ? '' : 's'}`
+    };
+}
+
 function publicOrder(order) {
     if (!order) return null;
     let airwallexUrl = null;
@@ -54,8 +68,8 @@ exports.handler = async (event) => {
     if (!isAdminRequest(event)) return json(401, { error: 'Unauthorized' });
     if (!dbConfigured()) return json(500, { error: 'Server not configured (missing DATABASE_URL).' });
 
-    let id;
-    try { id = JSON.parse(event.body || '{}').id; } catch (_) { return json(400, { error: 'Invalid JSON body' }); }
+    let id, preview;
+    try { ({ id, preview = false } = JSON.parse(event.body || '{}')); } catch (_) { return json(400, { error: 'Invalid JSON body' }); }
     if (!id) return json(400, { error: 'Missing application id' });
 
     let app;
@@ -68,7 +82,8 @@ exports.handler = async (event) => {
                    po.ticket_count AS order_ticket_count, po.base_amount_usd,
                    po.airwallex_fee_usd, po.airwallex_total_usd, po.sepay_amount_vnd,
                    po.sepay_code, po.airwallex_url_encrypted, po.expires_at AS order_expires_at,
-                   po.account_was_existing
+                   po.account_was_existing,
+                   (SELECT account_status FROM members WHERE LOWER(email) = LOWER(a.email) LIMIT 1) AS existing_member_status
             FROM applications a
             JOIN events e ON e.id = a.event_id
             LEFT JOIN payment_orders po ON po.application_id = a.id
@@ -95,6 +110,43 @@ exports.handler = async (event) => {
         });
     }
     if (app.status !== 'pending') return json(409, { error: `Application is already ${app.status}.` });
+
+    const requestedTicketCount = Number(app.ticket_count || 1);
+    if (![1, 2].includes(requestedTicketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
+    if (requestedTicketCount === 2 && !String(app.guest_name || '').trim()) {
+        return json(400, { error: 'Partner / co-founder name is required for two tickets.' });
+    }
+    if (preview) {
+        const previewBaseAmount = roundMoney(Number(app.dinner_price || 150) * requestedTicketCount);
+        const existingAccount = app.existing_member_status === 'active';
+        const previewSepay = sepayConfig();
+        const previewAmountVnd = Math.round(previewBaseAmount * Number(process.env.SEPAY_USD_TO_VND_RATE || 26000));
+        const tmpl = approvedWithLoginEmail({
+            firstName: app.first_name,
+            email: String(app.email).trim().toLowerCase(),
+            tempPassword: existingAccount ? null : 'A secure temporary password will be generated when this email is sent',
+            loginUrl: `${process.env.URL || 'https://foundersvn.com'}/login`,
+            paymentUrl: `${process.env.URL || 'https://foundersvn.com'}/payment`,
+            sepay: previewSepay.account ? {
+                bank: previewSepay.bank,
+                account: previewSepay.account,
+                accountName: previewSepay.accountName,
+                amountVnd: previewAmountVnd,
+                code: 'Generated when the reservation is approved'
+            } : null,
+            expiresAt: new Date(Date.now() + HOLD_MS),
+            ticketCount: requestedTicketCount,
+            existingAccount,
+            event: eventDetailsFor(app, previewBaseAmount, requestedTicketCount)
+        });
+        return json(200, {
+            preview: true,
+            action: 'accept',
+            email: String(app.email).trim().toLowerCase(),
+            subject: tmpl.subject,
+            html: tmpl.html
+        });
+    }
     const useAirwallex = paymentProviderEnabled('airwallex');
     const useSepay = paymentProviderEnabled('sepay');
     const mockPayments = isMockPayments();
@@ -134,11 +186,7 @@ exports.handler = async (event) => {
         }
     }
 
-    const ticketCount = Number(app.ticket_count || 1);
-    if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
-    if (ticketCount === 2 && !String(app.guest_name || '').trim()) {
-        return json(400, { error: 'Partner / co-founder name is required for two tickets.' });
-    }
+    const ticketCount = requestedTicketCount;
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + HOLD_MS);
@@ -153,6 +201,7 @@ exports.handler = async (event) => {
     const tempPassword = generateTempPassword();
     const passwordHash = await hashPassword(tempPassword);
     const email = String(app.email).trim().toLowerCase();
+    const whatsapp = String(app.social_link || '').match(/^WhatsApp:\s*(.+)$/i)?.[1]?.trim() || null;
 
     const existingTicketRows = await sql`
         SELECT COALESCE(SUM(po.ticket_count), 0)::int AS seats
@@ -177,26 +226,19 @@ exports.handler = async (event) => {
         const rows = await sql`
             WITH locked_event AS (
                 SELECT id, max_attendees FROM events WHERE id = ${app.event_id} FOR UPDATE
-            ), occupied AS (
-                SELECT COALESCE(SUM(po.ticket_count), 0)::int AS seats
-                FROM payment_orders po
-                JOIN locked_event le ON le.id = po.event_id
-                WHERE po.status = 'paid'
-                   OR (po.status IN ('pending', 'preparing') AND po.expires_at > NOW())
             ), eligible AS (
-                SELECT le.* FROM locked_event le, occupied o
-                WHERE o.seats + ${ticketCount} <= le.max_attendees
+                SELECT le.* FROM locked_event le
             ), existing_member AS (
                 SELECT id, account_status FROM members WHERE LOWER(email) = ${email}
             ), upsert_member AS (
                 INSERT INTO members
                     (email, first_name, last_name, company, role, industry, is_approved,
-                     password_hash, must_reset_password, account_status, payment_access_expires_at)
+                     password_hash, must_reset_password, account_status, payment_access_expires_at, whatsapp)
                 SELECT ${email}, ${app.first_name || ''}, ${app.last_name || '-'}, ${app.company || null},
                        ${app.role || null}, ${app.industry || null}, true, ${passwordHash}, true,
                        CASE WHEN EXISTS (SELECT 1 FROM existing_member WHERE account_status = 'active')
                             THEN 'active' ELSE 'payment_pending' END,
-                       ${expiresAt.toISOString()}
+                       ${expiresAt.toISOString()}, ${whatsapp}
                 FROM eligible
                 ON CONFLICT (email) DO UPDATE SET
                     is_approved = true,
@@ -209,6 +251,7 @@ exports.handler = async (event) => {
                     company = COALESCE(members.company, EXCLUDED.company),
                     role = COALESCE(members.role, EXCLUDED.role),
                     industry = COALESCE(members.industry, EXCLUDED.industry),
+                    whatsapp = COALESCE(members.whatsapp, EXCLUDED.whatsapp),
                     updated_at = NOW()
                 RETURNING *
             ), new_order AS (
@@ -279,25 +322,15 @@ exports.handler = async (event) => {
     }
     if (!reserved) {
         try { if (airwallexLink?.id) await deactivatePaymentLink(airwallexLink.id); } catch (cleanupError) {
-            console.error('[accept-application] capacity cleanup failed:', cleanupError.message);
+            console.error('[accept-application] reservation cleanup failed:', cleanupError.message);
         }
-        return json(409, { error: `Not enough capacity for ${ticketCount} ticket${ticketCount === 1 ? '' : 's'}.` });
+        return json(409, { error: 'The event is no longer available for reservations.' });
     }
 
     const paymentUrl = `${process.env.URL || 'https://foundersvn.com'}/payment?order=${orderId}`;
 
     const sepay = sepayConfig();
-    const eventDetails = {
-        name: app.event_name,
-        date: new Date(app.event_date).toLocaleDateString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
-        }),
-        time: String(app.event_time || '18:00').slice(0, 5),
-        location: app.event_location,
-        venueName: app.event_venue_name,
-        venueAddress: app.event_venue_address,
-        price: `$${baseAmountUsd.toFixed(2)} USD for ${ticketCount} ticket${ticketCount === 1 ? '' : 's'}`
-    };
+    const eventDetails = eventDetailsFor(app, baseAmountUsd, ticketCount);
     let emailResult = { success: false };
     try {
         const tmpl = approvedWithLoginEmail({

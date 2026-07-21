@@ -7,8 +7,8 @@
 // is unset) are loaded for real, so we exercise the ACTUAL password hashing.
 //
 // Asserts the desired flow:
-//   * submit-application  → inserts an event-scoped application, but does not
-//                           create an account before admin approval.
+//   * submit-application  → inserts an event-scoped application and applies the
+//                           revenue-based automatic decision.
 //   * accept-application  → flips the member to is_approved = true, stores a
 //                           bcrypt password_hash, and returns a temp password.
 //   * db-api members.create → hashes a PLAINTEXT password (stored value is a
@@ -42,8 +42,15 @@ function fakeSql(strings, ...values) {
         return Promise.resolve([{ id: 'evt1', slug: 'danang-jul-2026', name: 'FoundersVN Da Nang', dinner_price: 150 }]);
     }
     if (/FROM applications a/i.test(text)) return Promise.resolve(appRow ? [appRow] : []);
-    if (/INSERT INTO members/i.test(text)) return Promise.resolve([memberRow]);
-    if (/INSERT INTO applications/i.test(text)) return Promise.resolve([appRow || { id: 'app1' }]);
+    if (/INSERT INTO members/i.test(text)) return Promise.resolve([{ ...memberRow, member_id: 'm1', account_status: 'payment_pending', account_was_existing: false }]);
+    if (/INSERT INTO applications/i.test(text)) {
+        appRow ||= {
+            id: 'app1', email: 'jane@x.co', first_name: 'Jane', last_name: 'Doe', company: 'Acme', role: 'CEO',
+            status: 'pending', ticket_count: 1, event_id: 'evt1', event_slug: 'danang-jul-2026',
+            event_name: 'FoundersVN Da Nang', event_date: '2026-07-31', event_time: '18:00', dinner_price: 150
+        };
+        return Promise.resolve([appRow]);
+    }
     return Promise.resolve([]);
 }
 
@@ -112,10 +119,11 @@ async function test(name, fn) {
         what_you_do: 'Building founder workflow software',
         why_join: 'Meet founders and operators at my level',
         whatsapp: '+84 912 345 678',
+        revenue: '100k-500k',
         page_language: 'en'
     };
 
-    await test('submit-application inserts an event-scoped application without creating an account', async () => {
+    await test('submit-application auto approves qualifying revenue and creates a payment account', async () => {
         const res = await submit.handler({
             httpMethod: 'POST',
             headers: {},
@@ -126,11 +134,48 @@ async function test(name, fn) {
         const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
         const memInsert = calls.find(c => /INSERT INTO members/i.test(c.text));
         assert.ok(appInsert, 'must insert an application');
-        assert.ok(!memInsert, 'account must not exist before approval');
+        assert.ok(memInsert, 'qualifying applicants must be approved automatically');
         assert.ok(appInsert.values.includes('evt1'), 'application is bound to the selected event id');
         assert.ok(appInsert.values.includes('jane@x.co'), 'email is normalized and bound');
         assert.ok(appInsert.values.includes('WhatsApp: +84 912 345 678'), 'WhatsApp is stored with the application');
         assert.ok(appInsert.values.includes('Meet founders and operators at my level'), 'join reason is stored with the application');
+        assert.ok(appInsert.values.includes('$100,000 to $500,000 a year'), 'revenue label is stored with the application');
+        assert.strictEqual(JSON.parse(res.body).decision, 'approved');
+    });
+
+    await test('submit-application declines under $100,000 when the applicant will not pay the fee', async () => {
+        const res = await submit.handler({
+            httpMethod: 'POST', headers: {},
+            body: JSON.stringify({ ...completeApplicationPayload, revenue: 'under-100k', fee_willingness: 'no' })
+        });
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.strictEqual(JSON.parse(res.body).decision, 'declined');
+        const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
+        assert.ok(appInsert.values.includes('rejected'));
+        assert.ok(!calls.some(c => /INSERT INTO members/i.test(c.text)), 'declined applicants must not receive an account');
+    });
+
+    await test('submit-application sends willing under-$100,000 applicants for manual review', async () => {
+        appRow = null;
+        const res = await submit.handler({
+            httpMethod: 'POST', headers: {},
+            body: JSON.stringify({ ...completeApplicationPayload, revenue: 'under-100k', fee_willingness: 'yes' })
+        });
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.strictEqual(JSON.parse(res.body).decision, 'pending');
+        const appInsert = calls.find(c => /INSERT INTO applications/i.test(c.text));
+        assert.ok(appInsert.values.includes(true), 'fee willingness is stored');
+        assert.ok(appInsert.values.includes('pending'));
+        assert.ok(!calls.some(c => /INSERT INTO members/i.test(c.text)), 'manual-review applicants must not be auto approved');
+    });
+
+    await test('submit-application requires a fee answer for under-$100,000 applicants', async () => {
+        const res = await submit.handler({
+            httpMethod: 'POST', headers: {},
+            body: JSON.stringify({ ...completeApplicationPayload, revenue: 'under-100k' })
+        });
+        assert.strictEqual(res.statusCode, 400);
+        assert.match(JSON.parse(res.body).error, /entrance fee/i);
     });
 
     await test('submit-application rejects incomplete landing application data', async () => {
@@ -166,6 +211,25 @@ async function test(name, fn) {
         const res = await accept.handler({ httpMethod: 'POST', headers: {}, body: JSON.stringify({ id: 'app1' }) });
         assert.strictEqual(res.statusCode, 401);
         assert.strictEqual(calls.length, 0, 'no SQL when unauthorized');
+    });
+
+    await test('accept-application preview does not reserve seats or send email', async () => {
+        appRow = {
+            id: 'app1', email: 'jane@x.co', first_name: 'Jane', last_name: 'Doe',
+            company: 'Acme', role: 'CEO', industry: 'saas', status: 'pending',
+            event_id: 'evt1', event_slug: 'danang-jul-2026', event_name: 'FoundersVN Da Nang',
+            event_date: '2026-07-31', dinner_price: 150
+        };
+        const res = await accept.handler({
+            httpMethod: 'POST', headers: { 'x-admin-token': 'secret-token' },
+            body: JSON.stringify({ id: 'app1', preview: true })
+        });
+        const out = JSON.parse(res.body);
+        assert.strictEqual(res.statusCode, 200, res.body);
+        assert.strictEqual(out.preview, true);
+        assert.ok(out.subject && out.html);
+        assert.ok(!calls.some(c => /INSERT INTO payment_orders/i.test(c.text)));
+        assert.ok(!calls.some(c => /INSERT INTO members/i.test(c.text)));
     });
 
     await test('accept-application approves member + sets bcrypt hash + returns temp password', async () => {

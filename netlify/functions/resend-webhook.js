@@ -4,7 +4,8 @@ const { sql, isConfigured } = require('./lib/neon');
 const statusFor = type => ({
     'email.sent': 'sent', 'email.delivered': 'delivered', 'email.delivery_delayed': 'delayed',
     'email.bounced': 'bounced', 'email.failed': 'failed', 'email.complained': 'complained',
-    'email.opened': 'opened', 'email.clicked': 'clicked'
+    'email.opened': 'opened', 'email.clicked': 'clicked', 'email.suppressed': 'suppressed',
+    'email.canceled': 'canceled'
 })[type] || String(type || '').replace(/^email\./, '') || 'unknown';
 
 exports.handler = async event => {
@@ -25,15 +26,35 @@ exports.handler = async event => {
     const svixId = event.headers?.['svix-id'] || event.headers?.['Svix-Id'];
     const emailId = payload?.data?.email_id;
     if (!svixId || !emailId) return { statusCode: 400, body: 'Missing event identifiers' };
-    const error = payload?.data?.bounce?.message || payload?.data?.reason || null;
+    const error = payload?.data?.bounce?.message || payload?.data?.bounce?.type
+        || payload?.data?.suppression?.reason || payload?.data?.failed?.reason
+        || payload?.data?.reason || payload?.data?.error?.message || payload?.data?.error || null;
+    const status = statusFor(payload.type);
+    const eventAt = payload.created_at || new Date().toISOString();
+    const recipient = Array.isArray(payload?.data?.to) ? payload.data.to.join(', ') : String(payload?.data?.to || 'unknown');
+    const subject = String(payload?.data?.subject || 'Resend email event');
     await sql`WITH recorded AS (
         INSERT INTO email_webhook_events (svix_id, provider_email_id, event_type)
         VALUES (${svixId}, ${emailId}, ${payload.type})
         ON CONFLICT (svix_id) DO NOTHING RETURNING svix_id
       )
-      UPDATE email_deliveries SET status = ${statusFor(payload.type)},
-        event_at = ${payload.created_at || new Date().toISOString()}, error = ${error}, updated_at = NOW()
-      WHERE provider_email_id = ${emailId} AND EXISTS (SELECT 1 FROM recorded)`;
+      INSERT INTO email_deliveries
+        (provider_email_id, recipient, subject, email_type, status, event_at, error, metadata)
+      SELECT ${emailId}, ${recipient}, ${subject}, 'resend_webhook', ${status}, ${eventAt}, ${error},
+             ${JSON.stringify({ webhookEvent: payload.type })}::jsonb
+      FROM recorded
+      ON CONFLICT (provider_email_id) DO UPDATE SET
+        status = CASE
+          WHEN email_deliveries.status IN ('queued', 'sent', 'delayed')
+            OR EXCLUDED.event_at >= email_deliveries.event_at
+          THEN EXCLUDED.status ELSE email_deliveries.status END,
+        event_at = GREATEST(email_deliveries.event_at, EXCLUDED.event_at),
+        error = CASE
+          WHEN email_deliveries.status IN ('queued', 'sent', 'delayed')
+            OR EXCLUDED.event_at >= email_deliveries.event_at
+          THEN EXCLUDED.error ELSE email_deliveries.error END,
+        metadata = email_deliveries.metadata || EXCLUDED.metadata,
+        updated_at = NOW()`;
     return { statusCode: 200, body: 'ok' };
 };
 

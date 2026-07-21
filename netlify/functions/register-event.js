@@ -1,5 +1,5 @@
 // Logged-in member registration request. This is intentionally separate from
-// the public application form, but enters the same admin approval/capacity flow.
+// the public application form, but enters the same admin approval flow.
 
 const crypto = require('crypto');
 const { sql, isConfigured } = require('./lib/neon');
@@ -7,6 +7,7 @@ const { getBearerToken, verifyToken } = require('./lib/auth');
 const { sendEmail, notificationEmail } = require('./lib/emailer');
 const { createPaymentCode } = require('./lib/sepay');
 const { paymentEnvironment } = require('./lib/payment-environment');
+const { expireOverdueReservations } = require('./lib/expire-reservations');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -32,6 +33,8 @@ exports.handler = async (event) => {
     const ticketCount = Number(body.ticketCount || 1);
     const guestName = String(body.guestName || '').trim();
     if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
+
+    await expireOverdueReservations(sql, claims.sub);
 
     const rows = await sql`
         SELECT m.*, e.id AS event_id, e.slug AS event_slug, e.name AS event_name,
@@ -84,15 +87,8 @@ exports.handler = async (event) => {
             const reservationRows = await sql`
                 WITH locked_event AS (
                     SELECT id, max_attendees FROM events WHERE id = ${member.event_id} FOR UPDATE
-                ), occupied AS (
-                    SELECT COALESCE(SUM(po.ticket_count), 0)::int AS seats
-                    FROM payment_orders po
-                    JOIN locked_event le ON le.id = po.event_id
-                    WHERE po.status = 'paid'
-                       OR (po.status IN ('pending', 'preparing') AND po.expires_at > NOW())
                 ), eligible AS (
-                    SELECT le.* FROM locked_event le, occupied o
-                    WHERE o.seats + ${ticketCount} <= le.max_attendees
+                    SELECT le.* FROM locked_event le
                 ), new_application AS (
                     INSERT INTO applications
                         (first_name, last_name, email, event_id, company, role, industry,
@@ -119,7 +115,7 @@ exports.handler = async (event) => {
                 SELECT na.id AS application_id, no.id AS payment_order_id, no.expires_at
                 FROM new_application na JOIN new_order no ON no.application_id = na.id`;
             const reservation = reservationRows[0];
-            if (!reservation) return json(409, { error: `Not enough capacity for ${ticketCount} more ticket${ticketCount === 1 ? '' : 's'}.` });
+            if (!reservation) return json(409, { error: 'The event is no longer available for reservations.' });
             return json(200, {
                 success: true,
                 approved: true,

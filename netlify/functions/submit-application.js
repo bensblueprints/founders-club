@@ -3,7 +3,8 @@
 // CORS-open (mirrors send-welcome-email.js).
 
 const { sql, isConfigured: dbConfigured } = require('./lib/neon');
-const { sendEmail, notificationEmail } = require('./lib/emailer');
+const { sendEmail, notificationEmail, declinedApplicationEmail, applicationReceivedEmail } = require('./lib/emailer');
+const { revenueOption, revenueDecision } = require('../../lib/application-revenue.cjs');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -50,7 +51,7 @@ exports.handler = async (event) => {
     // Required fields (match the public landing application form).
     const required = [
         'name', 'email', 'company_profile', 'role', 'event_slug',
-        'what_you_do', 'why_join', 'whatsapp'
+        'what_you_do', 'why_join', 'whatsapp', 'revenue'
     ];
     const missing = required.filter(f => !String(body[f] || '').trim());
     if (missing.length) {
@@ -62,6 +63,15 @@ exports.handler = async (event) => {
     if (!/^[+0-9() .-]{7,24}$/.test(String(body.whatsapp).trim())) {
         return json(400, { error: 'Invalid WhatsApp number' });
     }
+    const selectedRevenue = revenueOption(body.revenue);
+    const feeWillingness = selectedRevenue?.value === 'under-100k'
+        ? String(body.fee_willingness || '').trim().toLowerCase()
+        : null;
+    const decision = revenueDecision(body.revenue, feeWillingness);
+    if (!selectedRevenue) return json(400, { error: 'Invalid annual revenue range' });
+    if (!decision) return json(400, { error: 'Please confirm whether you are willing to pay the event entrance fee if approved.' });
+    const feeWillingnessValue = feeWillingness ? feeWillingness === 'yes' : null;
+    const feeAcknowledgedAt = feeWillingness ? new Date().toISOString() : null;
 
     const { first, last } = splitName(body.name);
     const ticketCount = 1;
@@ -117,10 +127,15 @@ exports.handler = async (event) => {
                 social_link = ${socialLink},
                 page_language = ${body.page_language || null},
                 why_join = ${whyJoin},
+                revenue = ${selectedRevenue.label},
+                fee_willingness = ${feeWillingnessValue},
+                fee_acknowledged_at = ${feeAcknowledgedAt},
                 event = ${selectedEvent.name},
                 event_interest = ${selectedEvent.slug},
                 ticket_count = ${ticketCount},
-                guest_name = NULL
+                guest_name = NULL,
+                status = ${decision === 'declined' ? 'rejected' : 'pending'},
+                reviewed_at = ${decision === 'declined' ? new Date().toISOString() : null}
             WHERE event_id = ${selectedEvent.id}
               AND LOWER(email) = LOWER(${email})
               AND status = 'pending'
@@ -130,13 +145,14 @@ exports.handler = async (event) => {
             rows = await sql`
                 INSERT INTO applications
                     (first_name, last_name, email, event_id, company, role, company_link, industry,
-                     looking_for, can_offer, what_you_do, social_link, page_language, why_join,
+                     looking_for, can_offer, what_you_do, social_link, page_language, why_join, revenue,
+                     fee_willingness, fee_acknowledged_at,
                      event, event_interest, ticket_count, guest_name, status, payment_status, reminders_sent)
                 VALUES
                     (${first}, ${last}, ${email}, ${selectedEvent.id}, ${companyProfile}, ${body.role || null},
                      ${companyLink}, NULL, ${whyJoin}, NULL, ${body.what_you_do || null}, ${socialLink},
-                     ${body.page_language || null}, ${whyJoin}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, NULL,
-                     'pending', NULL, '{}')
+                     ${body.page_language || null}, ${whyJoin}, ${selectedRevenue.label}, ${feeWillingnessValue}, ${feeAcknowledgedAt}, ${selectedEvent.name}, ${selectedEvent.slug}, ${ticketCount}, NULL,
+                     ${decision === 'declined' ? 'rejected' : 'pending'}, NULL, '{}')
                 RETURNING *`;
         }
         data = rows[0];
@@ -146,6 +162,26 @@ exports.handler = async (event) => {
     }
     if (!data) return json(409, { error: 'An application for this event has already been reviewed.' });
 
+    if (decision === 'declined') {
+        try {
+            const tmpl = declinedApplicationEmail({ firstName: first });
+            await sendEmail({ to: email, subject: tmpl.subject, html: tmpl.html, tracking: {
+                type: 'application_declined', applicationId: data.id, eventId: selectedEvent.id
+            } });
+        } catch (error) {
+            console.error('[submit-application] decline email failed:', error.message);
+        }
+    } else if (decision === 'pending') {
+        try {
+            const tmpl = applicationReceivedEmail({ firstName: first });
+            await sendEmail({ to: email, subject: tmpl.subject, html: tmpl.html, tracking: {
+                type: 'application_received', applicationId: data.id, eventId: selectedEvent.id
+            } });
+        } catch (error) {
+            console.error('[submit-application] application received email failed:', error.message);
+        }
+    }
+
     // Notify organisers (best-effort — never fail the submission on email trouble).
     try {
         const tmpl = notificationEmail({ app: data, adminUrl: ADMIN_URL });
@@ -154,5 +190,20 @@ exports.handler = async (event) => {
         console.error('[submit-application] notify email failed:', e);
     }
 
-    return json(200, { success: true, id: data.id, eventId: selectedEvent.id, ticketCount });
+    if (decision === 'approved') {
+        const acceptApplication = require('./accept-application');
+        const accepted = await acceptApplication.handler({
+            httpMethod: 'POST',
+            headers: { 'x-admin-token': process.env.ADMIN_TOKEN || '' },
+            body: JSON.stringify({ id: data.id })
+        });
+        const result = JSON.parse(accepted.body || '{}');
+        if (accepted.statusCode < 200 || accepted.statusCode >= 300) {
+            console.error('[submit-application] auto approval failed:', result.error || accepted.statusCode);
+            return json(202, { success: true, decision: 'pending', id: data.id, eventId: selectedEvent.id, ticketCount });
+        }
+        return json(200, { success: true, decision, id: data.id, eventId: selectedEvent.id, ticketCount, paymentUrl: result.paymentUrl, emailSent: result.emailSent });
+    }
+
+    return json(200, { success: true, decision, id: data.id, eventId: selectedEvent.id, ticketCount });
 };

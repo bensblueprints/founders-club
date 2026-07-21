@@ -53,7 +53,7 @@ function TicketCard({ order, attendee }) {
                 </div>
             </div>
             <div className="ticket-pending-actions">
-                {pending ? <Link className="button primary" href={`/payment?order=${order.id}`}>Proceed to Payment</Link> : <Link className="button ghost" href="/events">View events</Link>}
+                {pending ? <Link className="button primary" href={`/payment?order=${order.id}`}>Proceed to Payment</Link> : <>{order.event.slug && <Link className="button primary" href={`/events/${order.event.slug}/register`}>Request new tickets</Link>}<Link className="button ghost" href="/events">View events</Link></>}
             </div>
         </article>;
     }

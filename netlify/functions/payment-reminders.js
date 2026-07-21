@@ -87,14 +87,16 @@ exports.handler = async () => {
             ), released_attendance AS (
                 UPDATE event_attendance ea SET payment_status = 'expired'
                 FROM expired_order eo WHERE ea.application_id = eo.application_id RETURNING ea.id
-            ), locked_member AS (
-                UPDATE members m SET account_status = 'locked', payment_access_expires_at = NULL, updated_at = NOW()
+            ), released_member AS (
+                UPDATE members m SET account_status = 'active', payment_access_expires_at = NULL, updated_at = NOW()
                 FROM expired_order eo
                 WHERE m.id = eo.member_id
-                  AND eo.account_was_existing = false
                   AND NOT EXISTS (
-                      SELECT 1 FROM event_attendance paid
-                      WHERE paid.member_id = m.id AND paid.payment_status = 'paid'
+                      SELECT 1 FROM payment_orders active_order
+                      WHERE active_order.member_id = m.id
+                        AND active_order.id <> eo.id
+                        AND active_order.status IN ('pending', 'preparing')
+                        AND active_order.expires_at > NOW()
                   )
                 RETURNING m.id
             )

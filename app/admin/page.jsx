@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock3, Download, ExternalLink, Mail, Pencil, Plus, RefreshCw, Save, ScanLine, ShieldCheck, Ticket, Trash2, UserCheck, UsersRound, Utensils, X } from 'lucide-react';
+import { CalendarDays, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock3, Download, ExternalLink, LogIn, Mail, MessageCircle, MousePointerClick, Pencil, Plus, RefreshCw, Save, ScanLine, ShieldCheck, Ticket, Trash2, UserCheck, UsersRound, Utensils, X } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { callFunction, db, formatDate } from '@/lib/api';
 
@@ -53,8 +53,114 @@ function ApplicationReview({ app }) {
             <ReviewValue label="Application status" value={app.status}/><ReviewValue label="Payment status" value={app.order_status || app.payment_status}/>
             <ReviewValue label="Reservation expires" value={app.payment_expires_at ? new Date(app.payment_expires_at).toLocaleString() : null}/><ReviewValue label="Paid via" value={app.paid_provider}/>
             <ReviewValue label="Paid at" value={app.order_paid_at ? new Date(app.order_paid_at).toLocaleString() : null}/><ReviewValue label="Reviewed at" value={app.reviewed_at ? new Date(app.reviewed_at).toLocaleString() : null}/>
+            <ReviewValue label="Last login" value={app.last_login_at ? new Date(app.last_login_at).toLocaleString() : 'Never'}/><ReviewValue label="Login count" value={String(app.login_count || 0)}/>
+            <ReviewValue label="Latest email" value={app.latest_email_type?.replaceAll('_', ' ')}/><ReviewValue label="Email status" value={app.latest_email_status?.replaceAll('_', ' ')}/>
+            <ReviewValue label="Email opened" value={app.email_opened ? 'Yes' : 'No'}/><ReviewValue label="Payment link clicked" value={app.email_clicked ? 'Yes' : 'No'}/>
+            <ReviewValue label="Willing to pay event fee" value={app.fee_willingness == null ? 'Not applicable' : app.fee_willingness ? 'Yes - awaiting manual review' : 'No'}/>
         </dl></section>
     </div>;
+}
+
+function applicationStage(app) {
+    if (app.status === 'rejected') return 'declined';
+    if (app.order_status === 'paid' || app.payment_status === 'paid') return 'paid';
+    if (app.status === 'expired' || app.order_status === 'expired' || app.payment_status === 'expired') return 'expired';
+    if (app.status === 'pending') return 'pending';
+    if (app.status === 'approved' && Number(app.login_count || 0) > 0) return 'logged-in-unpaid';
+    if (app.status === 'approved' && app.email_clicked) return 'clicked-no-login';
+    if (app.status === 'approved') return 'approved-no-login';
+    return app.status || 'pending';
+}
+
+const STAGE_LABELS = {
+    declined: 'Auto declined', paid: 'Paid', pending: 'Pending review',
+    'approved-no-login': 'Approved - no login', 'clicked-no-login': 'Clicked - no login',
+    'logged-in-unpaid': 'Logged in - unpaid', expired: 'Reservation expired'
+};
+
+function whatsappUrl(app) {
+    const raw = String(app.social_link || '').match(/^WhatsApp:\s*(.+)$/i)?.[1] || '';
+    const number = raw.replace(/\D/g, '');
+    if (!number) return null;
+    const message = `Hi ${app.first_name || 'there'}, this is FoundersVN. Your application for ${app.event_name || app.event || 'our upcoming event'} was approved. We noticed your ticket payment is not complete yet. Would you like any help?`;
+    return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+function emailDeliveryState(app) {
+    const status = app.latest_email_status || '';
+    if (['delivered', 'opened', 'clicked'].includes(status)) return { tone:'success', label:status === 'clicked' ? 'Delivered and clicked' : status === 'opened' ? 'Delivered and opened' : 'Delivered successfully' };
+    if (app.latest_email_sync_error && !app.latest_email_error) return { tone:'warning', label:'Delivery status unavailable' };
+    if (['bounced', 'failed', 'complained', 'suppressed', 'canceled'].includes(status)) return { tone:'error', label:'Not delivered' };
+    if (status === 'delayed') return { tone:'warning', label:'Delivery delayed' };
+    if (['queued', 'sent'].includes(status)) return { tone:'warning', label:status === 'sent' ? 'Sent - awaiting delivery' : 'Queued for delivery' };
+    if (status === 'mock') return { tone:'mock', label:'Test email recorded' };
+    return { tone:'neutral', label:'No delivery record' };
+}
+
+function EmailDelivery({ app }) {
+    const state = emailDeliveryState(app);
+    const resendUrl = app.latest_email_provider_id ? `https://resend.com/emails/${encodeURIComponent(app.latest_email_provider_id)}` : null;
+    const statusTime = app.latest_email_event_at || app.latest_email_sent_at;
+    return <div className={`email-delivery-panel ${state.tone}`}>
+        <span className="email-delivery-icon"><Mail size={17}/></span>
+        <div><strong>{state.label}</strong><span>{app.latest_email_type ? app.latest_email_type.replaceAll('_', ' ') : 'Approval email'}{statusTime ? ` · last updated ${new Date(statusTime).toLocaleString()}` : ''}</span>{app.latest_email_error && <p>{app.latest_email_error}</p>}{app.latest_email_sync_error && <p>{app.latest_email_sync_error} The last known provider state was {app.latest_email_status || 'unknown'}.</p>}</div>
+        {resendUrl && <a href={resendUrl} target="_blank" rel="noreferrer">Open in Resend <ExternalLink size={13}/></a>}
+    </div>;
+}
+
+function EmailPreviewModal({ preview, sending, onClose, onConfirm }) {
+    useEffect(() => {
+        const closeOnEscape = event => { if (event.key === 'Escape' && !sending) onClose(); };
+        window.addEventListener('keydown', closeOnEscape);
+        return () => window.removeEventListener('keydown', closeOnEscape);
+    }, [sending, onClose]);
+    const label = ['accept', 'resend_approval'].includes(preview.action) ? 'approval and payment email' : 'payment reminder';
+    return <div className="modal-backdrop email-preview-backdrop" role="presentation">
+        <section className="email-preview-modal" role="dialog" aria-modal="true" aria-labelledby="email-preview-title">
+            <button className="modal-x" onClick={onClose} disabled={sending} aria-label="Close email preview"><X size={18}/></button>
+            <header><span className="eyebrow">Confirm before sending</span><h2 id="email-preview-title">Preview {label}</h2><p>Review the recipient, subject, and complete email below.</p></header>
+            <dl className="email-preview-details"><div><dt>To</dt><dd>{preview.email}</dd></div><div><dt>Subject</dt><dd>{preview.subject}</dd></div></dl>
+            <div className="email-preview-frame-wrap"><iframe title={`Email preview for ${preview.email}`} srcDoc={preview.html} sandbox=""/></div>
+            <footer><button className="button ghost" onClick={onClose} disabled={sending}>Cancel</button><button className="button primary" onClick={onConfirm} disabled={sending}><Mail size={16}/>{sending ? 'Sending…' : 'Confirm and send'}</button></footer>
+        </section>
+    </div>;
+}
+
+function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onReview }) {
+    const stage = applicationStage(app);
+    const whatsapp = whatsappUrl(app);
+    const unpaid = app.status === 'approved' && ['pending', 'preparing'].includes(app.order_status);
+    const busy = action => processingId === `${app.id}:${action}`;
+    return <article className={`application-row admin-application-card ${reviewing ? 'review-open' : ''}`}>
+        <div className="application-summary"><div>
+            <div className="application-status-line">
+                <span className={`status ${app.status}`}>{app.status}</span>
+                <span className={`status funnel-${stage}`}>{STAGE_LABELS[stage] || stage}</span>
+                {app.latest_email_status && <span className={`status email-${app.latest_email_status}`}>email {app.latest_email_status}</span>}
+            </div>
+            <h3>{app.first_name} {app.last_name}</h3>
+            <p>{app.role || 'Founder'} at {app.company || '—'} · {app.email}</p>
+            <p style={{marginTop:8}}>{app.what_you_do || app.why_join || 'No additional introduction.'}</p>
+            <div className="application-meta-grid">
+                <span><CalendarDays size={15}/>{app.event_name || app.event || app.event_interest || 'Event not assigned'}</span>
+                <span><Ticket size={15}/>{app.ticket_count || 1} ticket{Number(app.ticket_count || 1) === 1 ? '' : 's'}</span>
+                <span><span className="meta-dot"/>Revenue: {app.revenue || 'Not provided'}</span>
+                {app.fee_willingness != null && <span><span className="meta-dot"/>Entrance fee: {app.fee_willingness ? 'willing to pay' : 'not willing to pay'}</span>}
+                <span><LogIn size={15}/>{app.last_login_at ? `Last login ${new Date(app.last_login_at).toLocaleString()}` : 'Has not logged in'}</span>
+                <span><MousePointerClick size={15}/>{app.email_clicked ? 'Email button clicked' : 'Email button not clicked'}</span>
+                {app.payment_expires_at && <span><Clock3 size={15}/>Hold ends {new Date(app.payment_expires_at).toLocaleString()}</span>}
+            </div>
+            <EmailDelivery app={app}/>
+        </div><div className="application-actions">
+            {app.status === 'pending' && <button className="button primary small" disabled={busy('accept')} onClick={()=>onAccept(app.id)}>{busy('accept') ? 'Loading preview…' : app.has_existing_account ? 'Approve registration' : 'Approve & create account'}</button>}
+            {unpaid && <button className="button primary small" disabled={busy('resend_approval')} onClick={()=>onAction(app.id, 'resend_approval') }><Mail size={15}/>{busy('resend_approval') ? 'Loading preview…' : 'Resend approval'}</button>}
+            {unpaid && <button className="button ghost small" disabled={busy('send_reminder')} onClick={()=>onAction(app.id, 'send_reminder')}><Clock3 size={15}/>{busy('send_reminder') ? 'Loading preview…' : 'Send reminder'}</button>}
+            {unpaid && whatsapp && <a className="button ghost small" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15}/> WhatsApp</a>}
+            {app.payment_link && <a className="button ghost small" href={app.payment_link} target="_blank" rel="noreferrer">Payment page</a>}
+            <button className="button ghost small review-toggle" aria-expanded={reviewing} onClick={onReview}>{reviewing ? <ChevronUp size={16}/> : <ChevronDown size={16}/>} {reviewing ? 'Hide details' : 'Review all details'}</button>
+        </div></div>
+        {reviewing && <ApplicationReview app={app}/>}
+    </article>;
 }
 
 const MEAL_LABELS = { steak: 'Steak', shrimp: 'Shrimp', chicken: 'Chicken', vegan: 'Vegan' };
@@ -291,7 +397,7 @@ function EventManager({ events, reload, notify }) {
             <div className="field"><label htmlFor="event-status">Status</label><select id="event-status" value={editing.status} onChange={e=>update('status',e.target.value)}><option value="upcoming">Upcoming</option><option value="open">Open</option><option value="closed">Closed</option><option value="completed">Completed</option></select></div>
             <div className="field wide"><label htmlFor="event-description">Description</label><textarea id="event-description" rows="4" value={editing.description} onChange={e=>update('description',e.target.value)}/></div>
         </div><div className="event-editor-actions"><button className="button primary" disabled={saving}><Save size={16}/>{saving ? 'Saving…' : 'Save event'}</button><button type="button" className="button ghost" onClick={()=>setEditing(null)}>Cancel</button></div></form>}
-        <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{eventRows.map(event=><tr className="admin-event-row" key={event.id} tabIndex="0" role="link" aria-label={`Open ${event.name}`} onClick={()=>router.push(`/admin/events/${encodeURIComponent(event.id)}`)} onKeyDown={keyEvent=>{if(keyEvent.key==='Enter'||keyEvent.key===' '){keyEvent.preventDefault();router.push(`/admin/events/${encodeURIComponent(event.id)}`);}}}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/><span className="muted">{event.paid_seats || 0} paid</span></td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><Link className="admin-icon-button" aria-label={`View ${event.name}`} title="View event" href={`/admin/events/${encodeURIComponent(event.id)}`} onClick={clickEvent=>clickEvent.stopPropagation()}><ExternalLink size={16}/></Link><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={clickEvent=>{clickEvent.stopPropagation();beginEdit(event);}}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={clickEvent=>{clickEvent.stopPropagation();remove(event);}}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table>{events && !eventRows.length && <div className="empty">No events match these filters.</div>}</div>
+            <div className="panel table-wrap"><table className="data-table events-admin-table"><thead><tr><th>Event</th><th>Date & location</th><th>Venue</th><th>Pricing</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>{eventRows.map(event=>{const overflow=Math.max(0,Number(event.reserved_seats||0)-Number(event.max_attendees||0));return <tr className="admin-event-row" key={event.id} tabIndex="0" role="link" aria-label={`Open ${event.name}`} onClick={()=>router.push(`/admin/events/${encodeURIComponent(event.id)}`)} onKeyDown={keyEvent=>{if(keyEvent.key==='Enter'||keyEvent.key===' '){keyEvent.preventDefault();router.push(`/admin/events/${encodeURIComponent(event.id)}`);}}}><td><b>{event.name}</b><br/><span className="muted">/{event.slug}</span></td><td>{formatDate(event.event_date)} · {String(event.event_time || '').slice(0,5)}<br/><span className="muted">{event.location || '—'}</span></td><td>{event.venue_name || <span className="muted">—</span>}<br/><span className="muted">{event.venue_address || 'No address set'}</span></td><td>${Number(event.dinner_price || 0).toFixed(2)} dinner</td><td><b>{event.reserved_seats || 0} / {event.max_attendees}</b><br/>{overflow>0?<span className="capacity-overflow">{overflow} over capacity</span>:<span className="muted">{event.paid_seats || 0} paid</span>}</td><td><span className={`status ${event.status}`}>{event.status}</span></td><td><div className="row-actions"><Link className="admin-icon-button" aria-label={`View ${event.name}`} title="View event" href={`/admin/events/${encodeURIComponent(event.id)}`} onClick={clickEvent=>clickEvent.stopPropagation()}><ExternalLink size={16}/></Link><button className="admin-icon-button" aria-label={`Edit ${event.name}`} title="Edit event" onClick={clickEvent=>{clickEvent.stopPropagation();beginEdit(event);}}><Pencil size={16}/></button><button className="admin-icon-button danger" aria-label={`Delete ${event.name}`} title="Delete event" onClick={clickEvent=>{clickEvent.stopPropagation();remove(event);}}><Trash2 size={16}/></button></div></td></tr>})}</tbody></table>{events && !eventRows.length && <div className="empty">No events match these filters.</div>}</div>
     </div>;
 }
 
@@ -306,9 +412,11 @@ export default function AdminPage() {
     const [reviewingId, setReviewingId] = useState(null);
     const [selectedEventId, setSelectedEventId] = useState('');
     const [applicationEventFilter, setApplicationEventFilter] = useState('all');
-    const [applicationStatusFilter, setApplicationStatusFilter] = useState('pending');
+    const [applicationStatusFilter, setApplicationStatusFilter] = useState('all');
+    const [applicationStageFilter, setApplicationStageFilter] = useState('needs-follow-up');
     const [checkinRows, setCheckinRows] = useState(null);
     const [checkinLoading, setCheckinLoading] = useState(false);
+    const [emailPreview, setEmailPreview] = useState(null);
 
     useEffect(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
@@ -340,27 +448,79 @@ export default function AdminPage() {
         return rows.filter(app => {
             const eventMatches = applicationEventFilter === 'all' || app.event_id === applicationEventFilter;
             const statusMatches = applicationStatusFilter === 'all' || app.status === applicationStatusFilter;
-            return eventMatches && statusMatches;
+            const stage = applicationStage(app);
+            const stageMatches = applicationStageFilter === 'all'
+                || (applicationStageFilter === 'needs-follow-up' && ['pending', 'approved-no-login', 'clicked-no-login', 'logged-in-unpaid'].includes(stage))
+                || (applicationStageFilter === 'email-not-clicked' && app.status === 'approved' && app.order_status !== 'paid' && !app.email_clicked)
+                || stage === applicationStageFilter;
+            return eventMatches && statusMatches && stageMatches;
         });
-    }, [applications, applicationEventFilter, applicationStatusFilter]);
+    }, [applications, applicationEventFilter, applicationStatusFilter, applicationStageFilter]);
 
     const pendingApplicationCount = useMemo(() => (applications || []).filter(app => app.status === 'pending').length, [applications]);
+    const funnel = useMemo(() => {
+        const rows = applications || [];
+        const count = stage => rows.filter(app => applicationStage(app) === stage).length;
+        return {
+            declined: count('declined'), noLogin: count('approved-no-login'), clickedNoLogin: count('clicked-no-login'),
+            loggedUnpaid: count('logged-in-unpaid'), paid: count('paid'),
+            notClicked: rows.filter(app => app.status === 'approved' && app.order_status !== 'paid' && !app.email_clicked).length
+        };
+    }, [applications]);
+
+    function showApprovalResult(result, id) {
+        const email = result.member?.email || applications?.find(app => app.id === id)?.email || 'the applicant';
+        const message = result.alreadyAccepted
+            ? `This application already has a reservation${result.accountReused ? ' on the existing member account' : ''}.`
+            : result.accountReused
+                ? `Approved and reserved for 48 hours. The existing account and password for ${email} were kept.${result.emailSent || result.emailMock ? ' The payment notice was sent.' : ' The payment notice could not be sent; ask the member to sign in and pay from their account.'}`
+                : `Approved and reserved for 48 hours. Account created for ${email}.${result.emailMock ? ` Local email mock used; temporary password: ${result.tempPassword}` : result.emailSent ? ' Credentials and both payment options were emailed.' : ` Email failed - securely deliver this one-time password: ${result.tempPassword}`}`;
+        setNotice({type:'success', message});
+    }
 
     async function accept(id) {
         setNotice(null);
-        setProcessingId(id);
+        setProcessingId(`${id}:accept`);
         try {
-            const result = await callFunction('accept-application', { id });
-            const email = result.member?.email || applications?.find(app => app.id === id)?.email || 'the applicant';
-            const message = result.alreadyAccepted
-                ? `This application already has a reservation${result.accountReused ? ' on the existing member account' : ''}.`
-                : result.accountReused
-                    ? `Approved and reserved for 48 hours. The existing account and password for ${email} were kept.${result.emailSent || result.emailMock ? ' The payment notice was sent.' : ' The payment notice could not be sent; ask the member to sign in and pay from their account.'}`
-                    : `Approved and reserved for 48 hours. Account created for ${email}.${result.emailMock ? ` Local email mock used; temporary password: ${result.tempPassword}` : result.emailSent ? ' Credentials and both payment options were emailed.' : ` Email failed — securely deliver this one-time password: ${result.tempPassword}`}`;
-            setNotice({type:'success', message});
-            await load();
+            const result = await callFunction('accept-application', { id, preview:true });
+            setEmailPreview({ ...result, id, action:'accept' });
         } catch(e) { setNotice({type:'error', message:e.message}); }
         finally { setProcessingId(null); }
+    }
+
+    async function previewFollowUp(id, action) {
+        setNotice(null);
+        setProcessingId(`${id}:${action}`);
+        try {
+            const result = await callFunction('admin-application-action', { id, action, preview:true });
+            setEmailPreview({ ...result, id, action });
+        } catch (error) {
+            setNotice({ type:'error', message:error.message });
+        } finally {
+            setProcessingId(null);
+        }
+    }
+
+    async function sendFollowUp() {
+        if (!emailPreview) return;
+        const { id, action } = emailPreview;
+        setNotice(null);
+        setProcessingId(`${id}:${action}`);
+        try {
+            if (action === 'accept') {
+                const result = await callFunction('accept-application', { id });
+                showApprovalResult(result, id);
+            } else {
+                const result = await callFunction('admin-application-action', { id, action });
+                setNotice({ type:'success', message: action === 'resend_approval' ? `Approval and payment email sent to ${result.email}.` : `Payment reminder sent to ${result.email}.` });
+            }
+            setEmailPreview(null);
+            await load();
+        } catch (error) {
+            setNotice({ type:'error', message:error.message });
+        } finally {
+            setProcessingId(null);
+        }
     }
 
     if (!ready) return <div className="loading">Checking admin access…</div>;
@@ -370,10 +530,26 @@ export default function AdminPage() {
         <aside className="side-nav"><button className={tab==='applications'?'active':''} onClick={()=>setTab('applications')}><CheckCircle2 size={17}/> Applications</button><button className={tab==='checkin'?'active':''} onClick={()=>setTab('checkin')}><ClipboardCheck size={17}/> Event check-in</button><button className={tab==='members'?'active':''} onClick={()=>setTab('members')}><UsersRound size={17}/> Members</button><button className={tab==='events'?'active':''} onClick={()=>setTab('events')}><CalendarDays size={17}/> Events</button></aside>
         <div><div className="toolbar"><div><h2>{tab === 'checkin' ? 'Event check-in' : tab[0].toUpperCase()+tab.slice(1)}</h2><p className="muted">{tab === 'applications' ? `${pendingApplicationCount} applications pending review${applicationStatusFilter === 'all' ? ` · ${filteredApplications.length} shown` : ''}` : tab === 'checkin' ? 'Paid attendees, tickets, meals, and event-day exports' : tab === 'members' ? `${members?.length || 0} member profiles` : `${events?.length || 0} events`}</p></div><button className="button ghost small" onClick={()=>{load(); if(tab === 'checkin') loadCheckin();}}><RefreshCw size={15}/> Refresh</button></div>
             {notice && <div className={`form-status ${notice.type}`} style={{marginBottom:16}}>{notice.message}</div>}
-            {tab==='applications' && <><div className="panel application-filters"><div className="field"><label htmlFor="application-event-filter">Event</label><select id="application-event-filter" value={applicationEventFilter} onChange={e=>setApplicationEventFilter(e.target.value)}><option value="all">All events</option>{events?.map(event=><option key={event.id} value={event.id}>{event.name} · {formatDate(event.event_date)}</option>)}</select></div><div className="field"><label htmlFor="application-status-filter">Application status</label><select id="application-status-filter" value={applicationStatusFilter} onChange={e=>setApplicationStatusFilter(e.target.value)}><option value="pending">Pending review only</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="expired">Expired</option><option value="all">All statuses</option></select></div><p className="muted">{applications === null ? 'Loading filters…' : `${filteredApplications.length} of ${applications.length} applications shown.`}</p></div><div className="application-list">{applications === null ? <div className="loading">Loading applications…</div> : filteredApplications.map(app => <article className={`application-row admin-application-card ${reviewingId === app.id ? 'review-open' : ''}`} key={app.id}><div className="application-summary"><div><div className="application-status-line"><span className={`status ${app.status}`}>{app.status}</span><span className={`status ${app.order_status || app.payment_status || 'pending'}`}>{app.order_status || app.payment_status || 'not approved'}</span>{app.has_existing_account && <span className="status existing-account">existing account</span>}</div><h3>{app.first_name} {app.last_name}</h3><p>{app.role || 'Founder'} at {app.company || '—'} · {app.email}</p><p style={{marginTop:8}}>{app.what_you_do || app.why_join || 'No additional introduction.'}</p><div className="application-meta-grid"><span><CalendarDays size={15}/>{app.event_name || app.event || app.event_interest || 'Event not assigned'}</span><span><Ticket size={15}/>{app.ticket_count || 1} ticket{Number(app.ticket_count || 1) === 1 ? '' : 's'}{app.guest_name ? ` · ${app.guest_name}` : ''}</span>{app.payment_expires_at && <span><Clock3 size={15}/>Hold ends {new Date(app.payment_expires_at).toLocaleString()}</span>}{app.paid_provider && <span><CheckCircle2 size={15}/>Paid via {app.paid_provider}</span>}</div></div><div className="application-actions">{app.status==='pending' && <button className="button primary small" disabled={processingId===app.id} onClick={()=>accept(app.id)}>{processingId===app.id ? 'Reserving…' : app.has_existing_account ? 'Approve registration' : 'Approve & create account'}</button>}{app.payment_link && <a className="button ghost small" href={app.payment_link} target="_blank" rel="noreferrer">Payment page</a>}<button className="button ghost small review-toggle" aria-expanded={reviewingId === app.id} onClick={()=>setReviewingId(reviewingId === app.id ? null : app.id)}>{reviewingId === app.id ? <ChevronUp size={16}/> : <ChevronDown size={16}/>} {reviewingId === app.id ? 'Hide details' : 'Review all details'}</button></div></div>{reviewingId === app.id && <ApplicationReview app={app}/>}</article>)}{applications && !filteredApplications.length && <div className="empty">{applications.length ? 'No applications match these filters.' : 'No applications yet.'}</div>}</div></>}
+            {tab==='applications' && <>
+                <div className="application-funnel">
+                    <button className={applicationStageFilter==='approved-no-login'?'active':''} onClick={()=>setApplicationStageFilter('approved-no-login')}><span>Approved - no login</span><strong>{funnel.noLogin}</strong></button>
+                    <button className={applicationStageFilter==='clicked-no-login'?'active':''} onClick={()=>setApplicationStageFilter('clicked-no-login')}><span>Email clicked - no login</span><strong>{funnel.clickedNoLogin}</strong></button>
+                    <button className={applicationStageFilter==='logged-in-unpaid'?'active':''} onClick={()=>setApplicationStageFilter('logged-in-unpaid')}><span>Logged in - unpaid</span><strong>{funnel.loggedUnpaid}</strong></button>
+                    <button className={applicationStageFilter==='email-not-clicked'?'active':''} onClick={()=>setApplicationStageFilter('email-not-clicked')}><span>Email not clicked</span><strong>{funnel.notClicked}</strong></button>
+                    <button className={applicationStageFilter==='paid'?'active':''} onClick={()=>setApplicationStageFilter('paid')}><span>Paid</span><strong>{funnel.paid}</strong></button>
+                    <button className={applicationStageFilter==='declined'?'active':''} onClick={()=>setApplicationStageFilter('declined')}><span>Auto declined</span><strong>{funnel.declined}</strong></button>
+                </div>
+                <div className="panel application-filters application-tracking-filters">
+                    <div className="field"><label htmlFor="application-event-filter">Event</label><select id="application-event-filter" value={applicationEventFilter} onChange={e=>setApplicationEventFilter(e.target.value)}><option value="all">All events</option>{events?.map(event=><option key={event.id} value={event.id}>{event.name} · {formatDate(event.event_date)}</option>)}</select></div>
+                    <div className="field"><label htmlFor="application-stage-filter">Follow-up stage</label><select id="application-stage-filter" value={applicationStageFilter} onChange={e=>setApplicationStageFilter(e.target.value)}><option value="needs-follow-up">Needs follow-up</option><option value="approved-no-login">Approved - no login</option><option value="clicked-no-login">Email clicked - no login</option><option value="logged-in-unpaid">Logged in - unpaid</option><option value="email-not-clicked">Email not clicked</option><option value="paid">Paid</option><option value="declined">Auto declined</option><option value="pending">Pending review</option><option value="all">All stages</option></select></div>
+                    <div className="field"><label htmlFor="application-status-filter">Application status</label><select id="application-status-filter" value={applicationStatusFilter} onChange={e=>setApplicationStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="expired">Expired</option></select></div>
+                    <p className="muted">{applications === null ? 'Loading filters…' : `${filteredApplications.length} of ${applications.length} applications shown.`}</p>
+                </div>
+                <div className="application-list">{applications === null ? <div className="loading">Loading applications…</div> : filteredApplications.map(app => <ApplicationCard key={app.id} app={app} reviewing={reviewingId === app.id} processingId={processingId} onAccept={accept} onAction={previewFollowUp} onReview={()=>setReviewingId(reviewingId === app.id ? null : app.id)}/>)}{applications && !filteredApplications.length && <div className="empty">{applications.length ? 'No applications match these filters.' : 'No applications yet.'}</div>}</div>
+            </>}
             {tab==='members' && <div className="panel table-wrap"><table className="data-table"><thead><tr><th>Member</th><th>Company</th><th>Industry</th><th>Status</th></tr></thead><tbody>{members?.map(m=><tr key={m.id}><td><b>{m.first_name} {m.last_name}</b><br/><span className="muted">{m.email}</span></td><td>{m.role}<br/><span className="muted">{m.company}</span></td><td>{m.industry || '—'}</td><td><span className={`status ${m.is_approved?'approved':'pending'}`}>{m.is_approved?'approved':'pending'}</span></td></tr>)}</tbody></table></div>}
             {tab==='events' && <EventManager events={events} reload={load} notify={(type,message)=>setNotice({type,message})}/>}
             {tab==='checkin' && <CheckinView events={events} selectedEventId={selectedEventId} setSelectedEventId={setSelectedEventId} registrations={checkinRows} loading={checkinLoading} refresh={()=>loadCheckin(selectedEventId)} notice={(message,type='error')=>setNotice({type, message})}/>} 
         </div>
-    </div></section></>;
+    </div></section>{emailPreview && <EmailPreviewModal preview={emailPreview} sending={processingId === `${emailPreview.id}:${emailPreview.action}`} onClose={()=>setEmailPreview(null)} onConfirm={sendFollowUp}/>}</>;
 }

@@ -13,6 +13,7 @@
 
 const { sql, isConfigured } = require('./lib/neon');
 const { checkPassword, signToken, publicUser } = require('./lib/auth');
+const { expireOverdueReservations } = require('./lib/expire-reservations');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -56,6 +57,7 @@ exports.handler = async (event) => {
 
     let row;
     try {
+        await expireOverdueReservations(sql);
         const rows = await sql`
             SELECT * FROM members WHERE LOWER(email) = ${email} LIMIT 1`;
         row = rows[0];
@@ -76,6 +78,17 @@ exports.handler = async (event) => {
     const ok = await checkPassword(password, row.password_hash);
     if (!ok) {
         return json(401, GENERIC_401);
+    }
+
+    try {
+        const updated = await sql`
+            UPDATE members
+            SET last_login_at = NOW(), login_count = COALESCE(login_count, 0) + 1, updated_at = NOW()
+            WHERE id = ${row.id}
+            RETURNING *`;
+        row = updated[0] || { ...row, last_login_at: new Date().toISOString(), login_count: Number(row.login_count || 0) + 1 };
+    } catch (error) {
+        console.error('[auth-login] tracking update failed:', error.message);
     }
 
     const user = publicUser(row);

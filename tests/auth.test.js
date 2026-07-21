@@ -189,7 +189,9 @@ async function test(name, fn) {
         assert.strictEqual(claims.sub, 'm-100');
         assert.strictEqual(claims.is_admin, true);
         // email lookup was lower-cased and bound as a parameter
-        assert.deepStrictEqual(calls[0].values, ['admin@advancedmarketing.co']);
+        const lookupCall = calls.find(call => Array.from(call.strings).join(' ').includes('SELECT * FROM members WHERE LOWER(email)'));
+        assert.deepStrictEqual(lookupCall.values, ['admin@advancedmarketing.co']);
+        assert.ok(calls.some(call => Array.from(call.strings).join(' ').includes('login_count = COALESCE(login_count, 0) + 1')), 'successful login is tracked');
     });
 
     await test('auth-login wrong password -> generic 401', async () => {

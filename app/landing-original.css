@@ -235,7 +235,8 @@
 .landing-original .legacy-apply .form-status.success { color: var(--bone); background: rgba(138,154,91,.14); border: 1px solid rgba(138,154,91,.5); }
 .landing-original .legacy-apply .form-status.error { color: var(--bone); background: rgba(231,100,74,.1); border: 1px solid rgba(231,100,74,.45); }
 
-.landing-original .application-exit-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; background: rgba(3,12,9,.82); backdrop-filter: blur(7px); }
+.landing-original .application-exit-backdrop,
+.landing-original.application-exit-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; background: rgba(3,12,9,.82); backdrop-filter: blur(7px); }
 .landing-original section.application-exit-modal { position: relative; width: min(440px,100%); padding: 28px; color: var(--bone); background: var(--pine-raise); border: 1px solid rgba(169,187,182,.24); border-radius: 8px; box-shadow: 0 28px 70px rgba(0,0,0,.5); }
 .landing-original .application-exit-kicker { margin: 0 46px 8px 0; color: var(--moss); font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .landing-original .application-exit-modal h2 { max-width: none; margin: 0 46px 9px 0; font-size: 1.65rem; line-height: 1.18; letter-spacing: 0; }
@@ -250,6 +251,9 @@
 .landing-original .application-exit-options button:hover::before { border-color: var(--coral); box-shadow: inset 0 0 0 3px var(--pine-raise),inset 0 0 0 8px var(--coral); }
 .landing-original .application-exit-continue { width: 100%; min-height: 43px; margin-top: 16px; padding: 10px 14px; color: var(--bone); background: transparent; border: 1px solid rgba(169,187,182,.3); border-radius: 8px; cursor: pointer; font-weight: 650; }
 .landing-original .application-exit-continue:hover { border-color: var(--mist); background: rgba(169,187,182,.06); }
+.landing-original .fee-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 22px; }
+.landing-original .fee-confirm-actions .button { min-height: 46px; padding: 10px 13px; border-radius: 8px; font-size: .83rem; }
+.landing-original .fee-confirm-actions .button.ghost { color: var(--bone); background: transparent; border-color: rgba(169,187,182,.3); }
 .landing-original .application-exit-modal.is-complete { padding: 30px 28px; }
 .landing-original .application-exit-modal.is-complete h2 { margin-right: 36px; font-size: 1.35rem; }
 .landing-original .application-exit-success { margin-bottom: 14px; color: var(--lime); }

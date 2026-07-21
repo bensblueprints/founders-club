@@ -25,6 +25,8 @@ const { config: sepayConfig, qrUrl: sepayQrUrl } = require('./lib/sepay');
 const { createPaymentIntent, isConfigured: airwallexConfigured } = require('./lib/airwallex');
 const { paymentProviderEnabled, paymentEnvironment } = require('./lib/payment-environment');
 const { MEAL_CREDIT_VND, normalizeMealOrder } = require('../../lib/meal-menu.cjs');
+const { syncResendStatuses } = require('./lib/resend-status');
+const { expireOverdueReservations } = require('./lib/expire-reservations');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -98,7 +100,9 @@ function publicPaymentOrder(order) {
     }
     const sepay = sepayConfig();
     return {
-        id: order.id, status: order.status, providerEnvironment: order.provider_environment,
+        id: order.id,
+        status: ['pending', 'preparing'].includes(order.status) && new Date(order.expires_at).getTime() <= Date.now() ? 'expired' : order.status,
+        providerEnvironment: order.provider_environment,
         ticketCount: Number(order.ticket_count), guestName: order.guest_name,
         baseAmountUsd: Number(order.base_amount_usd), airwallexFeeUsd: Number(order.airwallex_fee_usd),
         airwallexTotalUsd: Number(order.airwallex_total_usd), airwallexUrl,
@@ -119,7 +123,7 @@ function publicPaymentOrder(order) {
             submittedAt:order.meal_submitted_at || null,
             updatedAt:order.meal_updated_at || null
         } : null,
-        event: { id: order.event_id, name: order.event_name, date: order.event_date,
+        event: { id: order.event_id, slug: order.event_slug, name: order.event_name, date: order.event_date,
             time: order.event_time, location: order.event_location,
             venueName: order.event_venue_name, venueAddress: order.event_venue_address }
     };
@@ -284,32 +288,73 @@ const handlers = {
 
     // Admin-gated.
     async 'applications.list'({ status } = {}) {
+        await expireOverdueReservations(sql);
         if (status) {
-            return await sql`
+            const rows = await sql`
                 SELECT a.*, e.name AS event_name, e.max_attendees,
                        po.id AS payment_order_id, po.status AS order_status,
                        po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
                        po.paid_provider, po.paid_at AS order_paid_at,
                        m.id AS existing_member_id, m.account_status AS existing_account_status,
-                       (m.id IS NOT NULL) AS has_existing_account
+                       m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
+                       (m.id IS NOT NULL) AS has_existing_account,
+                       latest_email.email_type AS latest_email_type,
+                       latest_email.provider_email_id AS latest_email_provider_id,
+                       latest_email.status AS latest_email_status,
+                       latest_email.sent_at AS latest_email_sent_at,
+                       latest_email.event_at AS latest_email_event_at,
+                       latest_email.error AS latest_email_error,
+                       COALESCE(email_activity.email_opened, false) AS email_opened,
+                       COALESCE(email_activity.email_clicked, false) AS email_clicked
                 FROM applications a
                 LEFT JOIN events e ON e.id = a.event_id
                 LEFT JOIN payment_orders po ON po.application_id = a.id
                 LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+                LEFT JOIN LATERAL (
+                    SELECT ed.provider_email_id, ed.email_type, ed.status, ed.sent_at, ed.event_at, ed.error
+                    FROM email_deliveries ed WHERE ed.application_id = a.id
+                    ORDER BY ed.updated_at DESC LIMIT 1
+                ) latest_email ON true
+                LEFT JOIN LATERAL (
+                    SELECT BOOL_OR(ed.status IN ('opened', 'clicked')) AS email_opened,
+                           BOOL_OR(ed.status = 'clicked') AS email_clicked
+                    FROM email_deliveries ed WHERE ed.application_id = a.id
+                ) email_activity ON true
                 WHERE a.status = ${status} ORDER BY a.created_at DESC`;
+            return await syncResendStatuses(rows, { sql });
         }
-        return await sql`
+        const rows = await sql`
             SELECT a.*, e.name AS event_name, e.max_attendees,
                    po.id AS payment_order_id, po.status AS order_status,
                    po.ticket_count AS reserved_ticket_count, po.expires_at AS payment_expires_at,
                    po.paid_provider, po.paid_at AS order_paid_at,
                    m.id AS existing_member_id, m.account_status AS existing_account_status,
-                   (m.id IS NOT NULL) AS has_existing_account
+                   m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
+                   (m.id IS NOT NULL) AS has_existing_account,
+                   latest_email.email_type AS latest_email_type,
+                   latest_email.provider_email_id AS latest_email_provider_id,
+                   latest_email.status AS latest_email_status,
+                   latest_email.sent_at AS latest_email_sent_at,
+                   latest_email.event_at AS latest_email_event_at,
+                   latest_email.error AS latest_email_error,
+                   COALESCE(email_activity.email_opened, false) AS email_opened,
+                   COALESCE(email_activity.email_clicked, false) AS email_clicked
             FROM applications a
             LEFT JOIN events e ON e.id = a.event_id
             LEFT JOIN payment_orders po ON po.application_id = a.id
             LEFT JOIN members m ON LOWER(m.email) = LOWER(a.email)
+            LEFT JOIN LATERAL (
+                SELECT ed.provider_email_id, ed.email_type, ed.status, ed.sent_at, ed.event_at, ed.error
+                FROM email_deliveries ed WHERE ed.application_id = a.id
+                ORDER BY ed.updated_at DESC LIMIT 1
+            ) latest_email ON true
+            LEFT JOIN LATERAL (
+                SELECT BOOL_OR(ed.status IN ('opened', 'clicked')) AS email_opened,
+                       BOOL_OR(ed.status = 'clicked') AS email_clicked
+                FROM email_deliveries ed WHERE ed.application_id = a.id
+            ) email_activity ON true
             ORDER BY a.created_at DESC`;
+        return await syncResendStatuses(rows, { sql });
     },
 
     async 'applications.get'({ id, email } = {}) {
@@ -349,6 +394,7 @@ const handlers = {
     async 'eventRegistration.status'({ slug }, ctx) {
         if (!ctx.memberId) throw new Error('Not authenticated');
         if (!slug) throw new Error('Missing event');
+        await expireOverdueReservations(sql, ctx.memberId);
         const eventRows = await sql`
             SELECT e.*, m.email
             FROM events e CROSS JOIN members m
@@ -568,9 +614,10 @@ const handlers = {
 
     // ---------- PAYMENT STATUS ----------
     async 'payments.current'({ orderId } = {}, ctx) {
+        await expireOverdueReservations(sql, ctx.memberId);
         const rows = orderId
             ? await sql`
-                SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                SELECT po.*, a.payment_link, a.guest_name, e.slug AS event_slug, e.name AS event_name,
                        e.event_date, e.event_time, e.location AS event_location,
                        e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
                 FROM payment_orders po
@@ -578,7 +625,7 @@ const handlers = {
                 JOIN events e ON e.id = po.event_id
                 WHERE po.id = ${orderId} AND po.member_id = ${ctx.memberId} LIMIT 1`
             : await sql`
-                SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+                SELECT po.*, a.payment_link, a.guest_name, e.slug AS event_slug, e.name AS event_name,
                        e.event_date, e.event_time, e.location AS event_location,
                        e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
                 FROM payment_orders po
@@ -590,8 +637,9 @@ const handlers = {
     },
 
     async 'payments.list'(_payload, ctx) {
+        await expireOverdueReservations(sql, ctx.memberId);
         const rows = await sql`
-            SELECT po.*, a.payment_link, a.guest_name, e.name AS event_name,
+            SELECT po.*, a.payment_link, a.guest_name, e.slug AS event_slug, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
                    e.venue_name AS event_venue_name, e.venue_address AS event_venue_address,
                    ea.meal_order, ea.meal_subtotal_vnd, ea.meal_vat_vnd,

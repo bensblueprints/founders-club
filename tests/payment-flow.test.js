@@ -116,7 +116,7 @@ test('Airwallex capability check does not reject Vietnamese accounts locally', (
     assert.ok(source.includes('/api/v1/pa/payment_links?page_num=0&page_size=1'));
 });
 
-test('approval email uses the V1 bilingual seat-held template', () => {
+test('approval email clearly asks the applicant to pay within 48 hours', () => {
     const email = approvedWithLoginEmail({
         firstName: 'Jane',
         email: 'jane@example.com',
@@ -135,12 +135,13 @@ test('approval email uses the V1 bilingual seat-held template', () => {
             price: '$150.00 USD for 1 ticket'
         }
     });
-    assert.match(email.subject, /Your FoundersVN seat is reserved, Jane/);
-    assert.match(email.subject, /Bạn đã đặt chỗ thành công tại FoundersVN, Jane/);
+    assert.match(email.subject, /You're approved for FoundersVN - please pay within 48 hours, Jane/);
+    assert.match(email.subject, /Bạn đã được duyệt - vui lòng thanh toán trong 48 giờ, Jane/);
     assert.ok(email.html.includes('(Tiếng Việt bên dưới)'));
     assert.ok(email.html.includes('We have reserved a seat for you for the next 48 hours.'));
     assert.ok(email.html.includes('FoundersVN đã giữ riêng một chỗ cho bạn trong 48 giờ.'));
-    assert.ok(email.html.includes('Bạn đã đặt chỗ thành công tại FoundersVN'));
+    assert.ok(email.html.includes("You're approved - please complete payment"));
+    assert.ok(email.html.includes('Bạn đã được duyệt - vui lòng thanh toán'));
     assert.ok(email.html.includes('Custom Test Venue'));
     assert.ok(email.html.includes('123 Editable Event Street, Da Nang'));
     assert.ok(!email.html.includes('Lô 1C - 01 Võ Nguyên Giáp'));

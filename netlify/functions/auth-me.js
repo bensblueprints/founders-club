@@ -11,6 +11,7 @@
 
 const { sql, isConfigured } = require('./lib/neon');
 const { verifyToken, getBearerToken, publicUser } = require('./lib/auth');
+const { expireOverdueReservations } = require('./lib/expire-reservations');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -41,6 +42,7 @@ exports.handler = async (event) => {
     }
 
     try {
+        await expireOverdueReservations(sql, payload.sub);
         const rows = await sql`SELECT * FROM members WHERE id = ${payload.sub} LIMIT 1`;
         const row = rows[0];
         if (!row) {
