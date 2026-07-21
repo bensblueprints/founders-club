@@ -2,6 +2,7 @@
 // Mirrors the Resend send pattern in send-welcome-email.js (FROM_EMAIL + RESEND_API_KEY env).
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const ENGAGEMENT_TRACKING_ENABLED = process.env.RESEND_CLICK_TRACKING_ENABLED === 'true';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'FoundersVN <support@foundersvn.com>';
 const { sql, isConfigured } = require('./neon');
 const { FOUNDERSVN_LOGO_BASE64 } = require('./email-assets');
@@ -98,10 +99,11 @@ async function recordDelivery({ providerEmailId = null, to, subject, tracking = 
     try {
         await sql`INSERT INTO email_deliveries
             (provider_email_id, member_id, application_id, event_id, recipient, subject,
-             email_type, status, error, metadata)
+             email_type, status, error, metadata, engagement_tracking_enabled)
           VALUES (${providerEmailId}, ${tracking.memberId || null}, ${tracking.applicationId || null},
             ${tracking.eventId || null}, ${recipient}, ${subject}, ${tracking.type || 'transactional'},
-            ${status}, ${error}, ${JSON.stringify({ mock, ...(tracking.metadata || {}) })}::jsonb)
+            ${status}, ${error}, ${JSON.stringify({ mock, ...(tracking.metadata || {}) })}::jsonb,
+            ${ENGAGEMENT_TRACKING_ENABLED})
           ON CONFLICT (provider_email_id) DO UPDATE SET
             member_id = COALESCE(email_deliveries.member_id, EXCLUDED.member_id),
             application_id = COALESCE(email_deliveries.application_id, EXCLUDED.application_id),
@@ -122,6 +124,8 @@ async function recordDelivery({ providerEmailId = null, to, subject, tracking = 
                 ELSE EXCLUDED.error
             END,
             metadata = email_deliveries.metadata || EXCLUDED.metadata,
+            engagement_tracking_enabled = email_deliveries.engagement_tracking_enabled
+                OR EXCLUDED.engagement_tracking_enabled,
             updated_at = NOW()`;
     } catch (recordError) {
         console.error('[emailer] could not record delivery:', recordError.message);

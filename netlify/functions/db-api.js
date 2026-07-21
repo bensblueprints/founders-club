@@ -297,6 +297,7 @@ const handlers = {
                        po.paid_provider, po.paid_at AS order_paid_at,
                        m.id AS existing_member_id, m.account_status AS existing_account_status,
                        m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
+                       m.login_tracking_started_at,
                        (m.id IS NOT NULL) AS has_existing_account,
                        latest_email.email_type AS latest_email_type,
                        latest_email.provider_email_id AS latest_email_provider_id,
@@ -305,7 +306,8 @@ const handlers = {
                        latest_email.event_at AS latest_email_event_at,
                        latest_email.error AS latest_email_error,
                        COALESCE(email_activity.email_opened, false) AS email_opened,
-                       COALESCE(email_activity.email_clicked, false) AS email_clicked
+                       COALESCE(email_activity.email_clicked, false) AS email_clicked,
+                       COALESCE(email_activity.email_tracking_available, false) AS email_tracking_available
                 FROM applications a
                 LEFT JOIN events e ON e.id = a.event_id
                 LEFT JOIN payment_orders po ON po.application_id = a.id
@@ -316,8 +318,17 @@ const handlers = {
                     ORDER BY ed.updated_at DESC LIMIT 1
                 ) latest_email ON true
                 LEFT JOIN LATERAL (
-                    SELECT BOOL_OR(ed.status IN ('opened', 'clicked')) AS email_opened,
-                           BOOL_OR(ed.status = 'clicked') AS email_clicked
+                    SELECT BOOL_OR(ed.status IN ('opened', 'clicked') OR EXISTS (
+                               SELECT 1 FROM email_webhook_events ewe
+                               WHERE ewe.provider_email_id = ed.provider_email_id
+                                 AND ewe.event_type IN ('email.opened', 'email.clicked')
+                           )) AS email_opened,
+                           BOOL_OR(ed.status = 'clicked' OR EXISTS (
+                               SELECT 1 FROM email_webhook_events ewe
+                               WHERE ewe.provider_email_id = ed.provider_email_id
+                                 AND ewe.event_type = 'email.clicked'
+                           )) AS email_clicked,
+                           BOOL_OR(ed.engagement_tracking_enabled) AS email_tracking_available
                     FROM email_deliveries ed WHERE ed.application_id = a.id
                 ) email_activity ON true
                 WHERE a.status = ${status} ORDER BY a.created_at DESC`;
@@ -330,6 +341,7 @@ const handlers = {
                    po.paid_provider, po.paid_at AS order_paid_at,
                    m.id AS existing_member_id, m.account_status AS existing_account_status,
                    m.last_login_at, COALESCE(m.login_count, 0)::int AS login_count,
+                   m.login_tracking_started_at,
                    (m.id IS NOT NULL) AS has_existing_account,
                    latest_email.email_type AS latest_email_type,
                    latest_email.provider_email_id AS latest_email_provider_id,
@@ -338,7 +350,8 @@ const handlers = {
                    latest_email.event_at AS latest_email_event_at,
                    latest_email.error AS latest_email_error,
                    COALESCE(email_activity.email_opened, false) AS email_opened,
-                   COALESCE(email_activity.email_clicked, false) AS email_clicked
+                   COALESCE(email_activity.email_clicked, false) AS email_clicked,
+                   COALESCE(email_activity.email_tracking_available, false) AS email_tracking_available
             FROM applications a
             LEFT JOIN events e ON e.id = a.event_id
             LEFT JOIN payment_orders po ON po.application_id = a.id
@@ -349,8 +362,17 @@ const handlers = {
                 ORDER BY ed.updated_at DESC LIMIT 1
             ) latest_email ON true
             LEFT JOIN LATERAL (
-                SELECT BOOL_OR(ed.status IN ('opened', 'clicked')) AS email_opened,
-                       BOOL_OR(ed.status = 'clicked') AS email_clicked
+                SELECT BOOL_OR(ed.status IN ('opened', 'clicked') OR EXISTS (
+                           SELECT 1 FROM email_webhook_events ewe
+                           WHERE ewe.provider_email_id = ed.provider_email_id
+                             AND ewe.event_type IN ('email.opened', 'email.clicked')
+                       )) AS email_opened,
+                       BOOL_OR(ed.status = 'clicked' OR EXISTS (
+                           SELECT 1 FROM email_webhook_events ewe
+                           WHERE ewe.provider_email_id = ed.provider_email_id
+                             AND ewe.event_type = 'email.clicked'
+                       )) AS email_clicked,
+                       BOOL_OR(ed.engagement_tracking_enabled) AS email_tracking_available
                 FROM email_deliveries ed WHERE ed.application_id = a.id
             ) email_activity ON true
             ORDER BY a.created_at DESC`;

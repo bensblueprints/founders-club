@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import { CalendarDays, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock3, Download, ExternalLink, LogIn, Mail, MessageCircle, MousePointerClick, Pencil, Plus, RefreshCw, Save, ScanLine, ShieldCheck, Ticket, Trash2, UserCheck, UsersRound, Utensils, X } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { callFunction, db, formatDate } from '@/lib/api';
+import trackingModel from '@/lib/application-tracking.cjs';
+
+const { loginActivity, emailClickActivity } = trackingModel;
 
 const REVIEW_SECTIONS = [
     {
@@ -44,6 +47,8 @@ function ReviewValue({ label, value }) {
 }
 
 function ApplicationReview({ app }) {
+    const login = loginActivity(app);
+    const emailClick = emailClickActivity(app);
     return <div className="application-review">
         <div className={`account-path ${app.has_existing_account ? 'existing' : 'new'}`}>
             <UserCheck size={20}/><div><b>{app.has_existing_account ? 'Existing member account will be reused' : 'A new member account will be created'}</b><span>{app.has_existing_account ? `Approval keeps the current password and sends only the 48-hour payment notice. Account status: ${app.existing_account_status || 'active'}.` : 'Approval creates one account, emails temporary credentials, and reserves the requested seats for 48 hours.'}</span></div>
@@ -53,9 +58,9 @@ function ApplicationReview({ app }) {
             <ReviewValue label="Application status" value={app.status}/><ReviewValue label="Payment status" value={app.order_status || app.payment_status}/>
             <ReviewValue label="Reservation expires" value={app.payment_expires_at ? new Date(app.payment_expires_at).toLocaleString() : null}/><ReviewValue label="Paid via" value={app.paid_provider}/>
             <ReviewValue label="Paid at" value={app.order_paid_at ? new Date(app.order_paid_at).toLocaleString() : null}/><ReviewValue label="Reviewed at" value={app.reviewed_at ? new Date(app.reviewed_at).toLocaleString() : null}/>
-            <ReviewValue label="Last login" value={app.last_login_at ? new Date(app.last_login_at).toLocaleString() : 'Never'}/><ReviewValue label="Login count" value={String(app.login_count || 0)}/>
+            <ReviewValue label="Login activity" value={login.label}/><ReviewValue label="Tracked login count" value={String(app.login_count || 0)}/>
             <ReviewValue label="Latest email" value={app.latest_email_type?.replaceAll('_', ' ')}/><ReviewValue label="Email status" value={app.latest_email_status?.replaceAll('_', ' ')}/>
-            <ReviewValue label="Email opened" value={app.email_opened ? 'Yes' : 'No'}/><ReviewValue label="Payment link clicked" value={app.email_clicked ? 'Yes' : 'No'}/>
+            <ReviewValue label="Email link activity" value={emailClick.label}/><ReviewValue label="Click measurement" value={app.email_tracking_available ? 'Enabled for at least one email' : 'Unavailable for emails sent before tracking'}/>
             <ReviewValue label="Willing to pay event fee" value={app.fee_willingness == null ? 'Not applicable' : app.fee_willingness ? 'Yes - awaiting manual review' : 'No'}/>
         </dl></section>
     </div>;
@@ -128,6 +133,8 @@ function EmailPreviewModal({ preview, sending, onClose, onConfirm }) {
 
 function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onReview }) {
     const stage = applicationStage(app);
+    const login = loginActivity(app);
+    const emailClick = emailClickActivity(app);
     const whatsapp = whatsappUrl(app);
     const unpaid = app.status === 'approved' && ['pending', 'preparing'].includes(app.order_status);
     const busy = action => processingId === `${app.id}:${action}`;
@@ -146,8 +153,8 @@ function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onR
                 <span><Ticket size={15}/>{app.ticket_count || 1} ticket{Number(app.ticket_count || 1) === 1 ? '' : 's'}</span>
                 <span><span className="meta-dot"/>Revenue: {app.revenue || 'Not provided'}</span>
                 {app.fee_willingness != null && <span><span className="meta-dot"/>Entrance fee: {app.fee_willingness ? 'willing to pay' : 'not willing to pay'}</span>}
-                <span><LogIn size={15}/>{app.last_login_at ? `Last login ${new Date(app.last_login_at).toLocaleString()}` : 'Has not logged in'}</span>
-                <span><MousePointerClick size={15}/>{app.email_clicked ? 'Email button clicked' : 'Email button not clicked'}</span>
+                <span className={`tracking-${login.state}`}><LogIn size={15}/>{login.label}</span>
+                <span className={`tracking-${emailClick.state}`}><MousePointerClick size={15}/>{emailClick.label}</span>
                 {app.payment_expires_at && <span><Clock3 size={15}/>Hold ends {new Date(app.payment_expires_at).toLocaleString()}</span>}
             </div>
             <EmailDelivery app={app}/>
@@ -451,7 +458,7 @@ export default function AdminPage() {
             const stage = applicationStage(app);
             const stageMatches = applicationStageFilter === 'all'
                 || (applicationStageFilter === 'needs-follow-up' && ['pending', 'approved-no-login', 'clicked-no-login', 'logged-in-unpaid'].includes(stage))
-                || (applicationStageFilter === 'email-not-clicked' && app.status === 'approved' && app.order_status !== 'paid' && !app.email_clicked)
+                || (applicationStageFilter === 'email-not-clicked' && app.status === 'approved' && app.order_status !== 'paid' && app.email_tracking_available && !app.email_clicked)
                 || stage === applicationStageFilter;
             return eventMatches && statusMatches && stageMatches;
         });
@@ -464,7 +471,7 @@ export default function AdminPage() {
         return {
             declined: count('declined'), noLogin: count('approved-no-login'), clickedNoLogin: count('clicked-no-login'),
             loggedUnpaid: count('logged-in-unpaid'), paid: count('paid'),
-            notClicked: rows.filter(app => app.status === 'approved' && app.order_status !== 'paid' && !app.email_clicked).length
+            notClicked: rows.filter(app => app.status === 'approved' && app.order_status !== 'paid' && app.email_tracking_available && !app.email_clicked).length
         };
     }, [applications]);
 
@@ -535,13 +542,13 @@ export default function AdminPage() {
                     <button className={applicationStageFilter==='approved-no-login'?'active':''} onClick={()=>setApplicationStageFilter('approved-no-login')}><span>Approved - no login</span><strong>{funnel.noLogin}</strong></button>
                     <button className={applicationStageFilter==='clicked-no-login'?'active':''} onClick={()=>setApplicationStageFilter('clicked-no-login')}><span>Email clicked - no login</span><strong>{funnel.clickedNoLogin}</strong></button>
                     <button className={applicationStageFilter==='logged-in-unpaid'?'active':''} onClick={()=>setApplicationStageFilter('logged-in-unpaid')}><span>Logged in - unpaid</span><strong>{funnel.loggedUnpaid}</strong></button>
-                    <button className={applicationStageFilter==='email-not-clicked'?'active':''} onClick={()=>setApplicationStageFilter('email-not-clicked')}><span>Email not clicked</span><strong>{funnel.notClicked}</strong></button>
+                    <button className={applicationStageFilter==='email-not-clicked'?'active':''} onClick={()=>setApplicationStageFilter('email-not-clicked')}><span>No tracked email click</span><strong>{funnel.notClicked}</strong></button>
                     <button className={applicationStageFilter==='paid'?'active':''} onClick={()=>setApplicationStageFilter('paid')}><span>Paid</span><strong>{funnel.paid}</strong></button>
                     <button className={applicationStageFilter==='declined'?'active':''} onClick={()=>setApplicationStageFilter('declined')}><span>Auto declined</span><strong>{funnel.declined}</strong></button>
                 </div>
                 <div className="panel application-filters application-tracking-filters">
                     <div className="field"><label htmlFor="application-event-filter">Event</label><select id="application-event-filter" value={applicationEventFilter} onChange={e=>setApplicationEventFilter(e.target.value)}><option value="all">All events</option>{events?.map(event=><option key={event.id} value={event.id}>{event.name} · {formatDate(event.event_date)}</option>)}</select></div>
-                    <div className="field"><label htmlFor="application-stage-filter">Follow-up stage</label><select id="application-stage-filter" value={applicationStageFilter} onChange={e=>setApplicationStageFilter(e.target.value)}><option value="needs-follow-up">Needs follow-up</option><option value="approved-no-login">Approved - no login</option><option value="clicked-no-login">Email clicked - no login</option><option value="logged-in-unpaid">Logged in - unpaid</option><option value="email-not-clicked">Email not clicked</option><option value="paid">Paid</option><option value="declined">Auto declined</option><option value="pending">Pending review</option><option value="all">All stages</option></select></div>
+                    <div className="field"><label htmlFor="application-stage-filter">Follow-up stage</label><select id="application-stage-filter" value={applicationStageFilter} onChange={e=>setApplicationStageFilter(e.target.value)}><option value="needs-follow-up">Needs follow-up</option><option value="approved-no-login">Approved - no login recorded</option><option value="clicked-no-login">Email clicked - no login</option><option value="logged-in-unpaid">Logged in - unpaid</option><option value="email-not-clicked">No tracked email click</option><option value="paid">Paid</option><option value="declined">Auto declined</option><option value="pending">Pending review</option><option value="all">All stages</option></select></div>
                     <div className="field"><label htmlFor="application-status-filter">Application status</label><select id="application-status-filter" value={applicationStatusFilter} onChange={e=>setApplicationStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="expired">Expired</option></select></div>
                     <p className="muted">{applications === null ? 'Loading filters…' : `${filteredApplications.length} of ${applications.length} applications shown.`}</p>
                 </div>

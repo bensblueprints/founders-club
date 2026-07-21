@@ -39,9 +39,11 @@ exports.handler = async event => {
         ON CONFLICT (svix_id) DO NOTHING RETURNING svix_id
       )
       INSERT INTO email_deliveries
-        (provider_email_id, recipient, subject, email_type, status, event_at, error, metadata)
+        (provider_email_id, recipient, subject, email_type, status, event_at, error, metadata,
+         engagement_tracking_enabled)
       SELECT ${emailId}, ${recipient}, ${subject}, 'resend_webhook', ${status}, ${eventAt}, ${error},
-             ${JSON.stringify({ webhookEvent: payload.type })}::jsonb
+             ${JSON.stringify({ webhookEvent: payload.type })}::jsonb,
+             ${['email.opened', 'email.clicked'].includes(payload.type)}
       FROM recorded
       ON CONFLICT (provider_email_id) DO UPDATE SET
         status = CASE
@@ -54,6 +56,8 @@ exports.handler = async event => {
             OR EXCLUDED.event_at >= email_deliveries.event_at
           THEN EXCLUDED.error ELSE email_deliveries.error END,
         metadata = email_deliveries.metadata || EXCLUDED.metadata,
+        engagement_tracking_enabled = email_deliveries.engagement_tracking_enabled
+          OR EXCLUDED.engagement_tracking_enabled,
         updated_at = NOW()`;
     return { statusCode: 200, body: 'ok' };
 };

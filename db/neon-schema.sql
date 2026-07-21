@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS members (
     payment_access_expires_at TIMESTAMP WITH TIME ZONE,
     last_login_at TIMESTAMP WITH TIME ZONE,
     login_count INTEGER NOT NULL DEFAULT 0,
+    login_tracking_started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -285,6 +286,7 @@ CREATE TABLE IF NOT EXISTS email_deliveries (
     event_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     error TEXT,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    engagement_tracking_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
@@ -294,6 +296,9 @@ CREATE TABLE IF NOT EXISTS email_webhook_events (
     event_type TEXT NOT NULL,
     received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_email_webhook_events_provider_type
+    ON email_webhook_events(provider_email_id, event_type, received_at DESC);
 
 -- ========================================
 -- TRANSACTIONS (payment attempts/records)

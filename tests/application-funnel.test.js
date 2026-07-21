@@ -8,6 +8,7 @@ const authPath = path.join(fnDir, 'lib', 'auth.js');
 const emailerPath = path.join(fnDir, 'lib', 'emailer.js');
 const sepayPath = path.join(fnDir, 'lib', 'sepay.js');
 const revenueModel = require('../lib/application-revenue.cjs');
+const trackingModel = require('../lib/application-tracking.cjs');
 const resendWebhook = require('../netlify/functions/resend-webhook');
 const { normalizeResendStatus, resendFailureReason, reconcileWebhookStatuses, syncResendStatuses } = require('../netlify/functions/lib/resend-status');
 const { expireOverdueReservations } = require('../netlify/functions/lib/expire-reservations');
@@ -59,6 +60,16 @@ async function test(name, fn) {
 }
 
 (async () => {
+    await test('tracking labels distinguish evidence from unavailable historical telemetry', async () => {
+        assert.strictEqual(trackingModel.loginActivity({ order_status:'paid' }).state, 'confirmed');
+        assert.match(trackingModel.loginActivity({ order_status:'paid' }).label, /confirmed by payment/i);
+        assert.strictEqual(trackingModel.emailClickActivity({ order_status:'paid' }).state, 'not-relevant');
+        assert.strictEqual(trackingModel.emailClickActivity({ email_tracking_available:false }).state, 'unavailable');
+        assert.strictEqual(trackingModel.emailClickActivity({ email_tracking_available:true }).state, 'not-recorded');
+        assert.strictEqual(trackingModel.emailClickActivity({ email_clicked:true }).state, 'tracked');
+        assert.strictEqual(trackingModel.loginActivity({ login_tracking_started_at:'2026-07-21T00:00:00Z' }).state, 'not-recorded');
+    });
+
     await test('under-$100,000 revenue follows the entrance-fee answer', async () => {
         assert.strictEqual(revenueModel.revenueDecision('under-100k', 'no'), 'declined');
         assert.strictEqual(revenueModel.revenueDecision('under-100k', 'yes'), 'pending');
