@@ -47,8 +47,6 @@ const FORM_COPY = {
         privacy: 'Your information is only used to review your application and contact you about FoundersVN.',
         approved: 'You’re approved. Check your email to sign in and complete payment within 48 hours.',
         approvedTitle: 'You’re approved',
-        unpaidLabel: 'Unpaid - payment required',
-        unpaidBody: 'Your place is reserved for 48 hours. Complete payment using the secure link in your approval email.',
         approvedClose: 'Got it - check my email',
         declined: 'Thank you for your interest. Because you selected that you are not willing to pay the event entrance fee, this application will not proceed.',
         pending: 'Application received. We’ll review it and email you with the next step.',
@@ -94,8 +92,6 @@ const FORM_COPY = {
         privacy: 'Thông tin chỉ được dùng để xét duyệt hồ sơ và liên hệ với bạn về FoundersVN.',
         approved: 'Bạn đã được duyệt. Vui lòng kiểm tra email để đăng nhập và hoàn tất thanh toán trong 48 giờ.',
         approvedTitle: 'Bạn đã được duyệt',
-        unpaidLabel: 'Chưa thanh toán - cần thanh toán',
-        unpaidBody: 'Chỗ của bạn được giữ trong 48 giờ. Hãy thanh toán bằng liên kết bảo mật trong email phê duyệt.',
         approvedClose: 'Đã hiểu - kiểm tra email',
         declined: 'Cảm ơn bạn đã quan tâm. Vì bạn chọn chưa sẵn sàng thanh toán phí tham dự, hồ sơ này sẽ không được tiếp tục xét duyệt.',
         pending: 'Đã nhận đăng ký. Đội ngũ FoundersVN sẽ xem xét và email bước tiếp theo cho bạn.',
@@ -284,7 +280,6 @@ export default function ApplicationForm({ initialEvent = 'danang-jul-2026' }) {
                 <p className="application-exit-kicker">FoundersVN</p>
                 <h2 id="approval-result-title">{copy.approvedTitle}</h2>
                 <p id="approval-result-body">{copy.approved}</p>
-                <div className="approval-unpaid-card"><strong>{copy.unpaidLabel}</strong><span>{copy.unpaidBody}</span></div>
                 <button className="button primary approval-result-close" type="button" onClick={() => setShowApprovalModal(false)}>{copy.approvedClose}</button>
             </section>
         </div>, document.body)}
