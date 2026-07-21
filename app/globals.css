@@ -480,6 +480,15 @@ main { flex: 1; }
 .status.funnel-declined { color: #a9b2af; background: rgba(169,178,175,.1); }
 .application-meta-grid .meta-dot { width: 7px; height: 7px; flex: 0 0 auto; padding: 0; border-radius: 50%; background: var(--orange); }
 .admin-application-card .application-actions { justify-content: flex-start; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.button.danger { color: #ff9b87; border-color: rgba(255,107,74,.38); background: rgba(255,107,74,.08); }
+.button.danger:hover { color: #fff1ed; border-color: rgba(255,107,74,.65); background: rgba(255,107,74,.18); }
+.application-delete-modal { position: relative; width: min(560px,100%); overflow: hidden; color: var(--ink); background: #101413; border: 1px solid rgba(255,107,74,.34); border-radius: 20px; box-shadow: 0 30px 90px rgba(0,0,0,.6); }
+.application-delete-modal > header { padding: 26px 70px 20px 26px; border-bottom: 1px solid var(--line); }
+.application-delete-modal h2 { margin: 5px 0 10px; font: 650 1.65rem/1.15 var(--font-display); }
+.application-delete-modal header p, .application-delete-warning p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.55; }
+.application-delete-modal header p b, .application-delete-warning b { color: var(--ink); }
+.application-delete-warning { display: grid; gap: 12px; padding: 22px 26px; }
+.application-delete-modal > footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--line); }
 .email-delivery-panel { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 11px; align-items: start; margin-top: 15px; padding: 12px 13px; color: var(--muted); background: rgba(255,255,255,.022); border: 1px solid var(--line); border-radius: 12px; }
 .email-delivery-icon { width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted); background: rgba(255,255,255,.04); border-radius: 9px; }
 .email-delivery-panel > div { min-width: 0; display: grid; gap: 3px; }

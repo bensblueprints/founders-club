@@ -245,6 +245,25 @@ async function test(name, fn) {
         assert.strictEqual(JSON.parse(res.body).data.length, 1);
     });
 
+    await test('applications.delete is admin-only and removes application-owned records without deleting the member', async () => {
+        assert.ok(api._ADMIN_ACTIONS.has('applications.delete'));
+        let res = await invoke(api, { action:'applications.delete', payload:{ id:'app-1' } });
+        assert.strictEqual(res.statusCode, 401);
+        assert.strictEqual(calls.length, 0);
+
+        nextRows = [{ id:'app-1', email:'test@example.com', payment_orders_removed:1, attendance_removed:1, emails_removed:2 }];
+        res = await invoke(api, { action:'applications.delete', payload:{ id:'app-1' }, headers:{ 'x-admin-token':'secret-token' } });
+        assert.strictEqual(res.statusCode, 200, res.body);
+        const sqlText = calls[0].strings.join(' ');
+        assert.match(sqlText, /DELETE FROM applications/i);
+        assert.match(sqlText, /DELETE FROM payment_events/i);
+        assert.match(sqlText, /DELETE FROM event_attendance/i);
+        assert.match(sqlText, /DELETE FROM email_deliveries/i);
+        assert.match(sqlText, /DELETE FROM email_webhook_events/i);
+        assert.ok(!/DELETE FROM members/i.test(sqlText));
+        assert.strictEqual(JSON.parse(res.body).data.member_account_preserved, true);
+    });
+
     await test('attendance.adminCheckinList is admin-only and returns paid event tickets', async () => {
         let res = await invoke(api, { action: 'attendance.adminCheckinList', payload: { eventId: 'event-1' } });
         assert.strictEqual(res.statusCode, 401);

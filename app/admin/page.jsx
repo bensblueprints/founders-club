@@ -131,7 +131,23 @@ function EmailPreviewModal({ preview, sending, onClose, onConfirm }) {
     </div>;
 }
 
-function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onReview }) {
+function DeleteApplicationModal({ app, deleting, onClose, onConfirm }) {
+    const paid = app.order_status === 'paid' || app.payment_status === 'paid';
+    return <div className="modal-backdrop" role="presentation">
+        <section className="application-delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-application-title">
+            <button className="modal-x" onClick={onClose} disabled={deleting} aria-label="Close delete confirmation"><X size={18}/></button>
+            <header><span className="eyebrow">Permanent database action</span><h2 id="delete-application-title">Delete this application?</h2><p><b>{app.first_name} {app.last_name}</b><br/>{app.email}</p></header>
+            <div className="application-delete-warning">
+                <p>This removes the application, its reservation and payment order, attendance ticket and saved meal, related payment events, and tracked email records.</p>
+                {paid && <p><b>This application is paid.</b> Its ticket and event attendance record will also be permanently removed.</p>}
+                <p>The member account is preserved and can be used for another application.</p>
+            </div>
+            <footer><button className="button ghost" onClick={onClose} disabled={deleting}>Cancel</button><button className="button danger" onClick={onConfirm} disabled={deleting}><Trash2 size={16}/>{deleting ? 'Deleting...' : 'Delete permanently'}</button></footer>
+        </section>
+    </div>;
+}
+
+function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onReview, onDelete }) {
     const stage = applicationStage(app);
     const login = loginActivity(app);
     const emailClick = emailClickActivity(app);
@@ -165,6 +181,7 @@ function ApplicationCard({ app, reviewing, processingId, onAccept, onAction, onR
             {unpaid && whatsapp && <a className="button ghost small" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15}/> WhatsApp</a>}
             {app.payment_link && <a className="button ghost small" href={app.payment_link} target="_blank" rel="noreferrer">Payment page</a>}
             <button className="button ghost small review-toggle" aria-expanded={reviewing} onClick={onReview}>{reviewing ? <ChevronUp size={16}/> : <ChevronDown size={16}/>} {reviewing ? 'Hide details' : 'Review all details'}</button>
+            <button className="button danger small" onClick={()=>onDelete(app)}><Trash2 size={15}/> Delete</button>
         </div></div>
         {reviewing && <ApplicationReview app={app}/>}
     </article>;
@@ -424,6 +441,8 @@ export default function AdminPage() {
     const [checkinRows, setCheckinRows] = useState(null);
     const [checkinLoading, setCheckinLoading] = useState(false);
     const [emailPreview, setEmailPreview] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deletingApplication, setDeletingApplication] = useState(false);
 
     useEffect(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
@@ -530,6 +549,23 @@ export default function AdminPage() {
         }
     }
 
+    async function deleteApplication() {
+        if (!deleteTarget) return;
+        setDeletingApplication(true);
+        setNotice(null);
+        try {
+            const result = await db('applications.delete', { id:deleteTarget.id });
+            setDeleteTarget(null);
+            setReviewingId(current => current === result.id ? null : current);
+            setNotice({ type:'success', message:`Application for ${result.email} was permanently deleted. The member account was preserved.` });
+            await load();
+        } catch (error) {
+            setNotice({ type:'error', message:error.message });
+        } finally {
+            setDeletingApplication(false);
+        }
+    }
+
     if (!ready) return <div className="loading">Checking admin access…</div>;
     if (!user?.is_admin) return <section className="auth-page"><div className="auth-card center"><ShieldCheck style={{color:'var(--lime)'}} size={40}/><h1>Admin access required.</h1><p className="muted">Sign in with an administrator account to review applications.</p><Link className="button primary" href="/login?next=/admin">Admin sign in</Link></div></section>;
 
@@ -552,11 +588,11 @@ export default function AdminPage() {
                     <div className="field"><label htmlFor="application-status-filter">Application status</label><select id="application-status-filter" value={applicationStatusFilter} onChange={e=>setApplicationStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="expired">Expired</option></select></div>
                     <p className="muted">{applications === null ? 'Loading filters…' : `${filteredApplications.length} of ${applications.length} applications shown.`}</p>
                 </div>
-                <div className="application-list">{applications === null ? <div className="loading">Loading applications…</div> : filteredApplications.map(app => <ApplicationCard key={app.id} app={app} reviewing={reviewingId === app.id} processingId={processingId} onAccept={accept} onAction={previewFollowUp} onReview={()=>setReviewingId(reviewingId === app.id ? null : app.id)}/>)}{applications && !filteredApplications.length && <div className="empty">{applications.length ? 'No applications match these filters.' : 'No applications yet.'}</div>}</div>
+                <div className="application-list">{applications === null ? <div className="loading">Loading applications…</div> : filteredApplications.map(app => <ApplicationCard key={app.id} app={app} reviewing={reviewingId === app.id} processingId={processingId} onAccept={accept} onAction={previewFollowUp} onReview={()=>setReviewingId(reviewingId === app.id ? null : app.id)} onDelete={setDeleteTarget}/>)}{applications && !filteredApplications.length && <div className="empty">{applications.length ? 'No applications match these filters.' : 'No applications yet.'}</div>}</div>
             </>}
             {tab==='members' && <div className="panel table-wrap"><table className="data-table"><thead><tr><th>Member</th><th>Company</th><th>Industry</th><th>Status</th></tr></thead><tbody>{members?.map(m=><tr key={m.id}><td><b>{m.first_name} {m.last_name}</b><br/><span className="muted">{m.email}</span></td><td>{m.role}<br/><span className="muted">{m.company}</span></td><td>{m.industry || '—'}</td><td><span className={`status ${m.is_approved?'approved':'pending'}`}>{m.is_approved?'approved':'pending'}</span></td></tr>)}</tbody></table></div>}
             {tab==='events' && <EventManager events={events} reload={load} notify={(type,message)=>setNotice({type,message})}/>}
             {tab==='checkin' && <CheckinView events={events} selectedEventId={selectedEventId} setSelectedEventId={setSelectedEventId} registrations={checkinRows} loading={checkinLoading} refresh={()=>loadCheckin(selectedEventId)} notice={(message,type='error')=>setNotice({type, message})}/>} 
         </div>
-    </div></section>{emailPreview && <EmailPreviewModal preview={emailPreview} sending={processingId === `${emailPreview.id}:${emailPreview.action}`} onClose={()=>setEmailPreview(null)} onConfirm={sendFollowUp}/>}</>;
+    </div></section>{emailPreview && <EmailPreviewModal preview={emailPreview} sending={processingId === `${emailPreview.id}:${emailPreview.action}`} onClose={()=>setEmailPreview(null)} onConfirm={sendFollowUp}/>} {deleteTarget && <DeleteApplicationModal app={deleteTarget} deleting={deletingApplication} onClose={()=>setDeleteTarget(null)} onConfirm={deleteApplication}/>}</>;
 }

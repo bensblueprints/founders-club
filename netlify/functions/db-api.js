@@ -45,6 +45,7 @@ const ADMIN_ACTIONS = new Set([
     'members.create',
     'applications.list',
     'applications.get',
+    'applications.delete',
     'events.create',
     'events.update',
     'events.delete',
@@ -397,6 +398,61 @@ const handlers = {
             return rows[0] || null;
         }
         return null;
+    },
+
+    async 'applications.delete'({ id } = {}) {
+        if (!id) throw new Error('Missing application');
+        const rows = await sql`WITH
+            target_application AS MATERIALIZED (
+                SELECT id, email FROM applications WHERE id = ${id}
+            ),
+            target_orders AS MATERIALIZED (
+                SELECT id FROM payment_orders
+                WHERE application_id IN (SELECT id FROM target_application)
+            ),
+            target_emails AS MATERIALIZED (
+                SELECT provider_email_id FROM email_deliveries
+                WHERE application_id IN (SELECT id FROM target_application)
+                  AND provider_email_id IS NOT NULL
+            ),
+            deleted_payment_events AS (
+                DELETE FROM payment_events
+                WHERE payment_order_id IN (SELECT id FROM target_orders)
+                RETURNING id
+            ),
+            deleted_webhook_events AS (
+                DELETE FROM email_webhook_events
+                WHERE provider_email_id IN (SELECT provider_email_id FROM target_emails)
+                RETURNING svix_id
+            ),
+            deleted_emails AS (
+                DELETE FROM email_deliveries
+                WHERE application_id IN (SELECT id FROM target_application)
+                RETURNING id
+            ),
+            deleted_attendance AS (
+                DELETE FROM event_attendance
+                WHERE application_id IN (SELECT id FROM target_application)
+                RETURNING id
+            ),
+            deleted_application AS (
+                DELETE FROM applications
+                WHERE id IN (SELECT id FROM target_application)
+                  AND (SELECT COUNT(*) FROM deleted_payment_events) >= 0
+                  AND (SELECT COUNT(*) FROM deleted_webhook_events) >= 0
+                  AND (SELECT COUNT(*) FROM deleted_emails) >= 0
+                  AND (SELECT COUNT(*) FROM deleted_attendance) >= 0
+                RETURNING id, email
+            )
+            SELECT da.id, da.email,
+                (SELECT COUNT(*)::int FROM target_orders) AS payment_orders_removed,
+                (SELECT COUNT(*)::int FROM deleted_payment_events) AS payment_events_removed,
+                (SELECT COUNT(*)::int FROM deleted_attendance) AS attendance_removed,
+                (SELECT COUNT(*)::int FROM deleted_emails) AS emails_removed,
+                (SELECT COUNT(*)::int FROM deleted_webhook_events) AS email_events_removed
+            FROM deleted_application da`;
+        if (!rows[0]) throw new Error('Application not found');
+        return { ...rows[0], member_account_preserved: true };
     },
 
     // ---------- EVENTS ----------
