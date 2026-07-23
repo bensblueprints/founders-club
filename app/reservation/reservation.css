@@ -19,6 +19,10 @@
 .quick-hero-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,490px); gap: 60px; align-items: center; }
 .quick-intro h1 { max-width: 9ch; margin: 18px 0 24px; font: 800 clamp(3rem,6vw,5rem)/1.02 var(--font-display); letter-spacing: -.055em; text-shadow: 0 5px 30px rgba(0,0,0,.42); }
 .quick-lead { max-width: 55ch; margin: 0; color: var(--quick-mist); font-size: 1.08rem; line-height: 1.65; }
+.quick-test-banner { display: flex; gap: 12px; align-items: center; max-width: 520px; margin: 22px 0 0; padding: 14px 16px; color: #f2c94c; background: rgba(242,201,76,.1); border: 1px solid rgba(242,201,76,.38); border-radius: 11px; }
+.quick-test-banner strong,.quick-test-banner span { display: block; }
+.quick-test-banner strong { font: 700 .8rem var(--font-display); letter-spacing: .02em; }
+.quick-test-banner span { margin-top: 3px; color: var(--quick-bone); font-size: .72rem; }
 .quick-eyebrow { margin: 0; color: var(--quick-moss); font-size: .73rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .quick-event-facts { max-width: 650px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 32px; overflow: hidden; background: rgba(4,18,13,.55); border: 1px solid var(--quick-line); border-radius: 14px; backdrop-filter: blur(16px); }
 .quick-event-facts > div { min-height: 88px; display: flex; gap: 13px; align-items: flex-start; padding: 17px; border-top: 1px solid var(--quick-line); }
@@ -39,6 +43,8 @@
 .quick-form input:focus,.quick-form select:focus { border-color: var(--quick-moss); box-shadow: 0 0 0 3px rgba(138,154,91,.11); }
 .quick-form input::placeholder { color: rgba(169,187,182,.46); }
 .quick-field-wide { grid-column: 1/-1; }
+.quick-test-order { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 13px 14px; color: var(--quick-mist); background: rgba(242,201,76,.07); border: 1px solid rgba(242,201,76,.28); border-radius: 9px; font-size: .72rem; }
+.quick-test-order strong { color: #f2c94c; text-align: right; }
 .quick-methods { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; padding: 0; border: 0; }
 .quick-methods legend { grid-column: 1/-1; margin-bottom: 7px; font-size: .76rem; font-weight: 750; }
 .quick-methods > label { position: relative; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; min-height: 70px; padding: 12px; color: var(--quick-mist); background: rgba(242,240,232,.035); border: 1px solid var(--quick-line); border-radius: 11px; cursor: pointer; }

@@ -113,6 +113,7 @@ Site → Settings → Environment variables:
 | `AIRWALLEX_WEBHOOK_SECRET` | webhook verification | Secret from the webhook configuration; signature is HMAC-SHA256 over `x-timestamp + raw_body`. |
 | `AIRWALLEX_WEBHOOK_URL` | local webhook testing | Set automatically by `npm run stack:dev:public`; paste this URL into the Airwallex dashboard while the tunnel is running. |
 | `DATA_ENCRYPTION_KEY` | sensitive fields | Required in production. Generate with `openssl rand -base64 32`; Airwallex URLs are AES-256-GCM encrypted at the application layer. |
+| `QUICK_RESERVATION_TEST_SECRET` | private 5,000 VND production test | Generate with `openssl rand -hex 32`. Used to sign short-lived test checkout links; never place the raw secret in a URL. |
 | `SEPAY_BANK` | SePay QR | Current sandbox or production bank short code. |
 | `SEPAY_ACCOUNT_NUMBER` | SePay QR/webhook | Receiving account; incoming webhooks must match it. |
 | `SEPAY_USD_TO_VND_RATE` | SePay pricing | Fixed rate captured when the reservation is approved. Default `26000`; set this deliberately in production. |

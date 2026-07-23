@@ -9,6 +9,11 @@ const {
     isMockPayments,
     paymentProviderEnabled
 } = require('./lib/payment-environment');
+const {
+    TEST_EVENT_SLUG,
+    TEST_AMOUNT_VND,
+    verifyTestToken
+} = require('./lib/production-test-checkout');
 
 const CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -46,6 +51,20 @@ function validEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function checkoutAmounts({ dinnerPrice, ticketCount, testMode, conversionRate }) {
+    const rate = Number(conversionRate || 26000);
+    const baseAmountUsd = testMode
+        ? roundMoney(TEST_AMOUNT_VND / rate)
+        : roundMoney(Number(dinnerPrice || 150) * Number(ticketCount || 1));
+    const airwallexFeeUsd = testMode ? 0 : roundMoney(baseAmountUsd * 0.05);
+    return {
+        baseAmountUsd,
+        airwallexFeeUsd,
+        airwallexTotalUsd: roundMoney(baseAmountUsd + airwallexFeeUsd),
+        sepayAmountVnd: testMode ? TEST_AMOUNT_VND : Math.round(baseAmountUsd * rate)
+    };
+}
+
 function requestFailure(error) {
     const message = String(error?.message || '');
     const local = process.env.NODE_ENV !== 'production';
@@ -74,6 +93,7 @@ function publicEvent(row) {
 
 function publicOrder(row, accessToken, credentials = null) {
     const sepay = sepayConfig();
+    const testMode = row.event_slug === TEST_EVENT_SLUG;
     return {
         id: row.id,
         status: row.status,
@@ -93,9 +113,10 @@ function publicOrder(row, accessToken, credentials = null) {
         email: row.email,
         fullName: `${row.first_name || ''} ${row.last_name === '-' ? '' : row.last_name || ''}`.trim(),
         event: publicEvent(row),
+        testMode,
         providers: {
             sepay: paymentProviderEnabled('sepay') && Boolean(sepay.account),
-            airwallex: paymentProviderEnabled('airwallex') && airwallexConfigured()
+            airwallex: !testMode && paymentProviderEnabled('airwallex') && airwallexConfigured()
         },
         mockPayments: isMockPayments(),
         accessToken,
@@ -122,11 +143,14 @@ async function authorizedOrder(orderId, accessToken) {
 }
 
 async function createReservation(body) {
+    const requestedTestMode = Boolean(body.testToken);
+    const testMode = requestedTestMode && verifyTestToken(body.testToken);
+    if (requestedTestMode && !testMode) return json(404, { error: 'This production test link is invalid or has expired.' });
     const fullName = String(body.fullName || '').trim();
     const email = normalizeEmail(body.email);
     const phone = String(body.phone || '').trim();
-    const ticketCount = Number(body.ticketCount || 1);
-    const eventSlug = String(body.eventSlug || DEFAULT_EVENT_SLUG).trim();
+    const ticketCount = testMode ? 1 : Number(body.ticketCount || 1);
+    const eventSlug = testMode ? TEST_EVENT_SLUG : String(body.eventSlug || DEFAULT_EVENT_SLUG).trim();
     const { firstName, lastName } = splitName(fullName);
 
     if (fullName.length < 2) return json(400, { error: 'Enter your full name.' });
@@ -134,13 +158,19 @@ async function createReservation(body) {
     if (phone.length < 6 || phone.length > 50) return json(400, { error: 'Enter a valid phone, WhatsApp, or Zalo number.' });
     if (![1, 2].includes(ticketCount)) return json(400, { error: 'Ticket quantity must be 1 or 2.' });
 
-    const eventRows = await sql`
-        SELECT id AS event_id, slug AS event_slug, name AS event_name, event_date,
-               event_time, location AS event_location, venue_name AS event_venue_name,
-               venue_address AS event_venue_address, dinner_price, max_attendees
-        FROM events
-        WHERE slug = ${eventSlug} AND status IN ('open', 'upcoming')
-        LIMIT 1`;
+    const eventRows = testMode
+        ? await sql`
+            SELECT id AS event_id, slug AS event_slug, name AS event_name, event_date,
+                   event_time, location AS event_location, venue_name AS event_venue_name,
+                   venue_address AS event_venue_address, dinner_price, max_attendees
+            FROM events WHERE slug = ${TEST_EVENT_SLUG} LIMIT 1`
+        : await sql`
+            SELECT id AS event_id, slug AS event_slug, name AS event_name, event_date,
+                   event_time, location AS event_location, venue_name AS event_venue_name,
+                   venue_address AS event_venue_address, dinner_price, max_attendees
+            FROM events
+            WHERE slug = ${eventSlug} AND status IN ('open', 'upcoming')
+            LIMIT 1`;
     const selectedEvent = eventRows[0];
     if (!selectedEvent) return json(404, { error: 'This event is not currently available for quick checkout.' });
 
@@ -152,7 +182,7 @@ async function createReservation(body) {
           AND LOWER(m.email) = ${email}
           AND po.status = 'paid'`;
     const paidSeats = Number(activeRows[0]?.seats || 0);
-    if (paidSeats + ticketCount > 2) {
+    if (!testMode && paidSeats + ticketCount > 2) {
         return json(409, { error: `This email already has ${paidSeats} paid ticket${paidSeats === 1 ? '' : 's'} for this event. The maximum is 2.` });
     }
 
@@ -162,10 +192,13 @@ async function createReservation(body) {
     const accessToken = crypto.randomBytes(32).toString('base64url');
     const accessTokenHash = tokenHash(accessToken);
     const sepayCode = createPaymentCode(orderId);
-    const baseAmountUsd = roundMoney(Number(selectedEvent.dinner_price || 150) * ticketCount);
-    const airwallexFeeUsd = roundMoney(baseAmountUsd * 0.05);
-    const airwallexTotalUsd = roundMoney(baseAmountUsd + airwallexFeeUsd);
-    const sepayAmountVnd = Math.round(baseAmountUsd * Number(process.env.SEPAY_USD_TO_VND_RATE || 26000));
+    const conversionRate = Number(process.env.SEPAY_USD_TO_VND_RATE || 26000);
+    const { baseAmountUsd, airwallexFeeUsd, airwallexTotalUsd, sepayAmountVnd } = checkoutAmounts({
+        dinnerPrice: selectedEvent.dinner_price,
+        ticketCount,
+        testMode,
+        conversionRate
+    });
     const paymentUrl = `${process.env.URL || 'https://foundersvn.com'}/reservation?order=${orderId}`;
 
     let row;
@@ -299,6 +332,9 @@ async function getStatus(body) {
 async function createCardCheckout(body) {
     const order = await authorizedOrder(body.orderId, body.accessToken);
     if (!order) return json(403, { error: 'This payment link is invalid or you do not have access to it.' });
+    if (order.event_slug === TEST_EVENT_SLUG) {
+        return json(409, { error: 'The production test checkout supports SePay QR only.' });
+    }
     if (order.status !== 'pending' || new Date(order.expires_at).getTime() <= Date.now()) {
         return json(409, { error: 'This payment reservation is no longer active.' });
     }
@@ -378,4 +414,4 @@ exports.handler = async (event) => {
     }
 };
 
-exports._helpers = { normalizeEmail, splitName, tokenHash, validEmail, requestFailure };
+exports._helpers = { normalizeEmail, splitName, tokenHash, validEmail, requestFailure, verifyTestToken, checkoutAmounts };

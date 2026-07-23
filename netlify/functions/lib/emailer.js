@@ -366,7 +366,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock(`Thank you for applying to FoundersVN. You're approved. Please complete payment within 48 hours to confirm your place at our first dinner in Da Nang.`)}
       ${textBlock(`We have reserved ${seatText} for you for the next 48 hours.`)}
       <div class="email-detail-box" style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
-        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">FOUNDERSVN MEETUP DETAILS</p>
+        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">${testMode ? 'PRODUCTION TEST TRANSACTION' : 'FOUNDERSVN MEETUP DETAILS'}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Time:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Place:</strong> ${escapeHtml(venue.name)}</p>
@@ -390,7 +390,7 @@ function approvedWithLoginEmail({ firstName, email, tempPassword, loginUrl, paym
       ${textBlock('Cảm ơn bạn đã đăng ký FoundersVN. Hồ sơ của bạn đã được duyệt, và FoundersVN rất hân hạnh xác nhận chỗ của bạn cho buổi gặp mặt đầu tiên tại Đà Nẵng.')}
       ${textBlock(`FoundersVN đã giữ riêng ${ticketCount === 2 ? 'hai chỗ' : 'một chỗ'} cho bạn trong 48 giờ.`)}
       <div class="email-detail-box" style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
-        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN</p>
+        <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">${testMode ? 'GIAO DỊCH KIỂM TRA PRODUCTION' : 'THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN'}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Ngày:</strong> ${escapeHtml(eventDate)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Giờ:</strong> ${escapeHtml(eventTime)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Địa điểm:</strong> ${escapeHtml(venue.name)}</p>
@@ -574,6 +574,7 @@ function paymentConfirmedEmail({
     paymentMethod,
     temporaryPassword,
     ticketCount = 1,
+    testMode = false,
     event = EVENT_DETAILS
 }) {
     const safeFirstName = escapeHtml(firstName || 'there');
@@ -622,11 +623,33 @@ function paymentConfirmedEmail({
           <p style="color:rgba(255,255,255,0.72);font-size:13px;line-height:1.55;margin:0;">Để bảo mật tài khoản, bạn sẽ được yêu cầu tạo mật khẩu mới sau khi đăng nhập.</p>
         </div>
       </div>` : '';
+    const englishSetup = testMode ? `
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">PRODUCTION TEST COMPLETE</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">The 5,000 VND production test payment was received successfully. This transaction belongs to the private test event and does not reserve a place at a live FoundersVN dinner.</p>
+      </div>` : `
+      ${textBlock('To help us prepare a thoughtful experience for you, please complete the setup steps below before the FoundersVN meetup.')}
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750,000 VND FOOD CREDIT</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Choose anything you like from the restaurant menu with your included credit (about $30). If you spend more, the remaining balance is due at the restaurant by cash or Vietnamese QR code.</p>
+      </div>
+      <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Choose meal options' : 'Choose meal option')}</div>`;
+    const vietnameseSetup = testMode ? `
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">ĐÃ HOÀN TẤT KIỂM TRA THANH TOÁN</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">FoundersVN đã nhận thành công khoản thanh toán kiểm tra 5.000 VND trên môi trường production. Giao dịch này thuộc sự kiện kiểm tra riêng và không giữ chỗ tại bất kỳ buổi tiệc FoundersVN chính thức nào.</p>
+      </div>` : `
+      ${textBlock('Để FoundersVN chuẩn bị chu đáo nhất cho buổi gặp mặt, bạn vui lòng hoàn tất các bước dưới đây:')}
+      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750.000 VND TÍN DỤNG ĐỒ ĂN</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Bạn có thể chọn bất kỳ món nào trong thực đơn. Nếu tổng đơn vượt quá phần tín dụng đã bao gồm, số dư còn lại sẽ được thanh toán tại nhà hàng bằng tiền mặt hoặc mã QR Việt Nam.</p>
+      </div>
+      <div style="margin:0 0 26px;">${btn(mealUrl, 'Chọn món ăn')}</div>`;
     const inner = `
       <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
-      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">You are confirmed, ${safeFirstName}. Welcome to FoundersVN</h2>
+      <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">${testMode ? `Production payment test completed, ${safeFirstName}` : `You are confirmed, ${safeFirstName}. Welcome to FoundersVN`}</h2>
       ${textBlock(`Hi ${safeFirstName},`)}
-      ${textBlock('Your payment has been received and your seat is confirmed. We look forward to welcoming you at FoundersVN.')}
+      ${textBlock(testMode ? 'Your 5,000 VND test payment has been received and the production payment flow completed successfully.' : 'Your payment has been received and your seat is confirmed. We look forward to welcoming you at FoundersVN.')}
       <div class="email-detail-box" style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
         <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">FOUNDERSVN MEETUP DETAILS</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Event:</strong> ${escapeHtml(eventName)}</p>
@@ -637,12 +660,7 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Payment method:</strong> ${escapeHtml(method)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Receipt:</strong> ${receiptUrl ? textLink(receiptUrl, 'View receipt') : 'Available in your account'}</p>
       </div>
-      ${textBlock('To help us prepare a thoughtful experience for you, please complete the setup steps below before the FoundersVN meetup.')}
-      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
-        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750,000 VND FOOD CREDIT</p>
-        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Choose anything you like from the restaurant menu with your included credit (about $30). If you spend more, the remaining balance is due at the restaurant by cash or Vietnamese QR code.</p>
-      </div>
-      <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Choose meal options' : 'Choose meal option')}</div>
+      ${englishSetup}
       ${textBlock('1. Set up your profile in the app')}
       <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 16px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.</p>
       ${accountCard}
@@ -650,9 +668,9 @@ function paymentConfirmedEmail({
       ${textBlock(contactLineEnglish())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0 0 28px;">See you soon,<br>FoundersVN</p>
       <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
-      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">Đã xác nhận, ${safeFirstName}. Chào mừng bạn đến FoundersVN</h2>
+      <h2 style="color:#d9ff63;font-size:22px;margin:0 0 20px;font-weight:700;">${testMode ? `Đã hoàn tất kiểm tra thanh toán production, ${safeFirstName}` : `Đã xác nhận, ${safeFirstName}. Chào mừng bạn đến FoundersVN`}</h2>
       ${textBlock(`Chào ${safeFirstName},`)}
-      ${textBlock('FoundersVN đã nhận được thanh toán và chỗ của bạn đã được xác nhận. Rất hân hạnh được đón bạn tại bàn tiệc.')}
+      ${textBlock(testMode ? 'FoundersVN đã nhận khoản thanh toán kiểm tra 5.000 VND và hoàn tất thành công quy trình thanh toán trên production.' : 'FoundersVN đã nhận được thanh toán và chỗ của bạn đã được xác nhận. Rất hân hạnh được đón bạn tại bàn tiệc.')}
       <div class="email-detail-box" style="background-color:rgba(217,255,99,0.08);border:1px solid rgba(217,255,99,0.22);border-radius:12px;padding:20px;margin:24px 0;">
         <p style="color:#d9ff63;font-size:14px;margin:0 0 12px;font-weight:700;letter-spacing:1px;">THÔNG TIN BUỔI GẶP MẶT FOUNDERSVN</p>
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Sự kiện:</strong> ${escapeHtml(eventName)}</p>
@@ -663,12 +681,7 @@ function paymentConfirmedEmail({
         <p style="color:#ffffff;font-size:15px;margin:0 0 6px;"><strong>Phương thức thanh toán:</strong> ${escapeHtml(method)}</p>
         <p style="color:#ffffff;font-size:15px;margin:0;"><strong>Biên nhận:</strong> ${receiptUrl ? textLink(receiptUrl, 'Xem biên nhận') : 'Có trong tài khoản của bạn'}</p>
       </div>
-      ${textBlock('Để FoundersVN chuẩn bị chu đáo nhất cho buổi gặp mặt, bạn vui lòng hoàn tất các bước dưới đây:')}
-      <div style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:0 0 20px;">
-        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">750.000 VND TÍN DỤNG ĐỒ ĂN</p>
-        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0;">Bạn có thể chọn bất kỳ món nào trong thực đơn. Nếu tổng đơn vượt quá phần tín dụng đã bao gồm, số dư còn lại sẽ được thanh toán tại nhà hàng bằng tiền mặt hoặc mã QR Việt Nam.</p>
-      </div>
-      <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Chọn món ăn' : 'Chọn món ăn')}</div>
+      ${vietnameseSetup}
       ${textBlock('1. Thiết lập hồ sơ trên app')}
       <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 16px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.</p>
       ${accountCardVietnamese}
@@ -676,7 +689,9 @@ function paymentConfirmedEmail({
       ${textBlock(contactLineVietnamese())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0;">Hẹn gặp bạn,<br>FoundersVN</p>`;
     return {
-        subject: `You are confirmed, ${firstName || ''}. Welcome to FoundersVN | Đã xác nhận, ${firstName || ''}. Chào mừng bạn đến FoundersVN`.trim(),
+        subject: testMode
+            ? `Production payment test completed, ${firstName || ''} | Đã hoàn tất kiểm tra thanh toán production, ${firstName || ''}`.trim()
+            : `You are confirmed, ${firstName || ''}. Welcome to FoundersVN | Đã xác nhận, ${firstName || ''}. Chào mừng bạn đến FoundersVN`.trim(),
         html: shell(inner)
     };
 }

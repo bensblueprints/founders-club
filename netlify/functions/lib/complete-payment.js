@@ -4,6 +4,7 @@ const { paymentEnvironment } = require('./payment-environment');
 const { deactivatePaymentLink } = require('./airwallex');
 const { generateTempPassword, hashPassword } = require('./auth');
 const { encrypt, decrypt } = require('./field-crypto');
+const { TEST_EVENT_SLUG } = require('./production-test-checkout');
 
 function moneyEqual(a, b) {
     return Math.abs(Number(a) - Number(b)) < 0.005;
@@ -12,7 +13,7 @@ function moneyEqual(a, b) {
 async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId }) {
     if (orderId) {
         const rows = await sql`
-            SELECT po.*, a.first_name, a.email, e.name AS event_name,
+            SELECT po.*, a.first_name, a.email, e.slug AS event_slug, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
                    e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
@@ -23,7 +24,7 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     }
     if (applicationId) {
         const rows = await sql`
-            SELECT po.*, a.first_name, a.email, e.name AS event_name,
+            SELECT po.*, a.first_name, a.email, e.slug AS event_slug, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
                    e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
@@ -34,7 +35,7 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     }
     if (sepayCode) {
         const rows = await sql`
-            SELECT po.*, a.first_name, a.email, e.name AS event_name,
+            SELECT po.*, a.first_name, a.email, e.slug AS event_slug, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
                    e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
@@ -45,7 +46,7 @@ async function findOrder({ orderId, applicationId, sepayCode, airwallexLinkId })
     }
     if (airwallexLinkId) {
         const rows = await sql`
-            SELECT po.*, a.first_name, a.email, e.name AS event_name,
+            SELECT po.*, a.first_name, a.email, e.slug AS event_slug, e.name AS event_name,
                    e.event_date, e.event_time, e.location AS event_location,
                    e.venue_name AS event_venue_name, e.venue_address AS event_venue_address
             FROM payment_orders po
@@ -75,6 +76,7 @@ async function sendConfirmation(order) {
         temporaryPassword: order.quick_new_member && order.quick_temp_password_encrypted
             ? decrypt(order.quick_temp_password_encrypted)
             : null,
+        testMode: order.event_slug === TEST_EVENT_SLUG,
         communityUrl: process.env.WHATSAPP_LINK || process.env.COMMUNITY_LINK || '',
         ticketCount: Number(order.ticket_count || 1),
         event: {

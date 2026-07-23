@@ -4,9 +4,11 @@ const path = require('path');
 
 process.env.NODE_ENV = 'test';
 process.env.PAYMENTS_ENV = 'mock';
+process.env.QUICK_RESERVATION_TEST_SECRET = 'test-secret-with-at-least-thirty-two-characters';
 
 const quick = require('../netlify/functions/quick-reservation');
 const { paymentConfirmedEmail } = require('../netlify/functions/lib/emailer');
+const { createTestToken } = require('../netlify/functions/lib/production-test-checkout');
 
 let passed = 0;
 function test(name, fn) {
@@ -37,6 +39,28 @@ test('quick checkout hashes browser access tokens before persistence', () => {
     assert.strictEqual(hash, quick._helpers.tokenHash('secret-link-token'));
 });
 
+test('production test links are signed, short lived, and tamper resistant', () => {
+    const now = Date.UTC(2026, 6, 23, 10, 0, 0);
+    const token = createTestToken({ now, lifetimeSeconds: 1800, nonce: 'fixed-test-nonce' });
+    assert.strictEqual(quick._helpers.verifyTestToken(token, { now: now + 1000 }), true);
+    assert.strictEqual(quick._helpers.verifyTestToken(`${token}changed`, { now: now + 1000 }), false);
+    assert.strictEqual(quick._helpers.verifyTestToken(token, { now: now + 1801 * 1000 }), false);
+});
+
+test('production test checkout forces one exact 5,000 VND SePay amount', () => {
+    assert.deepStrictEqual(quick._helpers.checkoutAmounts({
+        dinnerPrice: 150,
+        ticketCount: 2,
+        testMode: true,
+        conversionRate: 26000
+    }), {
+        baseAmountUsd: 0.19,
+        airwallexFeeUsd: 0,
+        airwallexTotalUsd: 0.19,
+        sepayAmountVnd: 5000
+    });
+});
+
 test('paid confirmation includes temporary credentials only when supplied', () => {
     const common = {
         firstName: 'Jane',
@@ -56,6 +80,12 @@ test('paid confirmation includes temporary credentials only when supplied', () =
     const standardEmail = paymentConfirmedEmail(common);
     assert.ok(!standardEmail.html.includes('Temporary password'));
     assert.ok(!standardEmail.html.includes('Mật khẩu tạm thời'));
+
+    const testEmail = paymentConfirmedEmail({ ...common, temporaryPassword: 'Temp-Example-123!', testMode: true });
+    assert.ok(testEmail.html.includes('PRODUCTION TEST COMPLETE'));
+    assert.ok(testEmail.html.includes('ĐÃ HOÀN TẤT KIỂM TRA THANH TOÁN'));
+    assert.ok(!testEmail.html.includes('750,000 VND FOOD CREDIT'));
+    assert.ok(!testEmail.html.includes('Choose meal option'));
 });
 
 test('quick checkout migration stores no plaintext access token or password', () => {
@@ -73,6 +103,13 @@ test('local database failures return a useful setup instruction', () => {
         quick._helpers.requestFailure(new Error('password authentication failed for user "founders"')),
         /npm run stack:setup/i
     );
+});
+
+test('the private production test event is closed to normal registration', () => {
+    const migration = fs.readFileSync(path.resolve(__dirname, '../migrations/2026-07-23-production-test-checkout.sql'), 'utf8');
+    assert.ok(migration.includes("'production-payment-test'"));
+    assert.ok(migration.includes("'closed'"));
+    assert.ok(migration.includes('5,000 VND'));
 });
 
 console.log(`\nAll ${passed} quick-reservation tests passed.`);

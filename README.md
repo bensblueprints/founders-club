@@ -91,3 +91,27 @@ URLs are prefilled:
 - `https://foundersvn.com/api/function/airwallex-webhook`
 - `https://foundersvn.com/api/function/sepay-webhook`
 - `https://foundersvn.com/api/function/resend-webhook`
+
+### Private 5,000 VND production payment test
+
+The production test checkout is server-authorized and cannot be enabled by
+changing the price or event in the browser. It creates one SePay order for a
+closed `[TEST]` event and does not reserve a live dinner seat.
+
+1. Generate a secret with `openssl rand -hex 32`.
+2. Set the same `QUICK_RESERVATION_TEST_SECRET` locally and in Netlify.
+3. Apply the database migrations so the closed test event exists.
+4. Generate a signed link with `npm run payments:test-link`. Pass a number of
+   minutes if needed, for example `npm run payments:test-link -- 10`. Links are
+   limited to a maximum lifetime of 60 minutes.
+5. Open the generated URL, enter test contact details, and pay the exact
+   5,000 VND amount by SePay QR.
+
+The signed token is removed from the browser URL after the order is created.
+The confirmation screen and bilingual email identify the transaction as a
+production test, and the resulting attendance belongs only to the closed test
+event.
+
+The link generator targets `https://foundersvn.com` by default. To exercise the
+same mode locally, run it with
+`PRODUCTION_TEST_BASE_URL=http://localhost:3000 npm run payments:test-link`.
