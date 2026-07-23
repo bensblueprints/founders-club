@@ -584,7 +584,44 @@ function paymentConfirmedEmail({
     const accountUrl = appUrl || `${process.env.URL || 'https://foundersvn.com'}/login`;
     const memberProfileUrl = profileUrl || `${process.env.URL || 'https://foundersvn.com'}/profile`;
     const safeEmail = escapeHtml(email || '');
+    const safeTemporaryPassword = escapeHtml(temporaryPassword || '');
     const method = paymentMethod || 'Confirmed payment';
+    const accountCard = temporaryPassword ? `
+      <div class="email-account-box" style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:18px 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">YOUR FOUNDERSVN ACCOUNT</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0 0 16px;">Your account is ready. Use these temporary credentials to sign in:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="color:rgba(255,255,255,0.68);font-size:13px;padding:0 12px 5px 0;vertical-align:top;white-space:nowrap;">EMAIL</td>
+            <td style="color:#ffffff;font-size:15px;padding:0 0 5px;text-align:right;overflow-wrap:anywhere;"><strong>${safeEmail}</strong></td>
+          </tr>
+          <tr>
+            <td style="color:rgba(255,255,255,0.68);font-size:13px;padding:5px 12px 0 0;vertical-align:top;white-space:nowrap;">Temporary password</td>
+            <td style="color:#f2c94c;font-size:16px;padding:5px 0 0;text-align:right;overflow-wrap:anywhere;"><strong style="font-family:Consolas,'Courier New',monospace;letter-spacing:0.4px;">${safeTemporaryPassword}</strong></td>
+          </tr>
+        </table>
+        <div style="border-top:1px solid rgba(242,201,76,0.22);margin:16px 0 0;padding:14px 0 0;">
+          <p style="color:rgba(255,255,255,0.72);font-size:13px;line-height:1.55;margin:0;">For your security, you will be asked to create a permanent password after signing in.</p>
+        </div>
+      </div>` : '';
+    const accountCardVietnamese = temporaryPassword ? `
+      <div class="email-account-box" style="background-color:rgba(242,201,76,0.1);border:1px solid rgba(242,201,76,0.35);border-radius:12px;padding:18px 20px;margin:18px 0 20px;">
+        <p style="color:#f2c94c;font-size:13px;margin:0 0 7px;font-weight:700;letter-spacing:1px;">TÀI KHOẢN FOUNDERSVN CỦA BẠN</p>
+        <p style="color:#ffffff;font-size:15px;line-height:1.6;margin:0 0 16px;">Tài khoản của bạn đã sẵn sàng. Dùng thông tin tạm thời dưới đây để đăng nhập:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="color:rgba(255,255,255,0.68);font-size:13px;padding:0 12px 5px 0;vertical-align:top;white-space:nowrap;">EMAIL</td>
+            <td style="color:#ffffff;font-size:15px;padding:0 0 5px;text-align:right;overflow-wrap:anywhere;"><strong>${safeEmail}</strong></td>
+          </tr>
+          <tr>
+            <td style="color:rgba(255,255,255,0.68);font-size:13px;padding:5px 12px 0 0;vertical-align:top;white-space:nowrap;">Mật khẩu tạm thời</td>
+            <td style="color:#f2c94c;font-size:16px;padding:5px 0 0;text-align:right;overflow-wrap:anywhere;"><strong style="font-family:Consolas,'Courier New',monospace;letter-spacing:0.4px;">${safeTemporaryPassword}</strong></td>
+          </tr>
+        </table>
+        <div style="border-top:1px solid rgba(242,201,76,0.22);margin:16px 0 0;padding:14px 0 0;">
+          <p style="color:rgba(255,255,255,0.72);font-size:13px;line-height:1.55;margin:0;">Để bảo mật tài khoản, bạn sẽ được yêu cầu tạo mật khẩu mới sau khi đăng nhập.</p>
+        </div>
+      </div>` : '';
     const inner = `
       <p style="color:#d9ff63;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 18px;">(Tiếng Việt bên dưới)</p>
       <h2 style="color:#d9ff63;font-size:24px;margin:0 0 20px;font-weight:700;">You are confirmed, ${safeFirstName}. Welcome to FoundersVN</h2>
@@ -607,7 +644,9 @@ function paymentConfirmedEmail({
       </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Choose meal options' : 'Choose meal option')}</div>
       ${textBlock('1. Set up your profile in the app')}
-      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.<br>${textLink(accountUrl, 'Sign in to your FoundersVN account')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}${temporaryPassword ? `<br>Temporary password: <strong style="color:#ffffff;">${escapeHtml(temporaryPassword)}</strong><br>You will be asked to set a permanent password after signing in.` : ''}<br>${textLink(memberProfileUrl, 'Complete your member profile')}</p>
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 16px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.</p>
+      ${accountCard}
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.8;margin:0 0 20px;">${textLink(accountUrl, 'Sign in to your FoundersVN account')}${!temporaryPassword && safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Complete your member profile')}</p>
       ${textBlock(contactLineEnglish())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0 0 28px;">See you soon,<br>FoundersVN</p>
       <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
@@ -631,7 +670,9 @@ function paymentConfirmedEmail({
       </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Chọn món ăn' : 'Chọn món ăn')}</div>
       ${textBlock('1. Thiết lập hồ sơ trên app')}
-      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.<br>${textLink(accountUrl, 'Đăng nhập tài khoản FoundersVN')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}${temporaryPassword ? `<br>Mật khẩu tạm thời: <strong style="color:#ffffff;">${escapeHtml(temporaryPassword)}</strong><br>Bạn sẽ được yêu cầu đặt mật khẩu mới sau khi đăng nhập.` : ''}<br>${textLink(memberProfileUrl, 'Hoàn tất hồ sơ thành viên')}</p>
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 16px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.</p>
+      ${accountCardVietnamese}
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.8;margin:0 0 20px;">${textLink(accountUrl, 'Đăng nhập tài khoản FoundersVN')}${!temporaryPassword && safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Hoàn tất hồ sơ thành viên')}</p>
       ${textBlock(contactLineVietnamese())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0;">Hẹn gặp bạn,<br>FoundersVN</p>`;
     return {

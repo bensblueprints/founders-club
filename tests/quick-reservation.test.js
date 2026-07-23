@@ -49,6 +49,9 @@ test('paid confirmation includes temporary credentials only when supplied', () =
     assert.ok(quickEmail.html.includes('Temporary password'));
     assert.ok(quickEmail.html.includes('Temp-Example-123!'));
     assert.ok(quickEmail.html.includes('Mật khẩu tạm thời'));
+    assert.ok(quickEmail.html.includes('YOUR FOUNDERSVN ACCOUNT'));
+    assert.ok(quickEmail.html.includes('TÀI KHOẢN FOUNDERSVN CỦA BẠN'));
+    assert.ok(quickEmail.html.includes('background-color:rgba(242,201,76,0.1)'));
 
     const standardEmail = paymentConfirmedEmail(common);
     assert.ok(!standardEmail.html.includes('Temporary password'));
