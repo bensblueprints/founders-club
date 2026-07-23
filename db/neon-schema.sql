@@ -255,6 +255,11 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     payment_page_last_viewed_at TIMESTAMP WITH TIME ZONE,
     payment_page_view_count INTEGER NOT NULL DEFAULT 0,
     account_was_existing BOOLEAN NOT NULL DEFAULT false,
+    quick_checkout BOOLEAN NOT NULL DEFAULT false,
+    quick_new_member BOOLEAN NOT NULL DEFAULT false,
+    quick_access_token_hash TEXT,
+    quick_temp_password_encrypted TEXT,
+    quick_credentials_revealed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT payment_orders_status_check CHECK (status IN ('preparing', 'pending', 'paid', 'expired', 'cancelled')),
@@ -271,6 +276,14 @@ ALTER TABLE payment_orders
 CREATE INDEX IF NOT EXISTS idx_payment_orders_page_viewed
     ON payment_orders(payment_page_first_viewed_at DESC)
     WHERE payment_page_first_viewed_at IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_orders_quick_access_token
+    ON payment_orders(quick_access_token_hash)
+    WHERE quick_access_token_hash IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_payment_orders_quick_pending
+    ON payment_orders(event_id, status, expires_at)
+    WHERE quick_checkout = TRUE;
 
 CREATE TABLE IF NOT EXISTS payment_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

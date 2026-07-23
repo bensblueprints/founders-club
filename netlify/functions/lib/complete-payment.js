@@ -2,6 +2,8 @@ const { sql } = require('./neon');
 const { sendEmail, paymentConfirmedEmail } = require('./emailer');
 const { paymentEnvironment } = require('./payment-environment');
 const { deactivatePaymentLink } = require('./airwallex');
+const { generateTempPassword, hashPassword } = require('./auth');
+const { encrypt, decrypt } = require('./field-crypto');
 
 function moneyEqual(a, b) {
     return Math.abs(Number(a) - Number(b)) < 0.005;
@@ -70,6 +72,9 @@ async function sendConfirmation(order) {
         profileUrl,
         receiptUrl: paymentUrl,
         paymentMethod: order.paid_provider === 'airwallex' ? 'Airwallex card' : order.paid_provider === 'sepay' ? 'SePay / VietQR bank transfer' : order.paid_provider || 'Confirmed payment',
+        temporaryPassword: order.quick_new_member && order.quick_temp_password_encrypted
+            ? decrypt(order.quick_temp_password_encrypted)
+            : null,
         communityUrl: process.env.WHATSAPP_LINK || process.env.COMMUNITY_LINK || '',
         ticketCount: Number(order.ticket_count || 1),
         event: {
@@ -91,6 +96,44 @@ async function sendConfirmation(order) {
         await sql`UPDATE payment_orders SET confirmation_email_sent_at = NOW(), updated_at = NOW() WHERE id = ${order.id}`;
     }
     return result.success;
+}
+
+async function finalizeQuickAccount(order) {
+    if (!order?.quick_checkout) return order;
+    if (!order.quick_new_member) {
+        await sql`
+            UPDATE members SET account_status = 'active', is_approved = TRUE,
+                payment_access_expires_at = NULL, updated_at = NOW()
+            WHERE id = ${order.member_id}`;
+        return order;
+    }
+
+    let temporaryPassword = null;
+    if (order.quick_temp_password_encrypted) {
+        temporaryPassword = decrypt(order.quick_temp_password_encrypted);
+    } else {
+        const candidate = generateTempPassword();
+        const saved = await sql`
+            UPDATE payment_orders SET quick_temp_password_encrypted = ${encrypt(candidate)}, updated_at = NOW()
+            WHERE id = ${order.id} AND quick_temp_password_encrypted IS NULL
+            RETURNING quick_temp_password_encrypted`;
+        if (saved[0]?.quick_temp_password_encrypted) {
+            order.quick_temp_password_encrypted = saved[0].quick_temp_password_encrypted;
+            temporaryPassword = candidate;
+        } else {
+            const current = await sql`
+                SELECT quick_temp_password_encrypted FROM payment_orders WHERE id = ${order.id} LIMIT 1`;
+            order.quick_temp_password_encrypted = current[0]?.quick_temp_password_encrypted;
+            temporaryPassword = decrypt(order.quick_temp_password_encrypted);
+        }
+    }
+    const passwordHash = await hashPassword(temporaryPassword);
+    await sql`
+        UPDATE members SET password_hash = COALESCE(password_hash, ${passwordHash}),
+            must_reset_password = TRUE, account_status = 'active', is_approved = TRUE,
+            payment_access_expires_at = NULL, updated_at = NOW()
+        WHERE id = ${order.member_id}`;
+    return order;
 }
 
 async function completePayment({
@@ -136,6 +179,7 @@ async function completePayment({
         ON CONFLICT (provider, provider_event_id) DO NOTHING`;
 
     if (order.status === 'paid') {
+        order = await finalizeQuickAccount(order);
         return { matched: true, paid: true, duplicate: true, emailSent: await sendConfirmation(order) };
     }
     if (order.status !== 'pending' || new Date(order.expires_at).getTime() <= Date.now()) {
@@ -180,6 +224,7 @@ async function completePayment({
 
     if (!rows[0]) return { matched: true, paid: false, reason: 'reservation_expired_or_processed' };
     order = { ...order, ...rows[0], status: 'paid', paid_at: paidAt };
+    order = await finalizeQuickAccount(order);
     if (provider === 'sepay' && order.airwallex_link_id) {
         try {
             await deactivatePaymentLink(order.airwallex_link_id);
@@ -192,4 +237,4 @@ async function completePayment({
     return { matched: true, paid: true, emailSent: await sendConfirmation(order), orderId: order.id };
 }
 
-module.exports = { completePayment, findOrder, moneyEqual };
+module.exports = { completePayment, findOrder, moneyEqual, finalizeQuickAccount };

@@ -16,6 +16,7 @@ import authForgotPassword from '@/netlify/functions/auth-forgot-password';
 import authResetPassword from '@/netlify/functions/auth-reset-password';
 import resendWebhook from '@/netlify/functions/resend-webhook';
 import adminApplicationAction from '@/netlify/functions/admin-application-action';
+import quickReservation from '@/netlify/functions/quick-reservation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,7 +39,8 @@ const modules = {
     'auth-forgot-password': authForgotPassword,
     'auth-reset-password': authResetPassword,
     'resend-webhook': resendWebhook,
-    'admin-application-action': adminApplicationAction
+    'admin-application-action': adminApplicationAction,
+    'quick-reservation': quickReservation
 };
 
 async function run(request, context) {

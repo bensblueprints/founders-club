@@ -572,6 +572,7 @@ function paymentConfirmedEmail({
     profileUrl,
     receiptUrl,
     paymentMethod,
+    temporaryPassword,
     ticketCount = 1,
     event = EVENT_DETAILS
 }) {
@@ -606,7 +607,7 @@ function paymentConfirmedEmail({
       </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Choose meal options' : 'Choose meal option')}</div>
       ${textBlock('1. Set up your profile in the app')}
-      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.<br>${textLink(accountUrl, 'Sign in to your FoundersVN account')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Complete your member profile')}</p>
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">The attendee directory helps guests understand who they will meet before arrival, so please take a few minutes to complete your profile.<br>${textLink(accountUrl, 'Sign in to your FoundersVN account')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}${temporaryPassword ? `<br>Temporary password: <strong style="color:#ffffff;">${escapeHtml(temporaryPassword)}</strong><br>You will be asked to set a permanent password after signing in.` : ''}<br>${textLink(memberProfileUrl, 'Complete your member profile')}</p>
       ${textBlock(contactLineEnglish())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0 0 28px;">See you soon,<br>FoundersVN</p>
       <hr style="border:none;border-top:1px solid rgba(217,255,99,0.18);margin:28px 0;">
@@ -630,7 +631,7 @@ function paymentConfirmedEmail({
       </div>
       <div style="margin:0 0 26px;">${btn(mealUrl, ticketCount === 2 ? 'Chọn món ăn' : 'Chọn món ăn')}</div>
       ${textBlock('1. Thiết lập hồ sơ trên app')}
-      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.<br>${textLink(accountUrl, 'Đăng nhập tài khoản FoundersVN')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}<br>${textLink(memberProfileUrl, 'Hoàn tất hồ sơ thành viên')}</p>
+      <p style="color:rgba(255,255,255,0.76);font-size:15px;line-height:1.6;margin:0 0 20px;">Trong app, bạn sẽ thấy mục danh sách khách mời. Đây là nơi mọi người có thể xem ai sẽ tham dự, biết bạn là ai, và bắt đầu cuộc trò chuyện tự nhiên hơn trước khi gặp trực tiếp.<br>${textLink(accountUrl, 'Đăng nhập tài khoản FoundersVN')}${safeEmail ? `<br>Email: ${safeEmail}` : ''}${temporaryPassword ? `<br>Mật khẩu tạm thời: <strong style="color:#ffffff;">${escapeHtml(temporaryPassword)}</strong><br>Bạn sẽ được yêu cầu đặt mật khẩu mới sau khi đăng nhập.` : ''}<br>${textLink(memberProfileUrl, 'Hoàn tất hồ sơ thành viên')}</p>
       ${textBlock(contactLineVietnamese())}
       <p style="color:#ffffff;font-size:16px;line-height:1.65;margin:0;">Hẹn gặp bạn,<br>FoundersVN</p>`;
     return {
