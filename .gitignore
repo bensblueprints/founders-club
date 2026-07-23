@@ -17,3 +17,11 @@ meeting */
 
 # Large marketing bundles — keep in Drive, not git
 *.zip
+
+# Generated final delivery/package artifacts — source files live in generated-ads + handoff docs
+04-marketing/foundersvn-ads-final-*/
+04-marketing/\[latest\]foundersvn-ads-final-*/
+04-marketing/foundersvn-ads-final-package-*/
+04-marketing/foundersvn-ads-final-delivery-*/
+04-marketing/generated-ads-0717-bundle/preview-crops/
+04-marketing/generated-ads-0717-bundle/**/_*backup*/

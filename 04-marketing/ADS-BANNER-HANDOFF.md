@@ -100,7 +100,7 @@ Reply "ready" and wait for the first banner spec.
 2. **Headline** — hook, chữ lớn Aeonik bone
 3. **Supporting line** — câu mượt, thông tin, quiet (mục 5)
 4. **CTA pill** — coral (mục 4)
-5. **Event caption** — "Friday, July 31 · Da Nang · 4U Lounge", coral nhỏ
+5. **Event caption** — "Friday, July 31 · Da Nang · FOR YOU SteakHouse", coral nhỏ
 
 → Tất cả 5 phần nằm trong khối trung tâm, canh lề đồng nhất.
 
@@ -150,7 +150,7 @@ Nút pill coral, chữ bone, mũi tên nhỏ. Đổi copy để test:
 
 Luôn ghi đầy đủ, không cụt "July 31":
 
-> **Friday, July 31 · Da Nang · 4U Lounge**
+> **Friday, July 31 · Da Nang · FOR YOU SteakHouse**
 
 Coral nhỏ, đặt trong khối trung tâm ngay dưới CTA (không dưới mép đáy).
 
@@ -224,7 +224,7 @@ headline; nothing important at the bottom edge or margins.
 - Supporting line (MUST be visible), Warm Bone, quieter: "<SUB-COPY>"
 - CTA pill, Ember Coral, bone text + small arrow: "<CTA>"
 - Event caption, small coral, in the central block under the CTA:
-  "Friday, July 31 · Da Nang · 4U Lounge"
+  "Friday, July 31 · Da Nang · FOR YOU SteakHouse"
 
 Premium, editorial, dynamic. Not flat, not SaaS, no gold.
 ```

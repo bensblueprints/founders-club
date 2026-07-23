@@ -74,7 +74,7 @@ HARD RULES (do not break)
   "Join a group of 25 entrepreneurs for one intimate evening in Da Nang."
   (Pick one from the SUPPORTING-LINE BANK I give per creative.)
 - EVENT CAPTION: always write the full event info, never just "July 31".
-  Use: "Friday, July 31 · Da Nang · 4U Lounge". Small, in Ember Coral.
+  Use: "Friday, July 31 · Da Nang · FOR YOU SteakHouse". Small, in Ember Coral.
 - LAYOUT — key info stays grouped in one central content block: logo
   lockup, headline, supporting line, CTA, AND the event caption all sit
   together in the upper-to-middle content stack. Do NOT pin the date/
@@ -108,7 +108,7 @@ Hai creative chủ lực. Mọi thứ khác nhân từ 2 cái này ra. Dán MAST
 
 - **Base:** `images/gallery/networking-2.jpg` (mingling thật, đa quốc tịch, năng lượng)
 - **Headline (chốt):** `In Da Nang for a biz trip? Don't just work. Connect.`
-- **Primary text (Meta ad body):** "One night in Da Nang with 25 founders and operators, Vietnamese and international. A phone-free dinner, hosted introductions, real conversations. Skip the small talk and meet the people who move your next deal. Friday, July 31 · 4U Lounge · 25 seats."
+- **Primary text (Meta ad body):** "One night in Da Nang with 25 founders and operators, Vietnamese and international. A phone-free dinner, hosted introductions, real conversations. Skip the small talk and meet the people who move your next deal. Friday, July 31 · FOR YOU SteakHouse · 25 seats."
 - **CTA:** Apply for a seat
 - **Save as:** `assets/social/generated/ads-plan/PIVOT-ad-angle1-biztrip.png`
 
@@ -141,7 +141,7 @@ Turn it into a cinematic FoundersVN ad, portrait 4:5, exactly 1080 x 1350 px
   (bone text, small arrow). Keep CTA + supporting line together in the
   middle zone, NOT the footer.
 - Small coral caption directly under the CTA, inside the same central
-  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · 4U Lounge".
+  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · FOR YOU SteakHouse".
 - Logo lockup (wordmark + "Phone-Free Networking for Founders" tagline
   beneath it) small, top-left.
 - Premium, editorial, dynamic. Not flat, not SaaS, no gold.
@@ -158,7 +158,7 @@ Turn it into a cinematic FoundersVN ad, portrait 4:5, exactly 1080 x 1350 px
 
 - **Base:** `images/gallery/dinner-1.jpg` (bàn tiệc phone-free đúng chất event)
 - **Headline (chốt):** `FoundersVN is coming to Da Nang.`
-- **Caption đăng bài:** "FoundersVN is coming to Da Nang. A phone-free dinner for 25 founders and operators who want deeper conversations, not louder networking. Friday, July 31 · 4U Lounge. Applications open now."
+- **Caption đăng bài:** "FoundersVN is coming to Da Nang. A phone-free dinner for 25 founders and operators who want deeper conversations, not louder networking. Friday, July 31 · FOR YOU SteakHouse. Applications open now."
 - **Save as:** `assets/social/generated/social-plan-jul2026/PIVOT-post-jul12-launch.png`
 
 ```
@@ -185,7 +185,7 @@ Turn it into a cinematic FoundersVN launch graphic, portrait 4:5, exactly
   frame, or placeholder box.
 - Small coral caption grouped WITH the headline (just above or below it,
   in the central content block — NOT the bottom edge):
-  "Friday, July 31 · Da Nang · 4U Lounge". No CTA button on this one.
+  "Friday, July 31 · Da Nang · FOR YOU SteakHouse". No CTA button on this one.
 - Logo lockup (wordmark + "Phone-Free Networking for Founders" tagline
   beneath it) small, top-left.
 - Premium, editorial, cinematic, warm. Not flat, no gold.
@@ -197,7 +197,7 @@ Turn it into a cinematic FoundersVN launch graphic, portrait 4:5, exactly
 
 ## ★ ADS BATCH — pivot + 2 (làm trước, CHỈ ads)
 
-3 ad để chạy test đầu tiên. Cover 2 hướng: **Angle 1 audience-centric** (2 ad) vs **Angle 3 pain-point** (1 ad). Tất cả theo MASTER BRIEF: 4:5 1080×1350, logo lockup có tagline, sub-copy mượt bắt buộc hiện, CTA giữa, caption "Friday, July 31 · Da Nang · 4U Lounge".
+3 ad để chạy test đầu tiên. Cover 2 hướng: **Angle 1 audience-centric** (2 ad) vs **Angle 3 pain-point** (1 ad). Tất cả theo MASTER BRIEF: 4:5 1080×1350, logo lockup có tagline, sub-copy mượt bắt buộc hiện, CTA giữa, caption "Friday, July 31 · Da Nang · FOR YOU SteakHouse".
 
 ### Ad 1 = PIVOT (đã có ở PRIORITY 0)
 - Base `networking-2.jpg` · Headline "In Da Nang for a biz trip? Don't just work. Connect."
@@ -231,7 +231,7 @@ dot, soft vignette, gentle directional glow.
   and directly under it a rounded coral CTA pill "Apply for a seat"
   (bone text, small arrow) — kept together in the middle, NOT the footer.
 - Small coral caption directly under the CTA, inside the same central
-  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · 4U Lounge".
+  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · FOR YOU SteakHouse".
 - Premium, editorial, dynamic. Not flat, no gold.
 ```
 
@@ -262,7 +262,7 @@ one small coral dot, soft vignette.
   and directly under it a rounded coral CTA pill "Apply for a seat"
   (bone text, small arrow) — kept together in the middle, NOT the footer.
 - Small coral caption directly under the CTA, inside the same central
-  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · 4U Lounge".
+  content block (NOT the bottom edge): "Friday, July 31 · Da Nang · FOR YOU SteakHouse".
 - Premium, editorial, dynamic. Not flat, no gold.
 ```
 
@@ -299,7 +299,7 @@ Transform it into a cinematic FoundersVN ad:
   rounded coral CTA pill "Apply for a seat" directly under it — kept
   together in the middle zone, NOT the footer.
 - Small coral caption directly under the CTA, in the same central content
-  block (NOT the bottom edge): "Friday, July 31 · Da Nang · 4U Lounge".
+  block (NOT the bottom edge): "Friday, July 31 · Da Nang · FOR YOU SteakHouse".
 - Logo lockup (wordmark + "Phone-Free Networking for Founders" tagline
   beneath it) small, top-left.
 - Portrait 4:5, exactly 1080 x 1350 px by default (NOT square, NOT 9:16).
@@ -332,7 +332,7 @@ Transform it into a cinematic FoundersVN ad:
 > **Social thừa hưởng TOÀN BỘ rule của ads** — dùng chung MASTER BRIEF trong
 > `04-marketing/ADS-BANNER-HANDOFF.md` (logo lockup + tagline; logo canh CÙNG
 > trục lề với headline; 5 component ở vùng trung tâm; ngày đầy đủ "Friday,
-> July 31 · Da Nang · 4U Lounge" không để dưới đáy; font Aeonik rounded;
+> July 31 · Da Nang · FOR YOU SteakHouse" không để dưới đáy; font Aeonik rounded;
 > **KHÔNG dùng group-photo.jpg**; tránh 2 ông Ấn áo be/áo nâu — crop bỏ/để
 > shadow). Chỉ khác: social có thể bỏ CTA pill (post không cần "Apply").
 > **Ratio social:** 4:5 feed (1080×1350) + 9:16 story (1080×1920). Khi extend
@@ -343,7 +343,7 @@ Transform it into a cinematic FoundersVN ad:
 | `social-jul12-launch.png` | `dinner-1.jpg` (= PIVOT post, đã có) | FoundersVN is coming to Da Nang. |
 | `social-jul15-dinner.png` | `dinner-1.jpg` | Dinner sets the rhythm. |
 | `social-jul16-biztrip.png` | `networking-2.jpg` | In Da Nang for a biz trip? Don't just work. Connect. |
-| `social-jul19-venue.png` | `venue-wide.jpg` | 4U Lounge. Da Nang. |
+| `social-jul19-venue.png` | `venue-wide.jpg` | FOR YOU SteakHouse. Da Nang. |
 | `social-jul20-25-seats.png` | `dinner-2.jpg` ⚠crop-left | 25 seats only. |
 | `social-jul22-tables.png` | `networking-1.jpg` ⚠crop | Hosted tables, not one long table. |
 | `social-jul23-like-you.png` | `dinner-1.jpg` | Founders, owners & entrepreneurs like you. |
@@ -420,7 +420,7 @@ Pillar "it's a dinner first". Hero dish = **steak & lobster**. Chi tiết bài t
 
 **⚠ Luật ảnh đồ ăn (quan trọng):**
 - **PHẦN ĂN THỰC TẾ như nhà hàng — KHÔNG phóng đại, KHÔNG oversized.** Không steak/lobster khổng lồ, không tháp đồ ăn, không AI-surreal.
-- Photoreal, plating gọn gàng, ánh sáng ấm (amber), đặt trên bàn linen của 4U Lounge, tông pine/amber cinematic.
+- Photoreal, plating gọn gàng, ánh sáng ấm (amber), đặt trên bàn linen của FOR YOU SteakHouse, tông pine/amber cinematic.
 - Nếu có **ảnh món thật** → ưu tiên dùng, chỉ color-grade. Chưa có thì generate theo luật trên.
 - Text/headline + logo lockup như các post khác. Feed 4:5, story 9:16.
 
@@ -428,7 +428,7 @@ Pillar "it's a dinner first". Hero dish = **steak & lobster**. Chi tiết bài t
 Prompt mẫu (food): Photoreal food shot, portrait 4:5 (hoặc 9:16 story).
 A single well-plated [steak | lobster | steak & lobster] on a dark
 restaurant plate, REALISTIC restaurant portion — not oversized, not
-exaggerated. Warm amber light, linen table at 4U Lounge, deep pine
+exaggerated. Warm amber light, linen table at FOR YOU SteakHouse, deep pine
 cinematic tone, shallow depth of field. No AI-surreal shapes, no giant
 portions, no text baked into the food. Then overlay headline in Warm
 Bone (Aeonik-style), logo lockup top-left, coral accent line.
