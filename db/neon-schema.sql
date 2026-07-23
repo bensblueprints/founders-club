@@ -268,6 +268,15 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     CONSTRAINT payment_orders_ticket_count_check CHECK (ticket_count IN (1, 2))
 );
 
+-- Existing databases may already have payment_orders from an earlier schema
+-- version. Add quick-checkout fields before creating indexes that use them.
+ALTER TABLE payment_orders
+    ADD COLUMN IF NOT EXISTS quick_checkout BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN IF NOT EXISTS quick_new_member BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN IF NOT EXISTS quick_access_token_hash TEXT,
+    ADD COLUMN IF NOT EXISTS quick_temp_password_encrypted TEXT,
+    ADD COLUMN IF NOT EXISTS quick_credentials_revealed_at TIMESTAMP WITH TIME ZONE;
+
 ALTER TABLE payment_orders
     ADD COLUMN IF NOT EXISTS payment_page_first_viewed_at TIMESTAMP WITH TIME ZONE,
     ADD COLUMN IF NOT EXISTS payment_page_last_viewed_at TIMESTAMP WITH TIME ZONE,

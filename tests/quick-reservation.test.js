@@ -57,10 +57,19 @@ test('paid confirmation includes temporary credentials only when supplied', () =
 
 test('quick checkout migration stores no plaintext access token or password', () => {
     const migration = fs.readFileSync(path.resolve(__dirname, '../migrations/2026-07-23-quick-reservation-checkout.sql'), 'utf8');
+    const schema = fs.readFileSync(path.resolve(__dirname, '../db/neon-schema.sql'), 'utf8');
     assert.ok(migration.includes('quick_access_token_hash'));
     assert.ok(migration.includes('quick_temp_password_encrypted'));
     assert.ok(!migration.includes('quick_access_token TEXT'));
     assert.ok(!migration.includes('quick_temp_password TEXT'));
+    assert.ok(schema.indexOf('ADD COLUMN IF NOT EXISTS quick_access_token_hash') < schema.indexOf('idx_payment_orders_quick_access_token'));
+});
+
+test('local database failures return a useful setup instruction', () => {
+    assert.match(
+        quick._helpers.requestFailure(new Error('password authentication failed for user "founders"')),
+        /npm run stack:setup/i
+    );
 });
 
 console.log(`\nAll ${passed} quick-reservation tests passed.`);

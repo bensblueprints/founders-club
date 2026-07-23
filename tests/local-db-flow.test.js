@@ -1,5 +1,5 @@
 // Run with a disposable local Postgres database:
-// DATABASE_URL=postgresql://founders:founders@localhost:5432/founders_club \
+// DATABASE_URL=postgresql://founders:founders@localhost:55432/founders_club \
 // DB_DRIVER=pg SESSION_SECRET=local-test-secret ADMIN_TOKEN=local-admin npm run test:integration
 
 const assert = require('assert');

@@ -46,6 +46,18 @@ function validEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function requestFailure(error) {
+    const message = String(error?.message || '');
+    const local = process.env.NODE_ENV !== 'production';
+    if (local && /password authentication failed|ECONNREFUSED|connect ECONN/i.test(message)) {
+        return 'Could not connect to the local database. Run npm run stack:setup, then restart the Next.js server.';
+    }
+    if (/quick_access_token_hash|quick_checkout|quick_temp_password_encrypted/i.test(message)) {
+        return 'The quick-checkout database migration has not been applied.';
+    }
+    return 'Could not process the quick reservation.';
+}
+
 function publicEvent(row) {
     return {
         id: row.event_id,
@@ -362,8 +374,8 @@ exports.handler = async (event) => {
         return json(400, { error: 'Unknown quick reservation action.' });
     } catch (error) {
         console.error('[quick-reservation] request failed:', error.message);
-        return json(500, { error: 'Could not process the quick reservation.' });
+        return json(500, { error: requestFailure(error) });
     }
 };
 
-exports._helpers = { normalizeEmail, splitName, tokenHash, validEmail };
+exports._helpers = { normalizeEmail, splitName, tokenHash, validEmail, requestFailure };
